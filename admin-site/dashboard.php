@@ -117,4 +117,8 @@ $recent_bookings = [
     </div>
 </main>
 
+
+
+
+
 <?php require_once 'includes/footer.php'; ?>
