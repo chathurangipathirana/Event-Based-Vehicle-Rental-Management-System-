@@ -21,7 +21,7 @@ $eventTypes = $stmtEvent->fetchAll();
             <a class="text-gray-600 dark:text-gray-400 font-medium hover:text-red-500 transition-colors duration-200" href="#events">Events</a>
             <a class="text-gray-600 dark:text-gray-400 font-medium hover:text-red-500 transition-colors duration-200" href="#vehicles">Vehicles</a>
             <?php if (isLoggedIn()): ?>
-                <a class="text-gray-600 dark:text-gray-400 font-medium hover:text-red-500 transition-colors duration-200" href="dashboard.php">Dashboard</a>
+                <a class="text-gray-600 dark:text-gray-500 font-medium hover:text-red-500 transition-colors duration-200" href="dashboard.php">Dashboard</a>
                 <a class="text-gray-600 dark:text-gray-400 font-medium hover:text-red-500 transition-colors duration-200" href="my-bookings.php">My Bookings</a>
                 <a class="bg-primary text-on-primary px-6 py-2 font-bold text-label-md rounded active:scale-95 duration-150 transition-transform" href="logout.php">Logout</a>
             <?php else: ?>
