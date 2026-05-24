@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS vehicles (
     year INT,
     license_plate VARCHAR(20) UNIQUE,
     vin_number VARCHAR(50),
-    price_per_day DECIMAL(10,2),
-    price_per_hour DECIMAL(10,2),
+    price_per_day DECIMAL(15,2)  DEFAULT 0,
+    price_per_hour DECIMAL(15,2) DEFAULT 0,
     status ENUM('available', 'booked', 'maintenance') DEFAULT 'available',
     category VARCHAR(50),
     capacity INT DEFAULT 4,
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS event_packages (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(100) NOT NULL,
     description TEXT,
-    base_price DECIMAL(10,2) NOT NULL,
+    base_price DECIMAL(15,2) NOT NULL,
     included_services TEXT,
     vehicle_types VARCHAR(255),
     status ENUM('active', 'draft', 'archived') DEFAULT 'draft',
@@ -139,9 +139,9 @@ CREATE TABLE IF NOT EXISTS invoices (
     booking_id INT,
     client_name VARCHAR(100) NOT NULL,
     client_email VARCHAR(100) NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    tax DECIMAL(10,2) DEFAULT 0,
-    total_amount DECIMAL(10,2) NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    tax DECIMAL(15,2) DEFAULT 0,
+    total_amount DECIMAL(15,2) NOT NULL,
     status ENUM('paid', 'pending', 'overdue', 'sent', 'cancelled') DEFAULT 'pending',
     issue_date DATE,
     due_date DATE,
@@ -158,8 +158,8 @@ CREATE TABLE IF NOT EXISTS invoice_items (
     invoice_id INT NOT NULL,
     description VARCHAR(255) NOT NULL,
     quantity INT DEFAULT 1,
-    unit_price DECIMAL(10,2) NOT NULL,
-    total DECIMAL(10,2) NOT NULL,
+    unit_price DECIMAL(15,2) NOT NULL,
+    total DECIMAL(15,2) NOT NULL,
     FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
 );
 
@@ -169,7 +169,7 @@ CREATE TABLE IF NOT EXISTS invoice_items (
 CREATE TABLE IF NOT EXISTS payments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     invoice_id INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
     payment_method ENUM('credit_card', 'bank_transfer', 'cash') DEFAULT 'credit_card',
     transaction_id VARCHAR(100),
     status ENUM('completed', 'pending', 'failed') DEFAULT 'completed',
@@ -191,14 +191,22 @@ CREATE TABLE IF NOT EXISTS bookings (
     pickup_location TEXT,
     dropoff_location TEXT,
     total_hours INT,
-    subtotal DECIMAL(10,2),
-    tax DECIMAL(10,2),
-    total_amount DECIMAL(10,2),
+    subtotal DECIMAL(15,2) DEFAULT 0,
+    tax DECIMAL(15,2)  DEFAULT 0,
+    total_amount DECIMAL(15,2)  DEFAULT 0,
     status ENUM('pending', 'confirmed', 'in_progress', 'completed', 'cancelled') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL,
     FOREIGN KEY (event_type_id) REFERENCES event_types(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS settings (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    setting_key VARCHAR(100) UNIQUE NOT NULL,
+    setting_value TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- ======================================================
@@ -217,43 +225,61 @@ INSERT INTO event_types (name, slug, description, sort_order) VALUES
 
 -- Insert Vehicles
 INSERT INTO vehicles (name, model, license_plate, price_per_day, status, category) VALUES
-('Porsche 911 GT3', '992', 'FLT-001', 850, 'available', 'Sports'),
-('Range Rover SV', 'L405', 'FLT-002', 680, 'available', 'Luxury SUV'),
-('Mercedes S-Class', 'W223', 'FLT-003', 520, 'available', 'Luxury'),
-('BMW 7 Series', 'G70', 'FLT-004', 450, 'maintenance', 'Executive'),
-('Tesla Model S', 'Plaid', 'FLT-005', 380, 'available', 'Electric');
+('Porsche 911 GT3', '992', 'FLT-001', 250750 , 'available', 'Sports'),
+('Range Rover SV', 'L405', 'FLT-002', 200600, 'available', 'Luxury SUV'),
+('Mercedes S-Class', 'W223', 'FLT-003', 153400, 'available', 'Luxury'),
+('BMW 7 Series', 'G70', 'FLT-004', 132750, 'maintenance', 'Executive'),
+('Tesla Model S', 'Plaid', 'FLT-005', 112100, 'available', 'Electric');
 
 -- Insert Drivers
 INSERT INTO drivers (name, email, phone, rating, status) VALUES
-('Marcus Vance', 'marcus@fleetelite.com', '+1 (555) 123-4567', 4.98, 'available'),
-('Sarah Jennings', 'sarah@fleetelite.com', '+1 (555) 234-5678', 4.95, 'available'),
-('David Chen', 'david@fleetelite.com', '+1 (555) 345-6789', 4.92, 'available');
+('Sunil Perera', 'sunil@fleetelite.com', '+94 77 123 4567', 4.98, 'available'),
+('Kumari Silva', 'kumari@fleetelite.com', '+94 71 234 5678', 4.95, 'available'),
+('Chaminda Bandara', 'chaminda@fleetelite.com', '+94 76 345 6789', 4.92, 'available');
 
 -- Insert Event Packages
 INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status) VALUES
-('Wedding Premium', 'Ultimate luxury for weddings', 2500, '3 Sedans + Limousine,8-Hour Service', 'Sedan,Limousine', 'active'),
-('Business Pro', 'Corporate logistics', 1800, '5 SUVs,Airport Transfer', 'SUV', 'active'),
-('Gala Elite', 'Premium gala package', 3200, 'Red Carpet Service,VIP Coordination', 'Sedan,Limo,Bus', 'active');
+('Wedding Premium', 'Ultimate luxury for weddings', 737500, '3 Sedans + Limousine,8-Hour Service', 'Sedan,Limousine', 'active'),
+('Business Pro', 'Corporate logistics', 531000, '5 SUVs,Airport Transfer', 'SUV', 'active'),
+('Gala Elite', 'Premium gala package',  944000, 'Red Carpet Service,VIP Coordination', 'Sedan,Limo,Bus', 'active');
 
 -- Insert Sample Invoices
 INSERT INTO invoices (invoice_number, client_name, client_email, amount, tax, total_amount, status, issue_date, due_date, description) VALUES
-('INV-8842', 'Luxury Events Ltd', 'billing@luxuryevents.com', 3850.00, 385.00, 4235.00, 'paid', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Wedding services'),
-('INV-8843', 'Global Logistics Co', 'accounts@globallogistics.com', 1718.18, 171.82, 1890.00, 'pending', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Corporate transport'),
-('INV-8844', 'Premiere Rentals', 'finance@premiererentals.com', 768.64, 76.86, 845.50, 'overdue', DATE_SUB(CURDATE(), INTERVAL 20 DAY), CURDATE(), 'Equipment transport');
+('INV-8842', 'Luxury Events Ltd', 'billing@luxuryevents.com', 1135750, 113575, 1249325, 'paid', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Wedding services'),
+('INV-8843', 'Global Logistics Co', 'accounts@globallogistics.com', 506863, 50686, 557549, 'pending', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Corporate transport'),
+('INV-8844', 'Premiere Rentals', 'finance@premiererentals.com', 226748, 22675, 249423, 'overdue', DATE_SUB(CURDATE(), INTERVAL 20 DAY), CURDATE(), 'Equipment transport');
 
 -- Insert Invoice Items
 INSERT INTO invoice_items (invoice_id, description, quantity, unit_price, total) VALUES
-(1, 'Luxury Sedan Rental', 8, 350.00, 2800.00),
-(1, 'Stretch Limousine', 2, 450.00, 900.00),
-(1, 'Chauffeur Service', 12, 50.00, 600.00),
-(2, 'Executive SUV Rental', 5, 300.00, 1500.00),
-(2, 'Airport Transfer Fee', 5, 43.64, 218.18);
+(1, 'Luxury Sedan Rental', 8, 103250, 826000),
+(1, 'Stretch Limousine', 2, 132750, 265500),
+(1, 'Chauffeur Service', 12, 14750, 177000),
+(2, 'Executive SUV Rental', 5, 88500, 442500),
+(2, 'Airport Transfer Fee', 5, 12873, 64365);
 
 -- Insert sample bookings
 INSERT INTO bookings (booking_number, user_id, vehicle_id, event_type_id, event_name, event_date, start_time, end_time, total_amount, status) VALUES
-('BK-9021', 1, 3, 2, 'Starlight Corporate Gala', '2024-10-24', '18:00:00', '23:30:00', 1250.00, 'in_progress'),
-('BK-8842', 2, 1, 1, 'Harrison Wedding', '2024-10-26', '14:00:00', '20:00:00', 2800.00, 'confirmed'),
-('BK-9105', 1, 5, 2, 'VIP Airport Transfer', '2024-10-24', '06:30:00', '08:00:00', 450.00, 'pending'),
-('BK-7721', 2, 2, 2, 'Tech Summit Logistics', '2024-10-22', '09:00:00', '17:00:00', 3200.00, 'completed');
+('BK-9021', 1, 3, 2, 'Colombo Corporate Gala', '2024-10-24', '18:00:00', '23:30:00', 368750, 'in_progress'),
+('BK-8842', 2, 1, 1, 'Kandy Royal Wedding', '2024-10-26', '14:00:00', '20:00:00', 826000, 'confirmed'),
+('BK-9105', 1, 5, 2, 'BIA Airport Transfer', '2024-10-24', '06:30:00', '08:00:00', 132750, 'pending'),
+('BK-7721', 2, 2, 2, 'Tech Summit Logistics', '2024-10-22', '09:00:00', '17:00:00', 944000, 'completed');
 
-SELECT 'Database setup completed successfully!' as Status;
+SELECT 'Database setup completed successfully! (Prices in Sri Lankan Rupees - LKR)' as Status;
+
+-- Insert default settings (Sri Lankan Rupees)
+INSERT INTO settings (setting_key, setting_value) VALUES
+('company_name', 'FleetElite Logistics (Pvt) Ltd'),
+('company_email', 'info@fleetelite.com'),
+('company_phone', '+94 11 234 5678'),
+('company_address', 'No. 123, Galle Road, Colombo 03, Sri Lanka'),
+('currency', 'LKR'),
+('currency_symbol', 'Rs.'),
+('timezone', 'Asia/Colombo'),
+('date_format', 'Y-m-d'),
+('tax_rate', '10.00'),
+('mon_fri_start', '08:00'),
+('mon_fri_end', '18:00'),
+('sat_start', '10:00'),
+('sat_end', '15:00'),
+('sun_status', 'closed')
+ON DUPLICATE KEY UPDATE setting_key = setting_key;

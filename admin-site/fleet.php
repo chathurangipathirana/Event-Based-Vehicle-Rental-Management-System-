@@ -3,12 +3,14 @@ $page_title = 'Fleet Management';
 require_once 'includes/auth.php';
 requireAdminLogin();
 
+// Vehicle prices converted to Sri Lankan Rupees (LKR)
+// Conversion rate: 1 USD = 295 LKR
 $vehicles = [
-    ['id' => 1, 'name' => 'Porsche 911 GT3', 'model' => '992', 'plate' => 'FLT-001', 'price' => 850, 'status' => 'available', 'category' => 'Sports', 'vin' => 'FLT-8829-PX'],
-    ['id' => 2, 'name' => 'Range Rover SV', 'model' => 'L405', 'plate' => 'FLT-002', 'price' => 680, 'status' => 'booked', 'category' => 'Luxury SUV', 'vin' => 'FLT-1142-RR'],
-    ['id' => 3, 'name' => 'BMW 7 Series', 'model' => 'G70', 'plate' => 'FLT-003', 'price' => 450, 'status' => 'maintenance', 'category' => 'Executive Sedan', 'vin' => 'FLT-5510-BM'],
-    ['id' => 4, 'name' => 'Mercedes S-Class', 'model' => 'W223', 'plate' => 'FLT-004', 'price' => 520, 'status' => 'available', 'category' => 'Luxury', 'vin' => 'FLT-4432-MB'],
-    ['id' => 5, 'name' => 'Tesla Model S', 'model' => 'Plaid', 'plate' => 'FLT-005', 'price' => 380, 'status' => 'available', 'category' => 'Electric', 'vin' => 'FLT-9912-TS'],
+    ['id' => 1, 'name' => 'Porsche 911 GT3', 'model' => '992', 'plate' => 'FLT-001', 'price' => 850 * 295, 'status' => 'available', 'category' => 'Sports', 'vin' => 'FLT-8829-PX'],      // Rs. 250,750
+    ['id' => 2, 'name' => 'Range Rover SV', 'model' => 'L405', 'plate' => 'FLT-002', 'price' => 680 * 295, 'status' => 'booked', 'category' => 'Luxury SUV', 'vin' => 'FLT-1142-RR'],        // Rs. 200,600
+    ['id' => 3, 'name' => 'BMW 7 Series', 'model' => 'G70', 'plate' => 'FLT-003', 'price' => 450 * 295, 'status' => 'maintenance', 'category' => 'Executive Sedan', 'vin' => 'FLT-5510-BM'],   // Rs. 132,750
+    ['id' => 4, 'name' => 'Mercedes S-Class', 'model' => 'W223', 'plate' => 'FLT-004', 'price' => 520 * 295, 'status' => 'available', 'category' => 'Luxury', 'vin' => 'FLT-4432-MB'],        // Rs. 153,400
+    ['id' => 5, 'name' => 'Tesla Model S', 'model' => 'Plaid', 'plate' => 'FLT-005', 'price' => 380 * 295, 'status' => 'available', 'category' => 'Electric', 'vin' => 'FLT-9912-TS'],         // Rs. 112,100
 ];
 
 $total_fleet = count($vehicles);
@@ -140,7 +142,7 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
                                     <?php echo ucfirst($vehicle['status']); ?>
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-right font-bold text-red-600">$<?php echo $vehicle['price']; ?></td>
+                            <td class="px-6 py-4 text-right font-bold text-red-600">Rs. <?php echo number_format($vehicle['price']); ?></td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex justify-center items-center space-x-2">
                                     <button onclick="editVehicle(<?php echo htmlspecialchars(json_encode($vehicle)); ?>)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition">
@@ -172,7 +174,7 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
                 <div><input type="text" id="vehicleModel" placeholder="Model" class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="text" id="vehiclePlate" placeholder="License Plate" class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="text" id="vehicleVin" placeholder="VIN Number" class="w-full px-3 py-2 border rounded-lg"></div>
-                <div><input type="number" id="vehiclePrice" placeholder="Daily Rate ($)" class="w-full px-3 py-2 border rounded-lg"></div>
+                <div><input type="number" id="vehiclePrice" placeholder="Daily Rate (Rs.)" class="w-full px-3 py-2 border rounded-lg"></div>
                 <div>
                     <select id="vehicleCategory" class="w-full px-3 py-2 border rounded-lg">
                         <option value="Sports">Sports Performance</option>

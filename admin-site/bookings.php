@@ -217,7 +217,7 @@ try {
                             <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Amount</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest">Status</th>
                             <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
-                        </table>
+                        </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100" id="bookingsTable">
                         <?php if (!empty($bookings)): ?>
@@ -248,7 +248,7 @@ try {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm font-bold text-gray-900">$<?php echo number_format($booking['total_amount'], 2); ?></span>
+                                    <span class="text-sm font-bold text-gray-900">Rs. <?php echo number_format($booking['total_amount'], 2); ?></span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <?php
