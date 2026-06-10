@@ -3,10 +3,12 @@ $page_title = 'Booking Approvals';
 require_once 'includes/auth.php';
 requireAdminLogin();
 
+// Amounts converted to Sri Lankan Rupees (LKR)
+// Conversion rate: 1 USD = 295 LKR
 $pending_bookings = [
-    ['id' => 1, 'number' => '#FE-8821', 'customer' => 'Global Horizon Events', 'vehicle' => 'Mercedes S-Class', 'event' => 'Corporate Gala', 'amount' => 2450, 'date' => 'Oct 24', 'priority' => 'high'],
-    ['id' => 2, 'number' => '#FE-8819', 'customer' => 'Vanguard Logistics', 'vehicle' => 'Freightliner M2', 'event' => 'Logistics', 'amount' => 2840, 'date' => 'Oct 23', 'priority' => 'normal'],
-    ['id' => 3, 'number' => '#FE-8790', 'customer' => 'Artisan Catering', 'vehicle' => 'Ford Transit', 'event' => 'Catering', 'amount' => 820, 'date' => 'Oct 22', 'priority' => 'normal'],
+    ['id' => 1, 'number' => '#FE-8821', 'customer' => 'Global Horizon Events', 'vehicle' => 'Mercedes S-Class', 'event' => 'Corporate Gala', 'amount' => 2450 * 295, 'date' => 'Oct 24', 'priority' => 'high'],   // LKR 722,750
+    ['id' => 2, 'number' => '#FE-8819', 'customer' => 'Vanguard Logistics', 'vehicle' => 'Freightliner M2', 'event' => 'Logistics', 'amount' => 2840 * 295, 'date' => 'Oct 23', 'priority' => 'normal'],   // LKR 837,800
+    ['id' => 3, 'number' => '#FE-8790', 'customer' => 'Artisan Catering', 'vehicle' => 'Ford Transit', 'event' => 'Catering', 'amount' => 820 * 295, 'date' => 'Oct 22', 'priority' => 'normal'],     // LKR 241,900
 ];
 
 $available_vehicles = [
@@ -116,7 +118,7 @@ $urgent_count = 2;
                                     <p class="text-sm text-gray-500"><?php echo $booking['number']; ?> • Submitted 2h ago</p>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-2xl font-bold text-gray-900">$<?php echo number_format($booking['amount'], 2); ?></p>
+                                    <p class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($booking['amount'], 2); ?></p>
                                     <p class="text-xs text-gray-500">Total Revenue</p>
                                 </div>
                             </div>

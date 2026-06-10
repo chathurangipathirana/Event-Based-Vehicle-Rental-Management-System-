@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'company_phone' => $_POST['company_phone'] ?? '+94 11 234 5678',
             'company_address' => $_POST['company_address'] ?? '',
             'currency' => $_POST['currency'] ?? 'LKR',
-            'currency_symbol' => $_POST['currency_symbol'] ?? 'Rs.',
+            'currency_symbol' => $_POST['currency_symbol'] ?? 'LKR',
             'timezone' => $_POST['timezone'] ?? 'Asia/Colombo',
             'date_format' => $_POST['date_format'] ?? 'Y-m-d',
             'tax_rate' => $_POST['tax_rate'] ?? 10.00,
@@ -57,7 +57,7 @@ $company_email = $settings['company_email'] ?? 'info@fleetelite.com';
 $company_phone = $settings['company_phone'] ?? '+94 11 234 5678';
 $company_address = $settings['company_address'] ?? '';
 $currency = $settings['currency'] ?? 'LKR';
-$currency_symbol = $settings['currency_symbol'] ?? 'Rs.';
+$currency_symbol = $settings['currency_symbol'] ?? 'LKR';
 $timezone = $settings['timezone'] ?? 'Asia/Colombo';
 $date_format = $settings['date_format'] ?? 'Y-m-d';
 $tax_rate = $settings['tax_rate'] ?? 10.00;
@@ -227,7 +227,7 @@ $sun_status = $settings['sun_status'] ?? 'closed';
                         <div class="space-y-2">
                             <label class="block text-sm font-medium text-gray-500">Default Currency</label>
                             <select name="currency" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 outline-none">
-                                <option value="LKR" <?php echo $currency == 'LKR' ? 'selected' : ''; ?>>LKR - Sri Lankan Rupee (Rs.)</option>
+                                <option value="LKR" <?php echo $currency == 'LKR' ? 'selected' : ''; ?>>LKR - Sri Lankan Rupee (LKR)</option>
                                 <option value="USD" <?php echo $currency == 'USD' ? 'selected' : ''; ?>>USD - US Dollar ($)</option>
                                 <option value="EUR" <?php echo $currency == 'EUR' ? 'selected' : ''; ?>>EUR - Euro (€)</option>
                                 <option value="GBP" <?php echo $currency == 'GBP' ? 'selected' : ''; ?>>GBP - British Pound (£)</option>

@@ -221,15 +221,15 @@ INSERT INTO admin_users (username, email, password, full_name, role) VALUES
 INSERT INTO event_types (name, slug, description, sort_order) VALUES
 ('Wedding', 'wedding', 'Timeless elegance for special occasions', 1),
 ('Business', 'business', 'Executive logistics for corporate events', 2),
-('Tours', 'tours', 'Group travel and sightseeing', 3);
+('Tours', 'tours', 'Group travel and sightseeing', 3);Q
 
 -- Insert Vehicles
-INSERT INTO vehicles (name, model, license_plate, price_per_day, status, category) VALUES
-('Porsche 911 GT3', '992', 'FLT-001', 250750 , 'available', 'Sports'),
-('Range Rover SV', 'L405', 'FLT-002', 200600, 'available', 'Luxury SUV'),
-('Mercedes S-Class', 'W223', 'FLT-003', 153400, 'available', 'Luxury'),
-('BMW 7 Series', 'G70', 'FLT-004', 132750, 'maintenance', 'Executive'),
-('Tesla Model S', 'Plaid', 'FLT-005', 112100, 'available', 'Electric');
+INSERT INTO vehicles (name, model, license_plate, vin_number, price_per_day, price_per_hour, status, category, capacity, transmission, fuel_type) VALUES
+('Porsche 911 GT3', '992', 'FLT-001', 'FLT-8829-PX', 850, 95, 'available', 'Sports', 2, 'Automatic', 'Petrol'),
+('Range Rover SV', 'L405', 'FLT-002', 'FLT-1142-RR', 680, 75, 'available', 'Luxury SUV', 5, 'Automatic', 'Petrol'),
+('BMW 7 Series', 'G70', 'FLT-003', 'FLT-5510-BM', 450, 50, 'maintenance', 'Executive', 5, 'Automatic', 'Petrol'),
+('Mercedes S-Class', 'W223', 'FLT-004', 'FLT-4432-MB', 520, 58, 'available', 'Luxury', 4, 'Automatic', 'Petrol'),
+('Tesla Model S', 'Plaid', 'FLT-005', 'FLT-9912-TS', 380, 42, 'available', 'Electric', 5, 'Automatic', 'Electric');
 
 -- Insert Drivers
 INSERT INTO drivers (name, email, phone, rating, status) VALUES
@@ -273,7 +273,7 @@ INSERT INTO settings (setting_key, setting_value) VALUES
 ('company_phone', '+94 11 234 5678'),
 ('company_address', 'No. 123, Galle Road, Colombo 03, Sri Lanka'),
 ('currency', 'LKR'),
-('currency_symbol', 'Rs.'),
+('currency_symbol', 'LKR'),
 ('timezone', 'Asia/Colombo'),
 ('date_format', 'Y-m-d'),
 ('tax_rate', '10.00'),

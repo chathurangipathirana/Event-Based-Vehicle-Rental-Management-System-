@@ -110,13 +110,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
 <span class="text-xs font-bold text-gray-400 uppercase">Total Revenue</span>
 <div class="mt-2">
-<span class="text-2xl font-bold text-gray-900">$<?php echo number_format($total_revenue, 2); ?></span>
+<span class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($total_revenue, 2); ?></span>
 </div>
 </div>
 <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
 <span class="text-xs font-bold text-gray-400 uppercase">Outstanding</span>
 <div class="mt-2">
-<span class="text-2xl font-bold text-gray-900">$<?php echo number_format($outstanding, 2); ?></span>
+<span class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($outstanding, 2); ?></span>
 </div>
 </div>
 <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </span>
 </div>
 <div class="flex justify-between items-center">
-<span class="text-xl font-bold text-gray-900">$<?php echo number_format($invoice['total_amount'], 2); ?></span>
+<span class="text-xl font-bold text-gray-900">LKR <?php echo number_format($invoice['total_amount'], 2); ?></span>
 <div class="flex gap-2">
 <?php if ($invoice['status'] != 'paid'): ?>
 <button onclick="markAsPaid(<?php echo $invoice['id']; ?>)" class="w-9 h-9 bg-green-50 text-green-600 rounded-lg hover:bg-green-100">✓</button>
@@ -177,7 +177,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" class="p-6 space-y-4">
             <input type="text" name="client_name" placeholder="Client Name" required class="w-full px-3 py-2 border rounded-lg">
             <input type="email" name="client_email" placeholder="Client Email" required class="w-full px-3 py-2 border rounded-lg">
-            <input type="number" step="0.01" name="amount" placeholder="Amount" required class="w-full px-3 py-2 border rounded-lg">
+            <input type="number" step="0.01" name="amount" placeholder="Amount (LKR)" required class="w-full px-3 py-2 border rounded-lg">
             <input type="date" name="due_date" class="w-full px-3 py-2 border rounded-lg">
             <textarea name="description" rows="3" placeholder="Description" class="w-full px-3 py-2 border rounded-lg"></textarea>
             <div class="flex gap-3">

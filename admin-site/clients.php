@@ -222,7 +222,7 @@ if ($selected_client_id) {
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Revenue from Top 10%</span>
-                <h2 class="text-4xl font-bold mt-2">$<?php echo number_format($top10_revenue, 0); ?></h2>
+                <h2 class="text-4xl font-bold mt-2">LKR <?php echo number_format($top10_revenue, 0); ?></h2>
                 <div class="mt-4 flex items-center text-green-600 text-xs font-bold">
                     <span class="material-symbols-outlined mr-1 text-sm">payments</span>
                     <span>Account concentration high</span>
@@ -356,7 +356,7 @@ if ($selected_client_id) {
                                     <p class="text-xs text-red-800 font-bold uppercase">Outstanding Balance</p>
                                     <span class="material-symbols-outlined text-red-600">warning</span>
                                 </div>
-                                <p class="text-3xl font-bold text-red-800 mt-1">$<?php echo number_format($selected_client['outstanding_balance'] ?? 0, 2); ?></p>
+                                <p class="text-3xl font-bold text-red-800 mt-1">LKR <?php echo number_format($selected_client['outstanding_balance'] ?? 0, 2); ?></p>
                             </div>
                         </div>
                         <div class="mt-8 grid grid-cols-2 gap-3">

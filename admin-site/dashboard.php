@@ -7,7 +7,7 @@ requireAdminLogin();
 // Conversion rate: 1 USD = 295 LKR
 $stats = [
     'total_bookings' => 1284,
-    'revenue' => 248600 * 295,  // $248,600 × 295 = Rs. 73,337,000
+    'revenue' => 248600 * 295,  // $248,600 × 295 = LKR 73,337,000
     'active_vehicles' => 42,
     'pending_approvals' => 14,
     'total_vehicles' => 50,
@@ -16,10 +16,10 @@ $stats = [
 
 // Recent bookings with amounts converted to LKR
 $recent_bookings = [
-    ['id' => '#FE-8821', 'customer' => 'Global Horizon Events', 'event' => 'Corporate Gala', 'vehicle' => 'Mercedes S-Class', 'amount' => 1450 * 295, 'status' => 'pending', 'date' => 'Oct 24'],   // Rs. 427,750
-    ['id' => '#FE-8819', 'customer' => 'Vanguard Logistics', 'event' => 'Logistics Contract', 'vehicle' => 'Freightliner M2', 'amount' => 2840 * 295, 'status' => 'pending', 'date' => 'Oct 23'],   // Rs. 837,800
-    ['id' => '#FE-8790', 'customer' => 'Artisan Catering Co.', 'event' => 'Catering Delivery', 'vehicle' => 'Ford Transit Van', 'amount' => 820 * 295, 'status' => 'completed', 'date' => 'Oct 22'],   // Rs. 241,900
-    ['id' => '#FE-8785', 'customer' => 'Summit Tech', 'event' => 'Tech Conference', 'vehicle' => 'Audi Q8', 'amount' => 1100 * 295, 'status' => 'confirmed', 'date' => 'Oct 21'],   // Rs. 324,500
+    ['id' => '#FE-8821', 'customer' => 'Global Horizon Events', 'event' => 'Corporate Gala', 'vehicle' => 'Mercedes S-Class', 'amount' => 1450 * 295, 'status' => 'pending', 'date' => 'Oct 24'],   // LKR 427,750
+    ['id' => '#FE-8819', 'customer' => 'Vanguard Logistics', 'event' => 'Logistics Contract', 'vehicle' => 'Freightliner M2', 'amount' => 2840 * 295, 'status' => 'pending', 'date' => 'Oct 23'],   // LKR 837,800
+    ['id' => '#FE-8790', 'customer' => 'Artisan Catering Co.', 'event' => 'Catering Delivery', 'vehicle' => 'Ford Transit Van', 'amount' => 820 * 295, 'status' => 'completed', 'date' => 'Oct 22'],   // LKR 241,900
+    ['id' => '#FE-8785', 'customer' => 'Summit Tech', 'event' => 'Tech Conference', 'vehicle' => 'Audi Q8', 'amount' => 1100 * 295, 'status' => 'confirmed', 'date' => 'Oct 21'],   // LKR 324,500
 ];
 ?>
 
@@ -50,7 +50,7 @@ $recent_bookings = [
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm text-gray-500 uppercase">Revenue</p>
-                        <p class="text-3xl font-bold text-green-600">Rs. <?php echo number_format($stats['revenue']); ?></p>
+                        <p class="text-3xl font-bold text-green-600">LKR <?php echo number_format($stats['revenue']); ?></p>
                         <p class="text-xs text-green-600 mt-1">+8.4% from last month</p>
                     </div>
                     <span class="material-symbols-outlined text-3xl text-gray-400">payments</span>
@@ -102,7 +102,7 @@ $recent_bookings = [
                             <td class="px-6 py-4 font-medium"><?php echo $booking['id']; ?></td>
                             <td class="px-6 py-4"><?php echo $booking['customer']; ?></td>
                             <td class="px-6 py-4"><?php echo $booking['vehicle']; ?></td>
-                            <td class="px-6 py-4">Rs. <?php echo number_format($booking['amount'], 2); ?></td>
+                            <td class="px-6 py-4">LKR <?php echo number_format($booking['amount'], 2); ?></td>
                             <td class="px-6 py-4"><?php echo $booking['date']; ?></td>
                             <td class="px-6 py-4">
                                 <span class="px-2 py-1 text-xs rounded-full <?php 

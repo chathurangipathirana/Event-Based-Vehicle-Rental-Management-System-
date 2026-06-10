@@ -3,10 +3,12 @@ $page_title = 'Event Packages';
 require_once 'includes/auth.php';
 requireAdminLogin();
 
+// Package prices converted to Sri Lankan Rupees (LKR)
+// Conversion rate: 1 USD = 295 LKR
 $packages = [
-    ['id' => 1, 'name' => 'Wedding Premium', 'price' => 2500, 'description' => 'The ultimate luxury experience for high-profile weddings.', 'services' => '3 Luxury Sedans + 1 Stretch Limousine,8-Hour Chauffeur Service,Champagne & Concierge', 'vehicles' => 'Sedan,Limousine', 'status' => 'active'],
-    ['id' => 2, 'name' => 'Business Pro', 'price' => 1800, 'description' => 'Optimized logistics for corporate summits.', 'services' => '5 Executive SUVs,Airport Transfer Coordination,Real-time Fleet Tracking', 'vehicles' => 'SUV', 'status' => 'active'],
-    ['id' => 3, 'name' => 'Gala Elite', 'price' => 3200, 'description' => 'Premium gala night package with multiple arrival points.', 'services' => 'Red Carpet Service,Multiple Arrival Points,VIP Coordination', 'vehicles' => 'Sedan,Limo,Bus', 'status' => 'draft'],
+    ['id' => 1, 'name' => 'Wedding Premium', 'price' => 2500 * 295, 'description' => 'The ultimate luxury experience for high-profile weddings.', 'services' => '3 Luxury Sedans + 1 Stretch Limousine,8-Hour Chauffeur Service,Champagne & Concierge', 'vehicles' => 'Sedan,Limousine', 'status' => 'active'],   // LKR 737,500
+    ['id' => 2, 'name' => 'Business Pro', 'price' => 1800 * 295, 'description' => 'Optimized logistics for corporate summits.', 'services' => '5 Executive SUVs,Airport Transfer Coordination,Real-time Fleet Tracking', 'vehicles' => 'SUV', 'status' => 'active'],   // LKR 531,000
+    ['id' => 3, 'name' => 'Gala Elite', 'price' => 3200 * 295, 'description' => 'Premium gala night package with multiple arrival points.', 'services' => 'Red Carpet Service,Multiple Arrival Points,VIP Coordination', 'vehicles' => 'Sedan,Limo,Bus', 'status' => 'draft'],   // LKR 944,000
 ];
 
 $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'active'));
@@ -54,7 +56,7 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
                 <div class="h-48 relative overflow-hidden bg-gray-100 flex items-center justify-center">
                     <span class="material-symbols-outlined text-6xl text-gray-400">celebration</span>
                     <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded text-sm text-red-600 shadow-sm">
-                        $<?php echo number_format($package['price'], 0); ?>/BASE
+                        LKR <?php echo number_format($package['price'], 0); ?>/BASE
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -105,7 +107,7 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
                             <input type="text" id="quickName" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500">
                         </div>
                         <div>
-                            <label class="block text-sm text-gray-700 mb-2">Base Price ($)</label>
+                            <label class="block text-sm text-gray-700 mb-2">Base Price (LKR)</label>
                             <input type="number" id="quickPrice" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500">
                         </div>
                         <div>
@@ -162,7 +164,7 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4">$<?php echo number_format($package['price'], 2); ?></td>
+                                <td class="px-6 py-4">LKR <?php echo number_format($package['price'], 2); ?></td>
                                 <td class="px-6 py-4"><?php echo $package['vehicles']; ?></td>
                                 <td class="px-6 py-4 text-sm"><?php echo substr($package['services'], 0, 40); ?>...</td>
                                 <td class="px-6 py-4">
@@ -196,7 +198,7 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
         </div>
         <form class="p-6 space-y-4">
             <input type="text" id="pkgName" placeholder="Package Name" class="w-full px-3 py-2 border rounded-lg">
-            <input type="number" id="pkgPrice" placeholder="Base Price ($)" class="w-full px-3 py-2 border rounded-lg">
+            <input type="number" id="pkgPrice" placeholder="Base Price (LKR)" class="w-full px-3 py-2 border rounded-lg">
             <textarea id="pkgDesc" rows="3" placeholder="Description" class="w-full px-3 py-2 border rounded-lg"></textarea>
             <textarea id="pkgServices" rows="2" placeholder="Included Services (comma separated)" class="w-full px-3 py-2 border rounded-lg"></textarea>
             <input type="text" id="pkgVehicles" placeholder="Vehicle Types (comma separated)" class="w-full px-3 py-2 border rounded-lg">

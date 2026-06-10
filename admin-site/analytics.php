@@ -6,29 +6,29 @@ requireAdminLogin();
 // Mock analytics data (converted to LKR - Sri Lankan Rupees)
 // Conversion rate used: 1 USD = 295 LKR (approximate)
 $total_bookings = 1284;
-$total_revenue = 248600 * 295;  // $248,600 × 295 = Rs. 73,337,000
+$total_revenue = 248600 * 295;  // $248,600 × 295 = LKR 73,337,000
 $active_bookings = 42;
 $fleet_health = 92;
 
 // Weekly data converted to LKR
 $weekly_data = [
-    ['day' => 'Monday', 'count' => 45, 'revenue' => 42500 * 295],   // Rs. 12,537,500
-    ['day' => 'Tuesday', 'count' => 52, 'revenue' => 48900 * 295],  // Rs. 14,425,500
-    ['day' => 'Wednesday', 'count' => 48, 'revenue' => 45100 * 295], // Rs. 13,304,500
-    ['day' => 'Thursday', 'count' => 61, 'revenue' => 57800 * 295],  // Rs. 17,051,000
-    ['day' => 'Friday', 'count' => 73, 'revenue' => 68900 * 295],    // Rs. 20,325,500
-    ['day' => 'Saturday', 'count' => 58, 'revenue' => 54200 * 295],  // Rs. 15,989,000
-    ['day' => 'Sunday', 'count' => 39, 'revenue' => 36800 * 295],    // Rs. 10,856,000
+    ['day' => 'Monday', 'count' => 45, 'revenue' => 42500 * 295],   // LKR 12,537,500
+    ['day' => 'Tuesday', 'count' => 52, 'revenue' => 48900 * 295],  // LKR 14,425,500
+    ['day' => 'Wednesday', 'count' => 48, 'revenue' => 45100 * 295], // LKR 13,304,500
+    ['day' => 'Thursday', 'count' => 61, 'revenue' => 57800 * 295],  // LKR 17,051,000
+    ['day' => 'Friday', 'count' => 73, 'revenue' => 68900 * 295],    // LKR 20,325,500
+    ['day' => 'Saturday', 'count' => 58, 'revenue' => 54200 * 295],  // LKR 15,989,000
+    ['day' => 'Sunday', 'count' => 39, 'revenue' => 36800 * 295],    // LKR 10,856,000
 ];
 
 // Monthly revenue converted to LKR
 $monthly_revenue = [
-    ['month' => 'January', 'revenue' => 185000 * 295],   // Rs. 54,575,000
-    ['month' => 'February', 'revenue' => 192000 * 295],  // Rs. 56,640,000
-    ['month' => 'March', 'revenue' => 210000 * 295],     // Rs. 61,950,000
-    ['month' => 'April', 'revenue' => 225000 * 295],     // Rs. 66,375,000
-    ['month' => 'May', 'revenue' => 248600 * 295],       // Rs. 73,337,000
-    ['month' => 'June', 'revenue' => 267000 * 295],      // Rs. 78,765,000
+    ['month' => 'January', 'revenue' => 185000 * 295],   // LKR 54,575,000
+    ['month' => 'February', 'revenue' => 192000 * 295],  // LKR 56,640,000
+    ['month' => 'March', 'revenue' => 210000 * 295],     // LKR 61,950,000
+    ['month' => 'April', 'revenue' => 225000 * 295],     // LKR 66,375,000
+    ['month' => 'May', 'revenue' => 248600 * 295],       // LKR 73,337,000
+    ['month' => 'June', 'revenue' => 267000 * 295],      // LKR 78,765,000
 ];
 
 $event_distribution = [
@@ -39,10 +39,10 @@ $event_distribution = [
 
 // Popular vehicles revenue converted to LKR
 $popular_vehicles = [
-    ['name' => 'Porsche 911 GT3', 'category' => 'Sports', 'bookings' => 142, 'revenue' => 120700 * 295],   // Rs. 35,606,500
-    ['name' => 'Range Rover SV', 'category' => 'Luxury SUV', 'bookings' => 98, 'revenue' => 66640 * 295],  // Rs. 19,658,800
-    ['name' => 'Mercedes S-Class', 'category' => 'Luxury', 'bookings' => 87, 'revenue' => 45240 * 295],   // Rs. 13,345,800
-    ['name' => 'BMW 7 Series', 'category' => 'Executive', 'bookings' => 76, 'revenue' => 34200 * 295],     // Rs. 10,089,000
+    ['name' => 'Porsche 911 GT3', 'category' => 'Sports', 'bookings' => 142, 'revenue' => 120700 * 295],   // LKR 35,606,500
+    ['name' => 'Range Rover SV', 'category' => 'Luxury SUV', 'bookings' => 98, 'revenue' => 66640 * 295],  // LKR 19,658,800
+    ['name' => 'Mercedes S-Class', 'category' => 'Luxury', 'bookings' => 87, 'revenue' => 45240 * 295],   // LKR 13,345,800
+    ['name' => 'BMW 7 Series', 'category' => 'Executive', 'bookings' => 76, 'revenue' => 34200 * 295],     // LKR 10,089,000
 ];
 ?>
 
@@ -73,7 +73,7 @@ $popular_vehicles = [
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <span class="text-xs font-bold text-gray-400 uppercase">Total Revenue</span>
                 <div class="flex justify-between items-center mt-2">
-                    <span class="text-3xl font-black text-green-600">Rs. <?php echo number_format($total_revenue); ?></span>
+                    <span class="text-3xl font-black text-green-600">LKR <?php echo number_format($total_revenue); ?></span>
                     <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs font-bold">+8.4%</span>
                 </div>
             </div>
@@ -112,7 +112,7 @@ $popular_vehicles = [
                             <div class="w-full bg-red-500 rounded-t-lg transition-all" style="height: <?php echo $height; ?>%"></div>
                         </div>
                         <span class="text-xs text-gray-500 mt-2"><?php echo substr($data['month'], 0, 3); ?></span>
-                        <span class="text-xs font-bold text-gray-700">Rs. <?php echo round($data['revenue'] / 1000); ?>k</span>
+                        <span class="text-xs font-bold text-gray-700">LKR <?php echo round($data['revenue'] / 1000); ?>k</span>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -159,7 +159,7 @@ $popular_vehicles = [
                             <td class="px-6 py-4 font-medium"><?php echo $vehicle['name']; ?></td>
                             <td class="px-6 py-4 text-gray-600"><?php echo $vehicle['category']; ?></td>
                             <td class="px-6 py-4 font-bold"><?php echo $vehicle['bookings']; ?></td>
-                            <td class="px-6 py-4 font-bold text-red-600">Rs. <?php echo number_format($vehicle['revenue']); ?></td>
+                            <td class="px-6 py-4 font-bold text-red-600">LKR <?php echo number_format($vehicle['revenue']); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -178,7 +178,7 @@ $popular_vehicles = [
                     <div class="text-center">
                         <div class="text-2xl font-bold text-gray-900"><?php echo $data['count']; ?></div>
                         <div class="text-xs text-gray-500 mt-1"><?php echo substr($data['day'], 0, 3); ?></div>
-                        <div class="text-xs font-bold text-red-600 mt-1">Rs. <?php echo round($data['revenue'] / 1000); ?>k</div>
+                        <div class="text-xs font-bold text-red-600 mt-1">LKR <?php echo round($data['revenue'] / 1000); ?>k</div>
                     </div>
                     <?php endforeach; ?>
                 </div>

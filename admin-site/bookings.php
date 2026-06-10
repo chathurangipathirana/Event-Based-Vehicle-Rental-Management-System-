@@ -248,7 +248,7 @@ try {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="text-sm font-bold text-gray-900">Rs. <?php echo number_format($booking['total_amount'], 2); ?></span>
+                                    <span class="text-sm font-bold text-gray-900">LKR <?php echo number_format($booking['total_amount'], 2); ?></span>
                                 </td>
                                 <td class="px-6 py-4">
                                     <?php
