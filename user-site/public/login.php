@@ -79,8 +79,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endif; ?>
 
             <div class="flex p-1 bg-surface-container rounded-lg mb-8">
-                <button class="flex-1 py-2 rounded-md font-label-md bg-white shadow-sm text-primary">Login</button>
-                <button class="flex-1 py-2 rounded-md font-label-md text-on-surface-variant">Create Account</button>
+                <a href="login.php" class="flex-1 py-2 rounded-md font-label-md bg-white shadow-sm text-primary text-center">Login</a>
+                <a href="register.php" class="flex-1 py-2 rounded-md font-label-md text-on-surface-variant text-center">Create Account</a>
             </div>
 
             <form method="POST" action="" class="space-y-6">
