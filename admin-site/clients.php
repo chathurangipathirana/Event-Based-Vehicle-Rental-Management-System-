@@ -2,15 +2,7 @@
 $page_title = 'Client Management';
 require_once 'includes/auth.php';
 requireAdminLogin();
-
-// Use absolute path to database config
-$config_path = __DIR__ . '/config/database.php';
-
-if (!file_exists($config_path)) {
-    die("Database config file not found at: " . $config_path);
-}
-
-require_once $config_path;
+require_once 'config/database.php';
 
 // Get all clients from database
 try {
@@ -89,134 +81,34 @@ if ($selected_client_id) {
 }
 ?>
 
-<!DOCTYPE html>
-<html class="light" lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Client Management | FleetAdmin</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<style>
-    .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-    }
-    :root { --surface:#f9f9fa; --surface-low:#f3f4f4; --surface-card:#ffffff; --surface-high:#e7e8e9; --primary:#02414a; --primary-soft:#b8ebf7; --primary-hover:#0d5260; --outline:#c0c8ca; --text:#191c1d; --muted:#40484a; --success:#176a3a; --warning:#8a5200; --danger:#ba1a1a; }
-    body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text); }
-    body > aside { background-color: var(--primary) !important; border-color: var(--primary) !important; color: #fff; }
-    body > aside .text-red-600, body > aside .text-gray-500 { color: rgba(255,255,255,0.72) !important; }
-    body > aside > div:first-child .text-red-600 { color: #fff !important; }
-    body > aside a { color: rgba(255,255,255,0.72) !important; }
-    body > aside a:hover { background-color: rgba(255,255,255,0.08) !important; color: #fff !important; }
-    body > aside a[href="clients.php"] { background-color: rgba(255,255,255,0.10) !important; color: #fff !important; border-right: 4px solid var(--primary-soft); }
-    body > aside .border-t { border-color: rgba(255,255,255,0.12) !important; }
-    .bg-white { background-color: var(--surface-card) !important; }
-    .bg-gray-50, .hover\:bg-gray-50:hover, .hover\:bg-gray-100:hover { background-color: var(--surface-low) !important; }
-    .bg-gray-100, .bg-gray-200 { background-color: var(--surface-high) !important; }
-    .border-gray-100, .border-gray-200, .border-gray-300 { border-color: var(--outline) !important; }
-    .text-gray-900, .text-gray-800, .text-gray-700 { color: var(--text) !important; }
-    .text-gray-600, .text-gray-500, .text-gray-400 { color: var(--muted) !important; }
-    .bg-red-600 { background-color: var(--primary) !important; }
-    .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
-    .hover\:bg-red-700:hover { background-color: var(--primary-hover) !important; }
-    .text-red-600 { color: var(--primary) !important; }
-    [class*="bg-red-"] { background-color: var(--primary) !important; }
-    [class*="text-red-"] { color: var(--primary) !important; }
-    [class*="border-red-"] { border-color: var(--primary-soft) !important; }
-    [class*="hover:bg-red-"]:hover { background-color: var(--primary-hover) !important; }
-    [class*="hover:text-red-"]:hover { color: var(--primary-hover) !important; }
-    .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
-    .text-green-600, .text-green-700 { color: var(--success) !important; }
-    .bg-green-100 { background-color: #dff5e8 !important; }
-    .text-yellow-700, .text-orange-600 { color: var(--warning) !important; }
-    .bg-yellow-100 { background-color: #fff3d6 !important; }
-    .rounded-xl { border-radius: 0.75rem !important; }
-    .rounded-lg { border-radius: 0.5rem !important; }
-    .shadow-lg, .shadow-md, .shadow-sm { box-shadow: 0 10px 24px rgba(25,28,29,0.06) !important; }
-</style>
-</head>
-<body class="text-on-background">
-
-<!-- Sidebar Navigation -->
-<aside class="fixed left-0 top-0 h-screen flex flex-col p-4 space-y-4 w-64 bg-white border-r border-gray-200 z-50">
-    <div class="flex flex-col mb-8 px-2">
-        <span class="text-2xl font-bold text-red-600">FleetAdmin</span>
-        <span class="text-sm text-gray-500">Event Logistics Portal</span>
-    </div>
-    <nav class="flex-1 space-y-2">
-        <a href="dashboard.php" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-100 px-4 py-3 rounded-xl transition-colors duration-200">
-            <span class="material-symbols-outlined">dashboard</span>
-            <span class="text-sm font-medium">Dashboard</span>
-        </a>
-        <a href="fleet.php" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-100 px-4 py-3 rounded-xl transition-colors duration-200">
-            <span class="material-symbols-outlined">directions_car</span>
-            <span class="text-sm font-medium">Fleet</span>
-        </a>
-        <a href="bookings.php" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-100 px-4 py-3 rounded-xl transition-colors duration-200">
-            <span class="material-symbols-outlined">calendar_month</span>
-            <span class="text-sm font-medium">Bookings</span>
-        </a>
-        <a href="clients.php" class="flex items-center space-x-3 bg-red-50 text-red-600 font-bold rounded-xl px-4 py-3 transition-transform">
-            <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
-            <span class="text-sm font-medium">Clients</span>
-        </a>
-        <a href="analytics.php" class="flex items-center space-x-3 text-gray-500 hover:bg-gray-100 px-4 py-3 rounded-xl transition-colors duration-200">
-            <span class="material-symbols-outlined">analytics</span>
-            <span class="text-sm font-medium">Analytics</span>
-        </a>
-    </nav>
-    <a href="new-booking.php" class="bg-red-600 hover:bg-red-700 text-white py-3 px-4 rounded-xl flex items-center justify-center space-x-2 font-bold shadow-sm transition-all active:scale-95">
-        <span class="material-symbols-outlined text-[20px]">add</span>
-        <span class="text-sm">Add New Vehicle</span>
-    </a>
-    <div class="pt-4 border-t border-gray-200 space-y-2">
-        <a href="settings.php" class="flex items-center space-x-3 text-gray-500 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <span class="material-symbols-outlined">settings</span>
-            <span class="text-sm">Settings</span>
-        </a>
-        <a href="logout.php" class="flex items-center space-x-3 text-gray-500 px-4 py-2 rounded-xl hover:bg-gray-100 transition-colors">
-            <span class="material-symbols-outlined">logout</span>
-            <span class="text-sm">Logout</span>
-        </a>
-    </div>
-</aside>
+<?php require_once 'includes/header.php'; ?>
+<?php require_once 'includes/sidebar.php'; ?>
 
 <!-- Main Content Wrapper -->
-<main class="ml-64 min-h-screen flex flex-col">
-    <!-- Top App Bar -->
-    <header class="bg-white shadow-sm sticky top-0 z-40 h-16 w-full px-8 flex justify-between items-center">
-        <div class="flex items-center bg-gray-50 rounded-full px-4 py-2 w-96">
-            <span class="material-symbols-outlined text-gray-400 mr-2">search</span>
-            <input type="text" id="searchClients" class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-gray-400" placeholder="Search clients, accounts, or contacts...">
-        </div>
-        <div class="flex items-center space-x-6">
-            <div class="flex space-x-4">
-                <button class="text-gray-400 hover:bg-gray-100 p-2 rounded-full transition-all">
-                    <span class="material-symbols-outlined">notifications</span>
-                </button>
-            </div>
-            <div class="flex items-center space-x-3 border-l border-gray-200 pl-6">
-                <div class="text-right">
-                    <p class="text-sm font-bold text-gray-900"><?php echo $_SESSION['admin_name'] ?? 'Admin User'; ?></p>
-                    <p class="text-xs text-gray-500">Super Administrator</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-lg">
-                    <?php echo strtoupper(substr($_SESSION['admin_name'] ?? 'A', 0, 2)); ?>
+<main class="ml-64 min-h-screen bg-slate-50 flex flex-col">
+    <div class="p-8 max-w-7xl mx-auto w-full">
+        <section class="rounded-[2rem] overflow-hidden mb-10">
+            <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                    <div class="max-w-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Client Management</h1>
+                        <p class="mt-4 text-slate-300 text-lg leading-8">Manage client accounts, bookings, and operational relationships with precision.</p>
+                    </div>
                 </div>
             </div>
-        </div>
-    </header>
+        </section>
 
-    <!-- Dashboard Content -->
-    <div class="p-10 max-w-7xl mx-auto w-full">
-        <!-- Page Header -->
-        <div class="flex justify-between items-end mb-6">
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Client Management</h1>
-                <p class="text-base text-gray-500 mt-1">Manage and monitor corporate and private fleet accounts.</p>
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-10">
+            <div class="relative max-w-3xl mx-auto">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" id="searchClients" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 text-sm text-slate-700" placeholder="Search clients...">
             </div>
-            <button onclick="openAddClientModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold flex items-center space-x-2 shadow-lg transition-transform active:scale-95">
+        </div>
+
+        <div class="flex justify-end mb-8">
+            <button onclick="openAddClientModal()" class="inline-flex items-center gap-2 px-5 py-3 bg-red-600 text-white rounded-2xl shadow-lg hover:bg-red-700 transition-transform active:scale-95">
                 <span class="material-symbols-outlined">person_add</span>
                 <span class="text-sm">Add New Client</span>
             </button>
@@ -224,45 +116,48 @@ if ($selected_client_id) {
 
         <!-- KPI Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Total Clients</span>
-                <h2 class="text-4xl font-bold mt-2"><?php echo $total_clients; ?></h2>
-                <div class="mt-4 flex items-center text-green-600 text-xs font-bold">
-                    <span class="material-symbols-outlined mr-1 text-sm">trending_up</span>
-                    <span>+12% from last month</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Total Clients</p>
+                    <div class="kpi-value"><?php echo $total_clients; ?></div>
+                    <div class="text-xs text-green-600 mt-1">+12% from last month</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">groups</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Active Corporate Accounts</span>
-                <h2 class="text-4xl font-bold mt-2"><?php echo $active_corporate; ?></h2>
-                <div class="mt-4 flex items-center text-red-600 text-xs font-bold">
-                    <span class="material-symbols-outlined mr-1 text-sm">business</span>
-                    <span>8 new this quarter</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Active Corporate</p>
+                    <div class="kpi-value"><?php echo $active_corporate; ?></div>
+                    <div class="text-xs text-green-600 mt-1">8 new this quarter</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">business</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">VIP/Repeat Clients</span>
-                <h2 class="text-4xl font-bold mt-2"><?php echo $vip_clients; ?></h2>
-                <div class="mt-4 flex items-center text-gray-600 text-xs font-bold">
-                    <span class="material-symbols-outlined mr-1 text-sm">verified</span>
-                    <span>Top tier loyalty</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">VIP/Repeat Clients</p>
+                    <div class="kpi-value"><?php echo $vip_clients; ?></div>
+                    <div class="text-xs text-gray-500 mt-1">Top tier loyalty</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">verified</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-sm font-bold text-gray-400 uppercase tracking-wider">Revenue from Top 10%</span>
-                <h2 class="text-4xl font-bold mt-2">LKR <?php echo number_format($top10_revenue, 0); ?></h2>
-                <div class="mt-4 flex items-center text-green-600 text-xs font-bold">
-                    <span class="material-symbols-outlined mr-1 text-sm">payments</span>
-                    <span>Account concentration high</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Top 10% Revenue</p>
+                    <div style="line-height: 1.1;">
+                        <div class="text-xs font-medium text-gray-600">LKR</div>
+                        <div class="kpi-value"><?php echo number_format($top10_revenue, 0); ?></div>
+                    </div>
+                    <div class="text-xs text-green-600 mt-1">Account concentration high</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
             </div>
         </div>
 
         <!-- Client Directory Table & Sidebar -->
         <div class="grid grid-cols-12 gap-6">
             <!-- Client Directory Table -->
-            <div class="col-span-12 lg:col-span-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <div class="col-span-12 lg:col-span-8 bg-white rounded-xl shadow-sm border border-[#c0c8ca] overflow-hidden">
+                <div class="p-6 border-b border-[#c0c8ca] flex justify-between items-center">
                     <h3 class="text-2xl font-bold">Client Directory</h3>
                     <div class="flex space-x-2">
                         <button onclick="filterClients()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors">Filter</button>
@@ -270,20 +165,59 @@ if ($selected_client_id) {
                     </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left">
+                    <style>
+                        .dashboard-table tbody tr {
+                            transition: all 0.3s ease;
+                            border-left: 3px solid transparent;
+                        }
+                        .dashboard-table tbody tr:nth-child(odd) {
+                            background-color: #fafbfb;
+                        }
+                        .dashboard-table tbody tr:nth-child(even) {
+                            background-color: #f3f4f4;
+                        }
+                        .dashboard-table tbody tr:hover {
+                            background-color: #fff3e0 !important;
+                            border-left-color: #02414a;
+                            box-shadow: 0 4px 12px rgba(2, 65, 74, 0.15);
+                            transform: translateX(2px);
+                        }
+                        .dashboard-table tbody tr:hover td {
+                            box-shadow: inset 0 0 12px rgba(255, 193, 7, 0.2);
+                        }
+                        .dashboard-table td {
+                            transition: all 0.2s ease;
+                            border-right: 1px solid #e0e0e0;
+                        }
+                        .dashboard-table td:hover {
+                            background-color: #ffd54f !important;
+                            font-weight: 600;
+                            box-shadow: inset 0 0 10px rgba(255, 152, 0, 0.3);
+                        }
+                        .dashboard-table thead th {
+                            background-color: #1e293b;
+                            color: #ffffff;
+                            font-weight: 700;
+                            border-right: 1px solid rgba(255,255,255,0.2);
+                        }
+                        .dashboard-table thead th:last-child {
+                            border-right: none;
+                        }
+                    </style>
+                    <table class="w-full dashboard-table">
                         <thead>
-                            <tr class="bg-gray-50 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                <th class="px-6 py-4">Client Name</th>
-                                <th class="px-6 py-4">Account Type</th>
-                                <th class="px-6 py-4">Total Bookings</th>
-                                <th class="px-6 py-4">Last Event</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4">Actions</th>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Client Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Account Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Total Bookings</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Last Event</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Status</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100" id="clientsTable">
+                        <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]" id="clientsTable">
                             <?php foreach ($clients as $client): ?>
-                            <tr class="hover:bg-gray-50 transition-colors cursor-pointer client-row" data-id="<?php echo $client['id']; ?>" data-name="<?php echo strtolower($client['full_name'] . ' ' . $client['company_name']); ?>" onclick="viewClient(<?php echo $client['id']; ?>)">
+                            <tr class="cursor-pointer client-row" data-id="<?php echo $client['id']; ?>" data-name="<?php echo strtolower($client['full_name'] . ' ' . $client['company_name']); ?>" onclick="viewClient(<?php echo $client['id']; ?>)">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
@@ -322,19 +256,17 @@ if ($selected_client_id) {
                     </table>
                 </div>
                 <div class="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
-                    <span class="text-xs text-gray-500 font-medium">Showing 1-<?php echo min(10, count($clients)); ?> of <?php echo count($clients); ?> clients</span>
+                    <span class="text-xs text-gray-500 font-medium">Showing <?php echo count($clients); ?> clients</span>
                     <div class="flex space-x-1">
                         <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 hover:bg-white transition-colors">
                             <span class="material-symbols-outlined text-sm">chevron_left</span>
                         </button>
                         <button class="w-8 h-8 flex items-center justify-center rounded bg-red-600 text-white font-bold text-sm">1</button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 hover:bg-white transition-colors text-sm">2</button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 hover:bg-white transition-colors text-sm">3</button>
                         <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 hover:bg-white transition-colors">
                             <span class="material-symbols-outlined text-sm">chevron_right</span>
                         </button>
                     </div>
-                </div>
+                </div> 
             </div>
 
             <!-- Sidebar Detail (Selected Client) -->
@@ -369,7 +301,7 @@ if ($selected_client_id) {
                                 <div>
                                     <p class="text-xs text-gray-400 font-bold uppercase">Primary Contact</p>
                                     <p class="text-base font-medium"><?php echo htmlspecialchars($selected_client['full_name']); ?></p>
-                                    <p class="text-xs text-gray-500"><?php echo htmlspecialchars($selected_client['phone'] ?: '+1 (555) 000-0000'); ?></p>
+                                    <p class="text-xs text-gray-500"><?php echo htmlspecialchars($selected_client['phone'] ?: '+94 77 123 4567'); ?></p>
                                 </div>
                             </div>
                             <div class="flex items-start space-x-4">
@@ -514,5 +446,4 @@ window.onclick = function(event) {
 }
 </script>
 
-</body>
-</html>
+<?php require_once 'includes/footer.php'; ?>

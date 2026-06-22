@@ -49,50 +49,65 @@ $popular_vehicles = [
 <?php require_once 'includes/header.php'; ?>
 <?php require_once 'includes/sidebar.php'; ?>
 
-<main class="ml-64 min-h-screen p-8">
-    <div class="max-w-7xl mx-auto">
-        <div class="flex justify-between items-end mb-8">
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Fleet Analytics</h1>
-                <p class="text-gray-500 mt-2">Comprehensive performance tracking for FleetElite logistics.</p>
+<main class="ml-64 min-h-screen bg-slate-50">
+    <div class="p-8 max-w-7xl mx-auto">
+        <section class="rounded-[2rem] overflow-hidden mb-10">
+            <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                    <div class="max-w-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Fleet Analytics</h1>
+                        <p class="mt-4 text-slate-300 text-lg leading-8">Comprehensive performance tracking for FleetElite logistics.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button onclick="exportReport()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            Export Report
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button onclick="exportReport()" class="bg-red-600 text-white px-4 py-2 flex items-center gap-2 font-medium hover:bg-red-700 transition rounded-lg">
-                <span class="material-symbols-outlined text-lg">download</span> Export Report
-            </button>
-        </div>
+        </section>
 
         <!-- KPI Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-xs font-bold text-gray-400 uppercase">Total Bookings</span>
-                <div class="flex justify-between items-center mt-2">
-                    <span class="text-3xl font-black text-gray-900"><?php echo number_format($total_bookings); ?></span>
-                    <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs font-bold">+12%</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Total Bookings</p>
+                    <div class="kpi-value"><?php echo number_format($total_bookings); ?></div>
+                    <div class="text-xs text-green-600 mt-1">+12% from last month</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">event_note</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-xs font-bold text-gray-400 uppercase">Total Revenue</span>
-                <div class="flex justify-between items-center mt-2">
-                    <span class="text-3xl font-black text-green-600">LKR <?php echo number_format($total_revenue); ?></span>
-                    <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs font-bold">+8.4%</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Total Revenue</p>
+                    <div style="line-height: 1.1;">
+                        <div class="text-xs font-medium text-gray-600">LKR</div>
+                        <div class="kpi-value"><?php echo number_format($total_revenue); ?></div>
+                    </div>
+                    <div class="text-xs text-green-600 mt-1">+8.4% from last month</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-xs font-bold text-gray-400 uppercase">Active Bookings</span>
-                <div class="flex justify-between items-center mt-2">
-                    <span class="text-3xl font-black text-gray-900"><?php echo $active_bookings; ?></span>
-                    <span class="text-orange-600 bg-orange-50 px-2 py-0.5 rounded text-xs font-bold">Current</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Active Bookings</p>
+                    <div class="kpi-value"><?php echo $active_bookings; ?></div>
+                    <div class="text-xs text-[#f59e0b] mt-1">Current operations</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">pending_actions</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <span class="text-xs font-bold text-gray-400 uppercase">Fleet Health</span>
-                <div class="flex justify-between items-center mt-2">
-                    <span class="text-3xl font-black text-gray-900"><?php echo $fleet_health; ?>%</span>
-                    <span class="text-green-600 bg-green-50 px-2 py-0.5 rounded text-xs font-bold">Good</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Fleet Health</p>
+                    <div class="kpi-value"><?php echo $fleet_health; ?>%</div>
+                    <div class="w-full bg-gray-100 h-1.5 mt-3 rounded-full overflow-hidden">
+                        <div class="bg-green-500 h-full" style="width: <?php echo $fleet_health; ?>%"></div>
+                    </div>
                 </div>
-                <div class="w-full bg-gray-100 h-1.5 mt-4 rounded-full overflow-hidden">
-                    <div class="bg-green-500 h-full" style="width: <?php echo $fleet_health; ?>%"></div>
-                </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">health_and_safety</span></div>
             </div>
         </div>
 
@@ -138,24 +153,63 @@ $popular_vehicles = [
         </div>
 
         <!-- Popular Vehicles Table -->
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+        <div class="bg-white rounded-xl shadow-sm border border-[#c0c8ca] overflow-hidden mb-8">
+            <div class="p-6 border-b border-[#c0c8ca] flex justify-between items-center">
                 <h2 class="text-xl font-bold text-gray-900">Most Popular Vehicles</h2>
                 <button onclick="window.location.href='fleet.php'" class="text-red-600 text-sm hover:underline">View All →</button>
             </div>
             <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-50">
+                <style>
+                    .dashboard-table tbody tr {
+                        transition: all 0.3s ease;
+                        border-left: 3px solid transparent;
+                    }
+                    .dashboard-table tbody tr:nth-child(odd) {
+                        background-color: #fafbfb;
+                    }
+                    .dashboard-table tbody tr:nth-child(even) {
+                        background-color: #f3f4f4;
+                    }
+                    .dashboard-table tbody tr:hover {
+                        background-color: #fff3e0 !important;
+                        border-left-color: #02414a;
+                        box-shadow: 0 4px 12px rgba(2, 65, 74, 0.15);
+                        transform: translateX(2px);
+                    }
+                    .dashboard-table tbody tr:hover td {
+                        box-shadow: inset 0 0 12px rgba(255, 193, 7, 0.2);
+                    }
+                    .dashboard-table td {
+                        transition: all 0.2s ease;
+                        border-right: 1px solid #e0e0e0;
+                    }
+                    .dashboard-table td:hover {
+                        background-color: #ffd54f !important;
+                        font-weight: 600;
+                        box-shadow: inset 0 0 10px rgba(255, 152, 0, 0.3);
+                    }
+                    .dashboard-table thead th {
+                        background-color: #1e293b;
+                        color: #ffffff;
+                        font-weight: 700;
+                        border-right: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .dashboard-table thead th:last-child {
+                        border-right: none;
+                    }
+                </style>
+                <table class="w-full dashboard-table">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase">Vehicle</th>
-                            <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase">Category</th>
-                            <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase">Bookings</th>
-                            <th class="px-6 py-3 text-xs font-bold text-gray-400 uppercase">Revenue</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Vehicle</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Category</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Bookings</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Revenue</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]">
                         <?php foreach($popular_vehicles as $vehicle): ?>
-                        <tr class="hover:bg-gray-50">
+                        <tr>
                             <td class="px-6 py-4 font-medium"><?php echo $vehicle['name']; ?></td>
                             <td class="px-6 py-4 text-gray-600"><?php echo $vehicle['category']; ?></td>
                             <td class="px-6 py-4 font-bold"><?php echo $vehicle['bookings']; ?></td>

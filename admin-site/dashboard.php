@@ -26,57 +26,81 @@ $recent_bookings = [
 <?php require_once 'includes/header.php'; ?>
 <?php require_once 'includes/sidebar.php'; ?>
 
-<main class="ml-64 min-h-screen p-8 bg-[#f9f9fa]">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header -->
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold text-[#191c1d]">Dashboard Overview</h1>
-            <p class="text-[#5e5e5e] mt-1">Welcome back, <?php echo $_SESSION['admin_name']; ?></p>
-        </div>
+<main class="ml-64 min-h-screen bg-slate-50">
+    <div class="p-8 max-w-7xl mx-auto">
+        <section class="rounded-[2rem] overflow-hidden mb-10">
+            <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                    <div class="max-w-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Welcome back</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Dashboard Overview</h1>
+                        <p class="mt-4 text-slate-300 text-lg leading-8"><?php echo $_SESSION['admin_name']; ?>, here's your fleet management summary.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button onclick="exportDashboard()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            Export Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <style>
+            .card-3d {
+                background: linear-gradient(180deg, #ffffff, #fbfbfd);
+                border-radius: 0.75rem;
+                box-shadow: 0 6px 16px rgba(2,65,74,0.06), 0 1px 4px rgba(2,65,74,0.03);
+                transform: translateY(0);
+                transition: transform .22s ease, box-shadow .22s ease;
+                position: relative;
+                z-index: 1;
+            }
+            .card-3d:hover { transform: translateY(-6px); box-shadow: 0 18px 30px rgba(2,65,74,0.10); }
+        </style>
 
         <!-- Stats Grid - UI 2 Style -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-[#f3f4f4] rounded-xl shadow-sm p-6 border border-[#c0c8ca] border-b-4 border-b-[#02414a]">
-                <div class="flex items-center justify-between">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                     <div>
-                        <p class="text-sm text-[#40484a] uppercase">Total Bookings</p>
-                        <p class="text-3xl font-bold text-[#191c1d]"><?php echo $stats['total_bookings']; ?></p>
-                        <p class="text-xs text-[#176a3a] mt-1">+12% from last month</p>
+                        <p class="text-sm text-gray-500 uppercase">Total Bookings</p>
+                        <div class="kpi-value"><?php echo $stats['total_bookings']; ?></div>
+                        <div class="text-xs text-green-600 mt-1">+12% from last month</div>
                     </div>
-                    <span class="material-symbols-outlined text-2xl text-white bg-[#02414a] w-12 h-12 rounded-full flex items-center justify-center">event_note</span>
+                    <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">event_note</span></div>
+                </div>
+
+                <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase">Revenue</p>
+                        <div style="line-height: 1.1;">
+                            <div class="text-xs font-medium text-gray-600">LKR</div>
+                            <div class="kpi-value"><?php echo number_format($stats['revenue']); ?></div>
+                        </div>
+                        <div class="text-xs text-green-600 mt-1">+8.4% from last month</div>
+                    </div>
+                    <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
+                </div>
+
+                <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase">Active Vehicles</p>
+                        <div class="kpi-value"><?php echo $stats['active_vehicles']; ?>/<?php echo $stats['total_vehicles']; ?></div>
+                        <div class="text-xs text-red-600 mt-1"><?php echo $stats['maintenance']; ?> in maintenance</div>
+                    </div>
+                    <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">directions_car</span></div>
+                </div>
+
+                <div class="card-3d p-6 bg-white" style="--card-accent: #b36b2a;">
+                    <div>
+                        <p class="text-sm text-gray-500 uppercase">Pending Approvals</p>
+                        <div class="kpi-value"><?php echo $stats['pending_approvals']; ?></div>
+                        <div class="text-xs text-[#f59e0b] mt-1">Requires attention</div>
+                    </div>
+                    <div class="card-icon" style="background:var(--card-accent,#b36b2a)"><span class="material-symbols-outlined">pending_actions</span></div>
                 </div>
             </div>
-            <div class="bg-[#f3f4f4] rounded-xl shadow-sm p-6 border border-[#c0c8ca] border-b-4 border-b-[#5e5e5e]">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-[#40484a] uppercase">Revenue</p>
-                        <p class="text-3xl font-bold text-[#191c1d]">LKR <?php echo number_format($stats['revenue']); ?></p>
-                        <p class="text-xs text-[#176a3a] mt-1">+8.4% from last month</p>
-                    </div>
-                    <span class="material-symbols-outlined text-2xl text-white bg-[#02414a] w-12 h-12 rounded-full flex items-center justify-center">payments</span>
-                </div>
-            </div>
-            <div class="bg-[#f3f4f4] rounded-xl shadow-sm p-6 border border-[#c0c8ca] border-b-4 border-b-[#6f4924]">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-[#40484a] uppercase">Active Vehicles</p>
-                        <p class="text-3xl font-bold text-[#191c1d]"><?php echo $stats['active_vehicles']; ?>/<?php echo $stats['total_vehicles']; ?></p>
-                        <p class="text-xs text-[#ba1a1a] mt-1"><?php echo $stats['maintenance']; ?> in maintenance</p>
-                    </div>
-                    <span class="material-symbols-outlined text-2xl text-white bg-[#02414a] w-12 h-12 rounded-full flex items-center justify-center">directions_car</span>
-                </div>
-            </div>
-            <div class="bg-[#f3f4f4] rounded-xl shadow-sm p-6 border border-[#c0c8ca] border-b-4 border-b-[#f1bc8e]">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-[#40484a] uppercase">Pending Approvals</p>
-                        <p class="text-3xl font-bold text-[#191c1d]"><?php echo $stats['pending_approvals']; ?></p>
-                        <p class="text-xs text-[#8a5200] mt-1">Requires attention</p>
-                    </div>
-                    <span class="material-symbols-outlined text-2xl text-white bg-[#02414a] w-12 h-12 rounded-full flex items-center justify-center">pending_actions</span>
-                </div>
-            </div>
-        </div>
 
         <!-- Recent Bookings Table - UI 2 Style -->
         <div class="bg-white rounded-xl shadow-sm border border-[#c0c8ca] overflow-hidden">
@@ -115,7 +139,7 @@ $recent_bookings = [
                         box-shadow: inset 0 0 10px rgba(255, 152, 0, 0.3);
                     }
                     .booking-table thead th {
-                        background: linear-gradient(180deg, #02414a 0%, #0d5260 100%);
+                        background-color: #1e293b;
                         color: #ffffff;
                         font-weight: 700;
                         border-right: 1px solid rgba(255,255,255,0.2);

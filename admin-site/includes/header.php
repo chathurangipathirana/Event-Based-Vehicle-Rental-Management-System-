@@ -23,29 +23,29 @@ if (session_status() === PHP_SESSION_NONE) {
             --surface-low: #f3f4f4;
             --surface-card: #ffffff;
             --surface-high: #e7e8e9;
-            --primary: #02414a;
-            --primary-soft: #b8ebf7;
-            --primary-hover: #0d5260;
-            --secondary: #5e5e5e;
+            --primary: #00a8d8;
+            --primary-soft: #d0eef7;
+            --primary-hover: #0096c7;
+            --secondary: #7d8f9e;
             --tertiary: #6f4924;
-            --outline: #c0c8ca;
+            --outline: #e0e0e0;
             --text: #191c1d;
-            --muted: #40484a;
-            --success: #176a3a;
-            --warning: #8a5200;
-            --danger: #ba1a1a;
+            --muted: #5e5e5e;
+            --success: #2ec66d;
+            --warning: #f59e0b;
+            --danger: #ef4444;
         }
         body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text); }
         h1, h2, h3, h4, h5, h6 { font-family: 'Manrope', sans-serif; letter-spacing: 0; }
         main { background: var(--surface); }
         .bg-white { background-color: var(--surface-card) !important; }
         .bg-gray-50, .hover\:bg-gray-50:hover { background-color: var(--surface-low) !important; }
-        .hover\:bg-gray-100:hover { background-color: rgba(255,255,255,0.08) !important; }
+        .hover\:bg-gray-100:hover { background-color: rgba(232,236,241,0.08) !important; }
         .text-gray-900 { color: var(--text) !important; }
         .text-gray-600, .text-gray-500 { color: var(--muted) !important; }
-        .text-gray-400 { color: var(--primary) !important; }
+        .text-gray-400 { color: var(--secondary) !important; }
         .text-red-600 { color: var(--primary) !important; }
-        .bg-red-50 { background-color: rgba(184,235,247,0.15) !important; }
+        .bg-red-50 { background-color: rgba(0,168,216,0.12) !important; }
         .border-red-600 { border-color: var(--primary-soft) !important; }
         .border-gray-100, .border-gray-200 { border-color: var(--outline) !important; }
         .rounded-xl { border-radius: 0.75rem !important; }
@@ -55,7 +55,7 @@ if (session_status() === PHP_SESSION_NONE) {
         .text-orange-600, .text-yellow-700 { color: var(--warning) !important; }
         .bg-yellow-100 { background-color: #fff3d6 !important; }
         .bg-green-100 { background-color: #dff5e8 !important; }
-        .bg-blue-100 { background-color: var(--primary-soft) !important; }
+        .bg-blue-100 { background-color: rgba(0, 168, 216, 0.15) !important; }
         .text-blue-700 { color: var(--primary) !important; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2,65,74,0.45); z-index: 1000; overflow-y: auto; }
         .modal-content { background: var(--surface-card); margin: 50px auto; max-width: 600px; border-radius: 12px; border: 1px solid var(--outline); box-shadow: 0 24px 60px rgba(25,28,29,0.18); }
@@ -64,25 +64,61 @@ if (session_status() === PHP_SESSION_NONE) {
         /* Global overrides to map legacy red utilities to admin palette */
         .bg-red-600 { background-color: var(--primary) !important; }
         .text-red-600 { color: var(--primary) !important; }
-        .bg-red-50 { background-color: var(--primary-soft) !important; }
-        .border-red-600 { border-color: var(--primary-soft) !important; }
-        .focus\:ring-red-500:focus { box-shadow: 0 0 0 4px rgba(2,65,74,0.12) !important; }
+        .bg-red-50 { background-color: rgba(0, 168, 216, 0.12) !important; }
+        .border-red-600 { border-color: rgba(0, 168, 216, 0.3) !important; }
+        .focus\:ring-red-500:focus { box-shadow: 0 0 0 4px rgba(0, 168, 216, 0.2) !important; }
         .focus\:border-red-500:focus { border-color: var(--primary) !important; }
         /* Border radius scale alignment */
         .rounded-xl { border-radius: 0.75rem !important; }
         .rounded-lg { border-radius: 0.5rem !important; }
         .rounded-2xl { border-radius: 1rem !important; }
         .rounded-full { border-radius: 9999px !important; }
+        /* 3D card accent styles (used by KPI cards) */
+        .card-3d { position: relative; overflow: visible; }
+        .card-3d {
+            position: relative;
+            overflow: hidden;
+            padding-right: 5.5rem;
+            background: linear-gradient(180deg, #ffffff, #fbfbfd);
+            border-radius: 0.75rem;
+            border: 1px solid #d9dfe2;
+            border-bottom: 4px solid var(--card-accent, #0b6b6d);
+            box-shadow: 0 6px 16px rgba(2,65,74,0.06), 0 1px 4px rgba(2,65,74,0.03);
+            transform: translateY(0);
+            transition: transform .22s ease, box-shadow .22s ease;
+            z-index: 1;
+        }
+        .card-3d:hover { transform: translateY(-6px); box-shadow: 0 18px 30px rgba(2,65,74,0.10); }
+
+        .card-3d .card-icon {
+            position: absolute;
+            right: 1.2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(2,65,74,0.12);
+            z-index: 2;
+            flex-shrink: 0;
+        }
+
+        .kpi-value { font-size: 1.6rem; font-weight: 700; color: #072029; }
+        .kpi-label { font-size: 0.85rem; color: #6b7280; margin-top: 0.25rem; }
         /* Broad attribute selectors to catch any Tailwind red utilities remaining in markup */
         [class*="bg-red-"] { background-color: var(--primary) !important; }
         [class*="text-red-"] { color: var(--primary) !important; }
-        [class*="border-red-"] { border-color: var(--primary-soft) !important; }
+        [class*="border-red-"] { border-color: rgba(0, 168, 216, 0.3) !important; }
         [class*="hover:bg-red-"]:hover { background-color: var(--primary-hover) !important; }
         [class*="hover:text-red-"]:hover { color: var(--primary-hover) !important; }
         [class*="hover:border-red-"]:hover { border-color: var(--primary-hover) !important; }
-        [class*="focus:ring-red-"]:focus { box-shadow: 0 0 0 4px rgba(2,65,74,0.12) !important; }
+        [class*="focus:ring-red-"]:focus { box-shadow: 0 0 0 4px rgba(0, 168, 216, 0.2) !important; }
         [class*="focus:border-red-"]:focus { border-color: var(--primary) !important; }
-        .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
+        .bg-red-50, .bg-red-100 { background-color: rgba(0, 168, 216, 0.12) !important; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">

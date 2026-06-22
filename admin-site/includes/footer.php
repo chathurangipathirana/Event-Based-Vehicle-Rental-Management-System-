@@ -1,5 +1,5 @@
 <!-- Footer -->
-<footer class="ml-64 border-t border-[#c0c8ca] bg-[#ffffff] mt-8">
+<footer class="ml-64 border-t border-gray-100 bg-white mt-8">
     <div class="max-w-7xl mx-auto py-6 px-8">
         <p class="text-center text-sm text-gray-500">© 2024 FleetElite Logistics. Operational Excellence Guaranteed.</p>
     </div>

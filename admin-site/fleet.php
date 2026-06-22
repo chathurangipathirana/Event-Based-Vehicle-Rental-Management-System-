@@ -22,55 +22,59 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
 <?php require_once 'includes/header.php'; ?>
 <?php require_once 'includes/sidebar.php'; ?>
 
-<main class="ml-64 min-h-screen p-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header Actions - UI 4 Style -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900 mb-2">Fleet Inventory</h1>
-                <p class="text-gray-600">Manage your luxury vehicle assets and availability status.</p>
+<main class="ml-64 min-h-screen bg-slate-50">
+    <div class="p-8 max-w-7xl mx-auto">
+        <section class="rounded-[2rem] overflow-hidden mb-10">
+            <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                    <div class="max-w-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Fleet Inventory</h1>
+                        <p class="mt-4 text-slate-300 text-lg leading-8">Manage your luxury vehicle assets and availability status with operational precision.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button onclick="openAddModal()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                            Add Vehicle
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button onclick="openAddModal()" class="bg-red-600 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 shadow-lg hover:bg-red-700 transition">
-                <span class="material-symbols-outlined">add</span>
-                Add New Vehicle
-            </button>
-        </div>
+        </section>
 
-        <!-- Stats Overview - UI 4 Style -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="material-symbols-outlined text-red-600 bg-red-50 p-2 rounded-lg">directions_car</span>
-                    <span class="text-sm text-green-600 bg-green-50 px-2 py-1 rounded">+4%</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[260px_260px_520px] justify-center gap-6 mb-8">
+            <div class="card-3d p-6 pr-24 min-h-[165px] bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase mb-3">Total Fleet</p>
+                    <div class="kpi-value"><?php echo $total_fleet; ?></div>
+                    <div class="text-xs text-green-600 mt-6 leading-5">+4% from last month</div>
                 </div>
-                <div class="text-3xl font-bold"><?php echo $total_fleet; ?></div>
-                <div class="text-sm text-gray-500">Total Fleet</div>
+                <div class="card-icon !right-7" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">directions_car</span></div>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-4">
-                    <span class="material-symbols-outlined text-blue-600 bg-blue-50 p-2 rounded-lg">event_available</span>
-                    <span class="text-sm text-blue-600 bg-blue-50 px-2 py-1 rounded">Active</span>
+            <div class="card-3d p-6 pr-24 min-h-[165px] bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase mb-3">Currently Booked</p>
+                    <div class="kpi-value"><?php echo $total_booked; ?></div>
+                    <div class="text-xs text-gray-500 mt-6 leading-5">Active rentals</div>
                 </div>
-                <div class="text-3xl font-bold"><?php echo $total_booked; ?></div>
-                <div class="text-sm text-gray-500">Currently Booked</div>
+                <div class="card-icon !right-7" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">event_available</span></div>
             </div>
-            <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="text-sm text-gray-500 uppercase tracking-wider">Fleet Health</div>
-                    <span class="material-symbols-outlined text-gray-400">info</span>
-                </div>
-                <div class="flex items-end justify-between">
-                    <div class="flex-1 mr-8">
+            <div class="card-3d p-6 pr-24 min-h-[165px] bg-white sm:col-span-2 xl:col-span-1" style="--card-accent: #b36b2a;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase mb-3">Fleet Health</p>
+                    <div class="kpi-value"><?php echo $fleet_health; ?>%</div>
+                    <div class="mt-6">
                         <div class="flex justify-between mb-2">
-                            <span class="text-sm">Maintenance Progress</span>
-                            <span class="text-sm"><?php echo $maintenance_count; ?> Vehicles</span>
+                            <span class="text-xs text-gray-500">Maintenance Progress</span>
+                            <span class="text-xs text-red-600"><?php echo $maintenance_count; ?> Vehicles</span>
                         </div>
                         <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                             <div class="bg-red-600 h-full" style="width: <?php echo $fleet_health; ?>%"></div>
                         </div>
                     </div>
-                    <div class="text-4xl font-bold text-red-600"><?php echo $fleet_health; ?>%</div>
                 </div>
+                <div class="card-icon !right-7" style="background:var(--card-accent,#b36b2a)"><span class="material-symbols-outlined">health_and_safety</span></div>
             </div>
         </div>
 
@@ -105,20 +109,59 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
         <!-- Data Table - UI 4 Style -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse" id="vehiclesTable">
+                <style>
+                    .dashboard-table tbody tr {
+                        transition: all 0.3s ease;
+                        border-left: 3px solid transparent;
+                    }
+                    .dashboard-table tbody tr:nth-child(odd) {
+                        background-color: #fafbfb;
+                    }
+                    .dashboard-table tbody tr:nth-child(even) {
+                        background-color: #f3f4f4;
+                    }
+                    .dashboard-table tbody tr:hover {
+                        background-color: #fff3e0 !important;
+                        border-left-color: #02414a;
+                        box-shadow: 0 4px 12px rgba(2, 65, 74, 0.15);
+                        transform: translateX(2px);
+                    }
+                    .dashboard-table tbody tr:hover td {
+                        box-shadow: inset 0 0 12px rgba(255, 193, 7, 0.2);
+                    }
+                    .dashboard-table td {
+                        transition: all 0.2s ease;
+                        border-right: 1px solid #e0e0e0;
+                    }
+                    .dashboard-table td:hover {
+                        background-color: #ffd54f !important;
+                        font-weight: 600;
+                        box-shadow: inset 0 0 10px rgba(255, 152, 0, 0.3);
+                    }
+                    .dashboard-table thead th {
+                        background-color: #0f172a;
+                        color: #ffffff;
+                        font-weight: 700;
+                        border-right: 1px solid rgba(255,255,255,0.2);
+                    }
+                    .dashboard-table thead th:last-child {
+                        border-right: none;
+                    }
+                </style>
+                <table class="w-full text-left border-collapse dashboard-table" id="vehiclesTable">
                     <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100">
-                            <th class="px-6 py-4 text-sm text-gray-500 uppercase tracking-wider">Vehicle Name</th>
-                            <th class="px-6 py-4 text-sm text-gray-500 uppercase tracking-wider">Type</th>
-                            <th class="px-6 py-4 text-sm text-gray-500 uppercase tracking-wider">Category</th>
-                            <th class="px-6 py-4 text-sm text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-4 text-sm text-gray-500 uppercase tracking-wider text-right">Daily Rate</th>
-                            <th class="px-6 py-4 text-sm text-gray-500 uppercase tracking-wider text-center">Actions</th>
+                        <tr>
+                            <th class="px-6 py-4 text-sm uppercase tracking-wider">Vehicle Name</th>
+                            <th class="px-6 py-4 text-sm uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-4 text-sm uppercase tracking-wider">Category</th>
+                            <th class="px-6 py-4 text-sm uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-4 text-sm uppercase tracking-wider text-right">Daily Rate</th>
+                            <th class="px-6 py-4 text-sm uppercase tracking-wider text-center">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody>
                         <?php foreach ($vehicles as $vehicle): ?>
-                        <tr class="hover:bg-gray-50 transition-colors group" data-name="<?php echo strtolower($vehicle['name']); ?>" data-category="<?php echo $vehicle['category']; ?>" data-status="<?php echo $vehicle['status']; ?>">
+                        <tr data-name="<?php echo strtolower($vehicle['name']); ?>" data-category="<?php echo $vehicle['category']; ?>" data-status="<?php echo $vehicle['status']; ?>">
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <div class="w-12 h-12 rounded-lg bg-gray-100 mr-4 flex items-center justify-center">
@@ -133,12 +176,8 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
                             <td class="px-6 py-4"><?php echo $vehicle['model']; ?></td>
                             <td class="px-6 py-4"><?php echo $vehicle['category']; ?></td>
                             <td class="px-6 py-4">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold 
-                                    <?php echo $vehicle['status'] == 'available' ? 'bg-green-100 text-green-700' : 
-                                        ($vehicle['status'] == 'booked' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'); ?>">
-                                    <span class="w-1.5 h-1.5 rounded-full mr-2 
-                                        <?php echo $vehicle['status'] == 'available' ? 'bg-green-500' : 
-                                            ($vehicle['status'] == 'booked' ? 'bg-blue-500' : 'bg-amber-500'); ?>"></span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold <?php echo $vehicle['status'] == 'available' ? 'bg-green-100 text-green-700' : ($vehicle['status'] == 'booked' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'); ?>">
+                                    <span class="w-1.5 h-1.5 rounded-full mr-2 <?php echo $vehicle['status'] == 'available' ? 'bg-green-500' : ($vehicle['status'] == 'booked' ? 'bg-blue-500' : 'bg-amber-500'); ?>"></span>
                                     <?php echo ucfirst($vehicle['status']); ?>
                                 </span>
                             </td>

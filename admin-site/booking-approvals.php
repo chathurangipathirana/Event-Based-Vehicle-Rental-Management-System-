@@ -80,58 +80,90 @@ $urgent_count = 2;
     .shadow-lg, .shadow-md, .shadow-sm { box-shadow: 0 10px 24px rgba(25,28,29,0.06) !important; }
     .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2,65,74,0.45); z-index: 1000; }
     .modal-content { background: var(--surface-card); margin: 50px auto; max-width: 500px; border-radius: 12px; border: 1px solid var(--outline); box-shadow: 0 24px 60px rgba(25,28,29,0.18); }
+    .card-3d { position: relative; overflow: hidden; padding-right: 5.5rem; background: linear-gradient(180deg, #ffffff, #fbfbfd); border-radius: 0.75rem; border: 1px solid #d9dfe2; border-bottom: 4px solid var(--card-accent, #0b6b6d); box-shadow: 0 6px 16px rgba(2,65,74,0.06), 0 1px 4px rgba(2,65,74,0.03); transform: translateY(0); transition: transform .22s ease, box-shadow .22s ease; z-index: 1; }
+    .card-3d:hover { transform: translateY(-6px); box-shadow: 0 18px 30px rgba(2,65,74,0.10); }
+    .card-3d .card-icon { position: absolute; right: 1.2rem; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 8px 20px rgba(2,65,74,0.12); z-index: 2; flex-shrink: 0; }
+    .kpi-value { font-size: 1.6rem; font-weight: 700; color: #072029; }
 </style>
 </head>
 <body class="bg-gray-50">
 
 <?php require_once 'includes/sidebar.php'; ?>
 
-<main class="ml-64 min-h-screen p-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- Header - UI 7 Style -->
-        <div class="flex justify-between items-end mb-8">
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900">Pending Approvals</h1>
-                <p class="text-gray-600 mt-1">Review and dispatch logistics for upcoming elite event reservations.</p>
+<main class="ml-64 min-h-screen bg-slate-50">
+    <div class="p-8 max-w-7xl mx-auto">
+        <section class="rounded-[2rem] overflow-hidden mb-10">
+            <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                    <div class="max-w-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Pending Approvals</h1>
+                        <p class="mt-4 text-slate-300 text-lg leading-8">Review and dispatch logistics for upcoming elite event reservations.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-800 text-slate-300 text-sm font-semibold hover:bg-slate-700 transition-all">
+                            <span class="material-symbols-outlined text-sm">filter_list</span>
+                            Filter
+                        </button>
+                        <button class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                            <span class="material-symbols-outlined text-sm">download</span>
+                            Export
+                        </button>
+                    </div>
+                </div>
             </div>
-            <div class="flex gap-3">
-                <button class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50">
-                    <span class="material-symbols-outlined">filter_list</span>
-                    Filter
-                </button>
-                <button onclick="openNewBooking()" class="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
-                    <span class="material-symbols-outlined">add</span>
-                    New Reservation
-                </button>
+        </section>
+
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-10">
+            <div class="relative max-w-3xl mx-auto">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" id="searchApprovals" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 text-sm text-slate-700" placeholder="Search approvals...">
             </div>
+        </div>
+
+        <div class="flex justify-end mb-8">
+            <button onclick="openNewBooking()" class="inline-flex items-center gap-2 px-5 py-3 bg-red-600 text-white rounded-2xl shadow-lg hover:bg-red-700 transition">
+                <span class="material-symbols-outlined">add</span>
+                New Reservation
+            </button>
         </div>
 
         <!-- Stats Bar - UI 7 Style -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                <p class="text-sm text-gray-500 uppercase tracking-wider">Pending Requests</p>
-                <p class="text-4xl font-bold text-red-600 mt-2"><?php echo $pending_count; ?></p>
-                <div class="flex items-center gap-1 text-xs text-green-600 mt-2">
-                    <span class="material-symbols-outlined text-sm">trending_up</span>
-                    <span>3 since yesterday</span>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #b36b2a;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Pending Requests</p>
+                    <div class="kpi-value"><?php echo $pending_count; ?></div>
+                    <div class="text-xs text-green-600 mt-1">3 since yesterday</div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#b36b2a)"><span class="material-symbols-outlined">pending_actions</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                <p class="text-sm text-gray-500 uppercase tracking-wider">Available Fleet</p>
-                <p class="text-4xl font-bold text-gray-900 mt-2"><?php echo $available_count; ?></p>
-                <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3">
-                    <div class="bg-green-500 h-full rounded-full" style="width: 75%"></div>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Available Fleet</p>
+                    <div class="kpi-value"><?php echo $available_count; ?></div>
+                    <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3">
+                        <div class="bg-green-500 h-full rounded-full" style="width: 75%"></div>
+                    </div>
                 </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">directions_car</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                <p class="text-sm text-gray-500 uppercase tracking-wider">Drivers on Duty</p>
-                <p class="text-4xl font-bold text-gray-900 mt-2"><?php echo $drivers_count; ?></p>
-                <p class="text-xs text-gray-500 mt-2">6 currently standby</p>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Drivers on Duty</p>
+                    <div class="kpi-value"><?php echo $drivers_count; ?></div>
+                    <div class="text-xs text-gray-500 mt-1">6 currently standby</div>
+                </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">badge</span></div>
             </div>
-            <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
-                <p class="text-sm text-gray-500 uppercase tracking-wider">Urgent Action</p>
-                <p class="text-4xl font-bold text-red-600 mt-2"><?php echo $urgent_count; ?></p>
-                <p class="text-xs text-red-600 font-medium mt-2">Reservations starting &lt; 24h</p>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #b36b2a;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Urgent Action</p>
+                    <div class="kpi-value"><?php echo $urgent_count; ?></div>
+                    <div class="text-xs text-[#f59e0b] mt-1">Reservations starting &lt; 24h</div>
+                </div>
+                <div class="card-icon" style="background:var(--card-accent,#b36b2a)"><span class="material-symbols-outlined">warning</span></div>
             </div>
         </div>
 

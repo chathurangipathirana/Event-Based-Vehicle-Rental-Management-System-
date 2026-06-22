@@ -55,161 +55,152 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<!DOCTYPE html>
-<html class="light" lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>FleetElite | Billing &amp; Invoices</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<style>
-    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-    :root { --surface:#f9f9fa; --surface-low:#f3f4f4; --surface-card:#ffffff; --surface-high:#e7e8e9; --primary:#02414a; --primary-soft:#b8ebf7; --primary-hover:#0d5260; --outline:#c0c8ca; --text:#191c1d; --muted:#40484a; --success:#176a3a; --warning:#8a5200; --danger:#ba1a1a; }
-    body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text); }
-    header { border-color: var(--outline) !important; }
-    .bg-white { background-color: var(--surface-card) !important; }
-    .bg-gray-50, .hover\:bg-gray-50:hover { background-color: var(--surface-low) !important; }
-    .bg-gray-100, .bg-gray-200 { background-color: var(--surface-high) !important; }
-    .border-gray-100, .border-gray-200, .border-gray-300 { border-color: var(--outline) !important; }
-    .text-gray-900, .text-gray-700 { color: var(--text) !important; }
-    .text-gray-600, .text-gray-500, .text-gray-400 { color: var(--muted) !important; }
-    .bg-red-600 { background-color: var(--primary) !important; }
-    .bg-red-100, .bg-red-50 { background-color: var(--primary-soft) !important; }
-    .hover\:bg-red-700:hover { background-color: var(--primary-hover) !important; }
-    .text-red-600 { color: var(--primary) !important; }
-    [class*="bg-red-"] { background-color: var(--primary) !important; }
-    [class*="text-red-"] { color: var(--primary) !important; }
-    [class*="border-red-"] { border-color: var(--primary-soft) !important; }
-    [class*="hover:bg-red-"]:hover { background-color: var(--primary-hover) !important; }
-    [class*="hover:text-red-"]:hover { color: var(--primary-hover) !important; }
-    .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
-    .focus\:ring-red-500:focus { --tw-ring-color: rgba(2,65,74,0.18) !important; border-color: var(--primary) !important; }
-    .text-green-600, .text-green-700 { color: var(--success) !important; }
-    .bg-green-100 { background-color: #dff5e8 !important; }
-    .text-yellow-700, .text-orange-600 { color: var(--warning) !important; }
-    .bg-yellow-100 { background-color: #fff3d6 !important; }
-    .rounded-xl { border-radius: 0.75rem !important; }
-    .rounded-lg { border-radius: 0.5rem !important; }
-    .rounded-full { border-radius: 9999px !important; }
-    .shadow-lg, .shadow-md, .shadow-sm { box-shadow: 0 10px 24px rgba(25,28,29,0.06) !important; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2,65,74,0.45); z-index: 1000; overflow-y: auto; }
-    .modal-content { background: var(--surface-card); margin: 50px auto; max-width: 500px; border-radius: 12px; border: 1px solid var(--outline); box-shadow: 0 24px 60px rgba(25,28,29,0.18); }
-</style>
-</head>
-<body class="bg-gray-50">
+<?php require_once 'includes/header.php'; ?>
+<?php require_once 'includes/sidebar.php'; ?>
 
-<?php if (isset($_SESSION['message'])): ?>
-    <div class="fixed top-20 left-4 right-4 z-50 p-4 bg-green-100 text-green-700 rounded-lg shadow-lg text-center" id="message">
-        <?php echo $_SESSION['message']; unset($_SESSION['message']); ?>
+<!-- Main Content Area -->
+<main class="ml-64 min-h-screen bg-slate-50">
+    <div class="p-8 max-w-7xl mx-auto">
+        <section class="rounded-[2rem] overflow-hidden mb-10">
+            <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                    <div class="max-w-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Billing &amp; Invoices</h1>
+                        <p class="mt-4 text-slate-300 text-lg leading-8">Manage client invoices and payments in Sri Lankan Rupees (LKR)</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button onclick="openCreateInvoiceModal()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                            Create Invoice
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-10">
+            <div class="relative max-w-3xl mx-auto">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input type="text" id="searchInvoices" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 text-sm text-slate-700" placeholder="Search invoices...">
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Total Revenue</p>
+                    <div style="line-height: 1.1;">
+                        <div class="text-xs font-medium text-gray-600">LKR</div>
+                        <div class="kpi-value"><?php echo number_format($total_revenue, 2); ?></div>
+                    </div>
+                    <div class="text-xs text-green-600 mt-1">Paid invoices</div>
+                </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
+            </div>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #b36b2a;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Outstanding</p>
+                    <div style="line-height: 1.1;">
+                        <div class="text-xs font-medium text-gray-600">LKR</div>
+                        <div class="kpi-value"><?php echo number_format($outstanding, 2); ?></div>
+                    </div>
+                    <div class="text-xs text-[#f59e0b] mt-1">Pending or overdue</div>
+                </div>
+                <div class="card-icon" style="background:var(--card-accent,#b36b2a)"><span class="material-symbols-outlined">receipt_long</span></div>
+            </div>
+            <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
+                <div>
+                    <p class="text-sm text-gray-500 uppercase">Recently Paid</p>
+                    <div class="kpi-value"><?php echo $recent_paid; ?></div>
+                    <div class="text-xs text-green-600 mt-1">Invoices this week</div>
+                </div>
+                <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">check_circle</span></div>
+            </div>
+        </div>
+
+        <!-- Invoice List -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h3 class="text-lg font-semibold">Recent Invoices</h3>
+            </div>
+            <div class="divide-y divide-gray-100" id="invoiceList">
+                <?php if (empty($invoices)): ?>
+                <div class="p-8 text-center text-gray-500">No invoices found. Create your first invoice!</div>
+                <?php else: ?>
+                <?php foreach ($invoices as $invoice): ?>
+                <div class="p-4 flex flex-col gap-3 hover:bg-gray-50 transition invoice-item" data-name="<?php echo strtolower($invoice['client_name']); ?>">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold text-gray-900">#<?php echo $invoice['invoice_number']; ?> - <?php echo $invoice['client_name']; ?></p>
+                            <p class="text-xs text-gray-500"><?php echo date('M d, Y', strtotime($invoice['issue_date'])); ?></p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full <?php 
+                            echo $invoice['status'] == 'paid' ? 'bg-green-100 text-green-700' : 
+                                ($invoice['status'] == 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                                ($invoice['status'] == 'overdue' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700')); ?>">
+                            <?php echo ucfirst($invoice['status']); ?>
+                        </span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xl font-bold text-gray-900">LKR <?php echo number_format($invoice['total_amount'], 2); ?></span>
+                        <div class="flex gap-2">
+                            <?php if ($invoice['status'] != 'paid'): ?>
+                            <button onclick="markAsPaid(<?php echo $invoice['id']; ?>)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="Mark as Paid">
+                                <span class="material-symbols-outlined text-lg">check_circle</span>
+                            </button>
+                            <?php endif; ?>
+                            <button onclick="sendInvoice(<?php echo $invoice['id']; ?>)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200" title="Send Invoice">
+                                <span class="material-symbols-outlined text-lg">send</span>
+                            </button>
+                            <button onclick="downloadPDF('<?php echo $invoice['invoice_number']; ?>')" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200" title="Download PDF">
+                                <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
+                            </button>
+                            <button onclick="viewInvoiceDetails(<?php echo $invoice['id']; ?>)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200" title="View Details">
+                                <span class="material-symbols-outlined text-lg">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
     </div>
-    <script>setTimeout(() => document.getElementById('message')?.remove(), 3000);</script>
-<?php endif; ?>
-
-<!-- TopAppBar -->
-<header class="fixed top-0 w-full z-50 bg-white border-b border-gray-100 shadow-sm flex justify-between items-center h-16 px-4">
-<div class="flex items-center gap-3">
-<span class="material-symbols-outlined text-gray-900 cursor-pointer" onclick="history.back()">arrow_back</span>
-<h1 class="text-xl font-black tracking-tight text-red-600">FleetElite</h1>
-</div>
-<div class="flex items-center gap-3">
-<a href="logout.php" class="material-symbols-outlined text-gray-500 hover:text-red-600">logout</a>
-<div class="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
-    <?php echo strtoupper(substr($_SESSION['admin_name'] ?? 'A', 0, 2)); ?>
-</div>
-</div>
-</header>
-
-<main class="pt-20 pb-24 px-4 max-w-7xl mx-auto min-h-screen">
-<section class="mb-6">
-<h2 class="text-3xl font-bold text-gray-900 mb-4">Billing &amp; Invoices</h2>
-<div class="flex gap-2">
-<div class="relative flex-1">
-<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-<input type="text" id="searchInvoices" class="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500" placeholder="Search invoices..."/>
-</div>
-</div>
-</section>
-
-<!-- Summary Cards -->
-<section class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-<div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-<span class="text-xs font-bold text-gray-400 uppercase">Total Revenue</span>
-<div class="mt-2">
-<span class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($total_revenue, 2); ?></span>
-</div>
-</div>
-<div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-<span class="text-xs font-bold text-gray-400 uppercase">Outstanding</span>
-<div class="mt-2">
-<span class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($outstanding, 2); ?></span>
-</div>
-</div>
-<div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-<span class="text-xs font-bold text-gray-400 uppercase">Recently Paid</span>
-<div class="mt-2">
-<span class="text-2xl font-bold text-gray-900"><?php echo $recent_paid; ?> Invoices</span>
-</div>
-</div>
-</section>
-
-<!-- Invoice List -->
-<section class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-<div class="p-4 border-b border-gray-100">
-<h3 class="font-bold text-gray-900">Recent Invoices</h3>
-</div>
-<div class="divide-y divide-gray-100" id="invoiceList">
-<?php if (empty($invoices)): ?>
-<div class="p-8 text-center text-gray-500">No invoices found. Create your first invoice!</div>
-<?php else: ?>
-<?php foreach ($invoices as $invoice): ?>
-<div class="p-4 flex flex-col gap-3 hover:bg-gray-50 transition invoice-item" data-name="<?php echo strtolower($invoice['client_name']); ?>">
-<div class="flex justify-between items-start">
-<div>
-<p class="font-bold text-gray-900">#<?php echo $invoice['invoice_number']; ?> - <?php echo $invoice['client_name']; ?></p>
-<p class="text-xs text-gray-500"><?php echo date('M d, Y', strtotime($invoice['issue_date'])); ?></p>
-</div>
-<span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase <?php 
-    echo $invoice['status'] == 'paid' ? 'bg-green-100 text-green-700' : 
-        ($invoice['status'] == 'pending' ? 'bg-orange-100 text-orange-700' : 'bg-red-100 text-red-700'); ?>">
-    <?php echo ucfirst($invoice['status']); ?>
-</span>
-</div>
-<div class="flex justify-between items-center">
-<span class="text-xl font-bold text-gray-900">LKR <?php echo number_format($invoice['total_amount'], 2); ?></span>
-<div class="flex gap-2">
-<?php if ($invoice['status'] != 'paid'): ?>
-<button onclick="markAsPaid(<?php echo $invoice['id']; ?>)" class="w-9 h-9 bg-green-50 text-green-600 rounded-lg hover:bg-green-100">✓</button>
-<?php endif; ?>
-<button onclick="sendInvoice(<?php echo $invoice['id']; ?>)" class="w-9 h-9 bg-gray-100 rounded-lg hover:bg-gray-200">📧</button>
-</div>
-</div>
-</div>
-<?php endforeach; ?>
-<?php endif; ?>
-</div>
-</section>
 </main>
-
-<!-- FAB Button -->
-<button onclick="openCreateInvoiceModal()" class="fixed bottom-6 right-6 w-14 h-14 bg-red-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-105 z-40">
-<span class="material-symbols-outlined text-3xl">add</span>
-</button>
 
 <!-- Create Invoice Modal -->
 <div id="invoiceModal" class="modal">
     <div class="modal-content mx-4">
-        <div class="p-6 border-b"><h3 class="text-xl font-bold">Create New Invoice</h3></div>
+        <div class="p-6 border-b">
+            <h3 class="text-xl font-bold">Create New Invoice</h3>
+        </div>
         <form method="POST" class="p-6 space-y-4">
-            <input type="text" name="client_name" placeholder="Client Name" required class="w-full px-3 py-2 border rounded-lg">
-            <input type="email" name="client_email" placeholder="Client Email" required class="w-full px-3 py-2 border rounded-lg">
-            <input type="number" step="0.01" name="amount" placeholder="Amount (LKR)" required class="w-full px-3 py-2 border rounded-lg">
-            <input type="date" name="due_date" class="w-full px-3 py-2 border rounded-lg">
-            <textarea name="description" rows="3" placeholder="Description" class="w-full px-3 py-2 border rounded-lg"></textarea>
-            <div class="flex gap-3">
-                <button type="submit" name="create_invoice" class="flex-1 bg-red-600 text-white py-2 rounded-lg">Create</button>
-                <button type="button" onclick="closeModal()" class="flex-1 bg-gray-200 py-2 rounded-lg">Cancel</button>
+            <div>
+                <label class="block text-sm font-medium mb-1">Client Name *</label>
+                <input type="text" name="client_name" required class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Client Email *</label>
+                <input type="email" name="client_email" required class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Amount (LKR) *</label>
+                <input type="number" step="0.01" name="amount" required class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Due Date</label>
+                <input type="date" name="due_date" class="w-full px-3 py-2 border rounded-lg">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-1">Description</label>
+                <textarea name="description" rows="3" class="w-full px-3 py-2 border rounded-lg" placeholder="Service description..."></textarea>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="submit" name="create_invoice" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Create Invoice</button>
+                <button type="button" onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
             </div>
         </form>
     </div>
@@ -218,13 +209,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!-- Send Modal -->
 <div id="sendModal" class="modal">
     <div class="modal-content mx-4">
-        <div class="p-6 border-b"><h3 class="text-xl font-bold">Send Invoice</h3></div>
+        <div class="p-6 border-b">
+            <h3 class="text-xl font-bold">Send Invoice</h3>
+        </div>
         <form method="POST" class="p-6">
             <input type="hidden" name="invoice_id" id="sendInvoiceId">
-            <p class="mb-4">Send this invoice to the customer?</p>
+            <p class="text-gray-600">Send this invoice to the customer?</p>
             <div class="flex gap-3">
-                <button type="submit" name="send_invoice" class="flex-1 bg-red-600 text-white py-2 rounded-lg">Send Now</button>
-                <button type="button" onclick="closeModals()" class="flex-1 bg-gray-200 py-2 rounded-lg">Cancel</button>
+                <button type="submit" name="send_invoice" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Send Now</button>
+                <button type="button" onclick="closeModals()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
             </div>
         </form>
     </div>
@@ -233,13 +226,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <!-- Paid Modal -->
 <div id="paidModal" class="modal">
     <div class="modal-content mx-4">
-        <div class="p-6 border-b"><h3 class="text-xl font-bold">Mark as Paid</h3></div>
+        <div class="p-6 border-b">
+            <h3 class="text-xl font-bold">Mark as Paid</h3>
+        </div>
         <form method="POST" class="p-6">
             <input type="hidden" name="invoice_id" id="paidInvoiceId">
-            <p class="mb-4">Mark this invoice as paid?</p>
+            <p class="text-gray-600">Mark this invoice as paid?</p>
             <div class="flex gap-3">
-                <button type="submit" name="mark_paid" class="flex-1 bg-green-600 text-white py-2 rounded-lg">Mark as Paid</button>
-                <button type="button" onclick="closeModals()" class="flex-1 bg-gray-200 py-2 rounded-lg">Cancel</button>
+                <button type="submit" name="mark_paid" class="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700">Mark as Paid</button>
+                <button type="button" onclick="closeModals()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
             </div>
         </form>
     </div>
@@ -249,16 +244,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 document.getElementById('searchInvoices')?.addEventListener('keyup', function(e) {
     const term = e.target.value.toLowerCase();
     document.querySelectorAll('.invoice-item').forEach(item => {
-        item.style.display = item.getAttribute('data-name').includes(term) ? '' : 'none';
+        const name = item.getAttribute('data-name') || '';
+        item.style.display = name.includes(term) ? '' : 'none';
     });
 });
 
-function sendInvoice(id) { document.getElementById('sendInvoiceId').value = id; document.getElementById('sendModal').style.display = 'block'; }
-function markAsPaid(id) { document.getElementById('paidInvoiceId').value = id; document.getElementById('paidModal').style.display = 'block'; }
-function openCreateInvoiceModal() { document.getElementById('invoiceModal').style.display = 'block'; }
-function closeModal() { document.getElementById('invoiceModal').style.display = 'none'; }
-function closeModals() { document.getElementById('sendModal').style.display = 'none'; document.getElementById('paidModal').style.display = 'none'; document.getElementById('invoiceModal').style.display = 'none'; }
-window.onclick = function(event) { if (event.target.classList?.contains('modal')) closeModals(); }
+function sendInvoice(id) {
+    document.getElementById('sendInvoiceId').value = id;
+    document.getElementById('sendModal').style.display = 'block';
+}
+
+function markAsPaid(id) {
+    document.getElementById('paidInvoiceId').value = id;
+    document.getElementById('paidModal').style.display = 'block';
+}
+
+function downloadPDF(invoiceNumber) {
+    alert('Downloading PDF for invoice #' + invoiceNumber);
+}
+
+function viewInvoiceDetails(invoiceId) {
+    alert('Viewing details for invoice #' + invoiceId);
+}
+
+function openCreateInvoiceModal() {
+    document.getElementById('invoiceModal').style.display = 'block';
+}
+
+function closeModal() {
+    document.getElementById('invoiceModal').style.display = 'none';
+}
+
+function closeModals() {
+    document.getElementById('invoiceModal').style.display = 'none';
+    document.getElementById('sendModal').style.display = 'none';
+    document.getElementById('paidModal').style.display = 'none';
+}
+
+window.onclick = function(event) {
+    if (event.target.classList && event.target.classList.contains('modal')) {
+        closeModals();
+    }
+}
 </script>
-</body>
-</html>
+
+<?php require_once 'includes/footer.php'; ?>

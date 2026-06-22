@@ -59,19 +59,26 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
 
 <?php require_once 'includes/sidebar.php'; ?>
 
-<main class="ml-64 min-h-screen p-8">
-    <div class="max-w-7xl mx-auto">
-        <!-- Page Header - UI 6 Style -->
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-8">
-            <div>
-                <h1 class="text-4xl font-bold text-gray-900 mb-2">Event Packages</h1>
-                <p class="text-gray-600">Configure premium fleet service bundles for corporate and private events.</p>
+<main class="ml-64 min-h-screen bg-slate-50">
+    <div class="p-8 max-w-7xl mx-auto">
+        <section class="rounded-[2rem] overflow-hidden mb-10">
+            <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                    <div class="max-w-2xl">
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Event Packages</h1>
+                        <p class="mt-4 text-slate-300 text-lg leading-8">Configure premium fleet service bundles for corporate and private events.</p>
+                    </div>
+                    <div class="flex flex-wrap justify-end gap-3">
+                        <button onclick="openAddModal()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                            <span class="material-symbols-outlined text-sm">add</span>
+                            Create Package
+                        </button>
+                    </div>
+                </div>
             </div>
-            <button onclick="openAddModal()" class="mt-4 md:mt-0 flex items-center bg-red-600 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:bg-red-700 transition">
-                <span class="material-symbols-outlined mr-2">add</span>
-                Create New Package
-            </button>
-        </div>
+        </section>
 
         <!-- Dashboard Grid - UI 6 Style -->
         <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
@@ -153,8 +160,8 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
             </div>
 
             <!-- Data Table - UI 6 Style -->
-            <div class="md:col-span-12 bg-white rounded-xl border border-gray-100 shadow-sm mt-6 overflow-hidden">
-                <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+            <div class="md:col-span-12 bg-white rounded-xl border border-[#c0c8ca] shadow-sm mt-6 overflow-hidden">
+                <div class="px-6 py-4 border-b border-[#c0c8ca] flex justify-between items-center bg-gray-50">
                     <h3 class="text-xl font-bold text-gray-900">All Service Packages</h3>
                     <div class="flex gap-2">
                         <div class="relative">
@@ -164,20 +171,59 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
                     </div>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left" id="packagesTable">
+                    <style>
+                        .dashboard-table tbody tr {
+                            transition: all 0.3s ease;
+                            border-left: 3px solid transparent;
+                        }
+                        .dashboard-table tbody tr:nth-child(odd) {
+                            background-color: #fafbfb;
+                        }
+                        .dashboard-table tbody tr:nth-child(even) {
+                            background-color: #f3f4f4;
+                        }
+                        .dashboard-table tbody tr:hover {
+                            background-color: #fff3e0 !important;
+                            border-left-color: #02414a;
+                            box-shadow: 0 4px 12px rgba(2, 65, 74, 0.15);
+                            transform: translateX(2px);
+                        }
+                        .dashboard-table tbody tr:hover td {
+                            box-shadow: inset 0 0 12px rgba(255, 193, 7, 0.2);
+                        }
+                        .dashboard-table td {
+                            transition: all 0.2s ease;
+                            border-right: 1px solid #e0e0e0;
+                        }
+                        .dashboard-table td:hover {
+                            background-color: #ffd54f !important;
+                            font-weight: 600;
+                            box-shadow: inset 0 0 10px rgba(255, 152, 0, 0.3);
+                        }
+                        .dashboard-table thead th {
+                            background-color: #1e293b;
+                            color: #ffffff;
+                            font-weight: 700;
+                            border-right: 1px solid rgba(255,255,255,0.2);
+                        }
+                        .dashboard-table thead th:last-child {
+                            border-right: none;
+                        }
+                    </style>
+                    <table class="w-full dashboard-table" id="packagesTable">
                         <thead>
-                            <tr class="bg-gray-50 text-gray-500 border-b border-gray-100">
-                                <th class="px-6 py-4 text-sm uppercase tracking-wider">Package</th>
-                                <th class="px-6 py-4 text-sm uppercase tracking-wider">Base Price</th>
-                                <th class="px-6 py-4 text-sm uppercase tracking-wider">Vehicles</th>
-                                <th class="px-6 py-4 text-sm uppercase tracking-wider">Services</th>
-                                <th class="px-6 py-4 text-sm uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-4 text-sm uppercase tracking-wider text-right">Actions</th>
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Package</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Base Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Vehicles</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Services</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Status</th>
+                                <th class="px-6 py-3 text-right text-xs font-semibold uppercase">Actions</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100">
+                        <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]">
                             <?php foreach ($packages as $package): ?>
-                            <tr class="hover:bg-gray-50" data-name="<?php echo strtolower($package['name']); ?>">
+                            <tr data-name="<?php echo strtolower($package['name']); ?>">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
                                         <div class="w-10 h-10 rounded bg-red-50 flex items-center justify-center text-red-600 font-bold mr-3">
