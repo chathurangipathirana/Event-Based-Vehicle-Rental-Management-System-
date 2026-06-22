@@ -85,7 +85,56 @@ try {
         font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         vertical-align: middle;
     }
-    body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
+    :root {
+        --surface: #f9f9fa;
+        --surface-low: #f3f4f4;
+        --surface-card: #ffffff;
+        --surface-high: #e7e8e9;
+        --primary: #02414a;
+        --primary-soft: #b8ebf7;
+        --primary-hover: #0d5260;
+        --outline: #c0c8ca;
+        --text: #191c1d;
+        --muted: #40484a;
+        --success: #176a3a;
+        --warning: #8a5200;
+        --danger: #ba1a1a;
+    }
+    body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text); }
+    body > aside { background-color: var(--primary) !important; border-color: var(--primary) !important; color: #fff; }
+    body > aside h2, body > aside .text-red-600 { color: #fff !important; }
+    body > aside .text-gray-500 { color: rgba(255,255,255,0.72) !important; }
+    body > aside a { color: rgba(255,255,255,0.72) !important; }
+    body > aside a:hover { background-color: rgba(255,255,255,0.08) !important; color: #fff !important; }
+    body > aside a[href="bookings.php"] { background-color: rgba(255,255,255,0.10) !important; color: #fff !important; border-color: var(--primary-soft) !important; }
+    body > aside .border-t { border-color: rgba(255,255,255,0.12) !important; }
+    .bg-white { background-color: var(--surface-card) !important; }
+    .bg-gray-50, .hover\:bg-gray-50:hover { background-color: var(--surface-low) !important; }
+    .bg-gray-100 { background-color: var(--surface-high) !important; }
+    .border-gray-100, .border-gray-200, .border-gray-300 { border-color: var(--outline) !important; }
+    .text-gray-900, .text-gray-700 { color: var(--text) !important; }
+    .text-gray-500, .text-gray-400 { color: var(--muted) !important; }
+    .bg-red-600 { background-color: var(--primary) !important; }
+    .hover\:bg-red-700:hover { background-color: var(--primary-hover) !important; }
+    .text-red-600, .text-blue-700 { color: var(--primary) !important; }
+    .border-red-600 { border-color: var(--primary-soft) !important; }
+    [class*="bg-red-"] { background-color: var(--primary) !important; }
+    [class*="text-red-"] { color: var(--primary) !important; }
+    [class*="border-red-"] { border-color: var(--primary-soft) !important; }
+    [class*="hover:bg-red-"]:hover { background-color: var(--primary-hover) !important; }
+    [class*="hover:text-red-"]:hover { color: var(--primary-hover) !important; }
+    .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
+    .focus\:ring-red-500:focus { --tw-ring-color: rgba(2,65,74,0.18) !important; }
+    .text-green-600, .text-green-700 { color: var(--success) !important; }
+    .text-orange-600, .text-yellow-700 { color: var(--warning) !important; }
+    .text-red-700 { color: var(--danger) !important; }
+    .bg-green-100 { background-color: #dff5e8 !important; }
+    .bg-yellow-100 { background-color: #fff3d6 !important; }
+    .bg-blue-100 { background-color: var(--primary-soft) !important; }
+    .bg-red-100 { background-color: #ffdad6 !important; }
+    .rounded-xl { border-radius: 0.75rem !important; }
+    .rounded-lg { border-radius: 0.5rem !important; }
+    .shadow-sm { box-shadow: 0 10px 24px rgba(25,28,29,0.06) !important; }
 </style>
 </head>
 <body class="bg-background text-on-background">

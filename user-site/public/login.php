@@ -1,7 +1,9 @@
 <?php
 $page_title = 'Login';
 require_once '../config/database.php';
-require_once '../includes/header.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $error = '';
 
@@ -34,7 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
-?>
+        require_once '../includes/header.php';
+        ?>
 
 <main class="min-h-screen flex flex-col md:flex-row">
     <section class="hidden md:flex md:w-1/2 lg:w-3/5 bg-inverse-surface relative overflow-hidden">

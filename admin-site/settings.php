@@ -80,26 +80,68 @@ $sun_status = $settings['sun_status'] ?? 'closed';
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <style>
-    body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
-    .material-symbols-outlined {
-        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    /* Admin palette variables */
+    :root {
+        --surface: #f9f9fa;
+        --surface-low: #f3f4f4;
+        --surface-card: #ffffff;
+        --primary: #02414a;
+        --primary-soft: #b8ebf7;
+        --primary-hover: #0d5260;
+        --outline: #c0c8ca;
+        --text: #191c1d;
+        --muted: #40484a;
+        --success: #176a3a;
+        --warning: #8a5200;
+        --danger: #ba1a1a;
     }
+    body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text); }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
     .alert-success {
-        background-color: #d4edda;
-        color: #155724;
+        background-color: #dff5e8;
+        color: #0f4d2b;
         padding: 12px 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        border: 1px solid #c3e6cb;
+        border: 1px solid #a8dcc0;
     }
     .alert-error {
-        background-color: #f8d7da;
-        color: #721c24;
+        background-color: #ffdad6;
+        color: #93000a;
         padding: 12px 20px;
         border-radius: 8px;
         margin-bottom: 20px;
-        border: 1px solid #f5c6cb;
+        border: 1px solid #ffb4ab;
     }
+    /* Override legacy red utility classes to use admin primary palette */
+    .text-red-600 { color: var(--primary) !important; }
+    .bg-red-50 { background-color: var(--primary-soft) !important; }
+    .border-red-600 { border-color: var(--primary) !important; }
+    .bg-red-600 { background-color: var(--primary) !important; }
+    .text-red-600 { color: var(--primary) !important; }
+    [class*="bg-red-"] { background-color: var(--primary) !important; }
+    [class*="text-red-"] { color: var(--primary) !important; }
+    [class*="border-red-"] { border-color: var(--primary-soft) !important; }
+    [class*="hover:bg-red-"]:hover { background-color: var(--primary-hover) !important; }
+    [class*="hover:text-red-"]:hover { color: var(--primary-hover) !important; }
+    .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
+    .bg-white { background-color: var(--surface-card) !important; }
+    .bg-gray-50, .hover\:bg-gray-50:hover, .hover\:bg-gray-100:hover { background-color: var(--surface-low) !important; }
+    .bg-gray-100, .bg-gray-200 { background-color: var(--surface-high, #e7e8e9) !important; }
+    .border-gray-100, .border-gray-200, .border-gray-300 { border-color: var(--outline) !important; }
+    .text-gray-900, .text-gray-800, .text-gray-700 { color: var(--text) !important; }
+    .text-gray-600, .text-gray-500, .text-gray-400 { color: var(--muted) !important; }
+    .hover\:bg-red-700:hover, .hover\:bg-black:hover { background-color: var(--primary-hover) !important; }
+    .focus\:ring-red-500:focus, .focus\:border-red-500:focus { --tw-ring-color: rgba(2,65,74,0.18) !important; border-color: var(--primary) !important; }
+    .text-green-600, .text-green-700 { color: var(--success) !important; }
+    .bg-green-100 { background-color: #dff5e8 !important; }
+    .text-yellow-700, .text-orange-600 { color: var(--warning) !important; }
+    .bg-yellow-100 { background-color: #fff3d6 !important; }
+    input, select, textarea { border-color: var(--outline) !important; }
+    .rounded-xl { border-radius: 0.75rem !important; }
+    .rounded-lg { border-radius: 0.5rem !important; }
+    .rounded-full { border-radius: 9999px !important; }
+    .shadow-lg, .shadow-md, .shadow-sm { box-shadow: 0 10px 24px rgba(25,28,29,0.06) !important; }
 </style>
 </head>
 <body class="bg-background text-on-surface">

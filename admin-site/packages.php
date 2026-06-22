@@ -25,9 +25,34 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 <style>
     .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-    body { font-family: 'Inter', sans-serif; background-color: #f7f9fb; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; overflow-y: auto; }
-    .modal-content { background: white; margin: 50px auto; max-width: 600px; border-radius: 12px; }
+    :root { --surface:#f9f9fa; --surface-low:#f3f4f4; --surface-card:#ffffff; --surface-high:#e7e8e9; --primary:#02414a; --primary-soft:#b8ebf7; --primary-hover:#0d5260; --outline:#c0c8ca; --text:#191c1d; --muted:#40484a; --success:#176a3a; --warning:#8a5200; --danger:#ba1a1a; }
+    body { font-family: 'Inter', sans-serif; background-color: var(--surface); color: var(--text); }
+    .bg-white { background-color: var(--surface-card) !important; }
+    .bg-gray-50, .hover\:bg-gray-50:hover { background-color: var(--surface-low) !important; }
+    .bg-gray-100, .bg-gray-200 { background-color: var(--surface-high) !important; }
+    .border-gray-100, .border-gray-200, .border-gray-300 { border-color: var(--outline) !important; }
+    .text-gray-900, .text-gray-700 { color: var(--text) !important; }
+    .text-gray-600, .text-gray-500, .text-gray-400 { color: var(--muted) !important; }
+    .bg-red-600, .bg-gray-900 { background-color: var(--primary) !important; }
+    .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
+    .hover\:bg-red-700:hover, .hover\:bg-black:hover { background-color: var(--primary-hover) !important; }
+    .text-red-600 { color: var(--primary) !important; }
+    [class*="bg-red-"] { background-color: var(--primary) !important; }
+    [class*="text-red-"] { color: var(--primary) !important; }
+    [class*="border-red-"] { border-color: var(--primary-soft) !important; }
+    [class*="hover:bg-red-"]:hover { background-color: var(--primary-hover) !important; }
+    [class*="hover:text-red-"]:hover { color: var(--primary-hover) !important; }
+    .bg-red-50, .bg-red-100 { background-color: var(--primary-soft) !important; }
+    .focus\:ring-red-500:focus { --tw-ring-color: rgba(2,65,74,0.18) !important; border-color: var(--primary) !important; }
+    .text-green-600, .text-green-700 { color: var(--success) !important; }
+    .bg-green-100 { background-color: #dff5e8 !important; }
+    .text-yellow-700, .text-orange-600 { color: var(--warning) !important; }
+    .bg-yellow-100 { background-color: #fff3d6 !important; }
+    .rounded-xl { border-radius: 0.75rem !important; }
+    .rounded-lg { border-radius: 0.5rem !important; }
+    .shadow-lg, .shadow-md, .shadow-sm { box-shadow: 0 10px 24px rgba(25,28,29,0.06) !important; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2,65,74,0.45); z-index: 1000; overflow-y: auto; }
+    .modal-content { background: var(--surface-card); margin: 50px auto; max-width: 600px; border-radius: 12px; border: 1px solid var(--outline); box-shadow: 0 24px 60px rgba(25,28,29,0.18); }
 </style>
 </head>
 <body class="bg-gray-50">
