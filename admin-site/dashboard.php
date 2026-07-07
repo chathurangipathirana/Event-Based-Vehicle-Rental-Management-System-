@@ -2,25 +2,52 @@
 $page_title = 'Dashboard';
 require_once 'includes/auth.php';
 requireAdminLogin();
+require_once 'config/database.php';
 
 // Stats converted to Sri Lankan Rupees (LKR)
-// Conversion rate: 1 USD = 295 LKR
 $stats = [
-    'total_bookings' => 1284,
-    'revenue' => 248600 * 295,  // $248,600 × 295 = LKR 73,337,000
-    'active_vehicles' => 42,
-    'pending_approvals' => 14,
-    'total_vehicles' => 50,
-    'maintenance' => 8
+    'total_bookings' => 0,
+    'revenue' => 0,
+    'active_vehicles' => 0,
+    'pending_approvals' => 0,
+    'total_vehicles' => 0,
+    'maintenance' => 0
 ];
 
-// Recent bookings with amounts converted to LKR
-$recent_bookings = [
-    ['id' => '#FE-8821', 'customer' => 'Global Horizon Events', 'event' => 'Corporate Gala', 'vehicle' => 'Mercedes S-Class', 'amount' => 1450 * 295, 'status' => 'pending', 'date' => 'Oct 24'],   // LKR 427,750
-    ['id' => '#FE-8819', 'customer' => 'Vanguard Logistics', 'event' => 'Logistics Contract', 'vehicle' => 'Freightliner M2', 'amount' => 2840 * 295, 'status' => 'pending', 'date' => 'Oct 23'],   // LKR 837,800
-    ['id' => '#FE-8790', 'customer' => 'Artisan Catering Co.', 'event' => 'Catering Delivery', 'vehicle' => 'Ford Transit Van', 'amount' => 820 * 295, 'status' => 'completed', 'date' => 'Oct 22'],   // LKR 241,900
-    ['id' => '#FE-8785', 'customer' => 'Summit Tech', 'event' => 'Tech Conference', 'vehicle' => 'Audi Q8', 'amount' => 1100 * 295, 'status' => 'confirmed', 'date' => 'Oct 21'],   // LKR 324,500
-];
+try {
+    $stats['total_bookings'] = $pdo->query("SELECT COUNT(*) FROM bookings")->fetchColumn();
+    // Sum of bookings that are confirmed, in progress or completed
+    $stats['revenue'] = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM bookings WHERE status IN ('confirmed', 'in_progress', 'completed')")->fetchColumn();
+    $stats['active_vehicles'] = $pdo->query("SELECT COUNT(*) FROM vehicles WHERE status != 'maintenance'")->fetchColumn();
+    $stats['pending_approvals'] = $pdo->query("SELECT COUNT(*) FROM bookings WHERE status = 'pending'")->fetchColumn();
+    $stats['total_vehicles'] = $pdo->query("SELECT COUNT(*) FROM vehicles")->fetchColumn();
+    $stats['maintenance'] = $pdo->query("SELECT COUNT(*) FROM vehicles WHERE status = 'maintenance'")->fetchColumn();
+} catch(PDOException $e) {
+    // If tables don't exist yet, keep them at 0
+}
+
+// Recent bookings with amounts
+$recent_bookings = [];
+try {
+    $stmt = $pdo->query("
+        SELECT 
+            b.id,
+            COALESCE(b.booking_number, CONCAT('#FE-', b.id)) as id,
+            COALESCE(u.full_name, 'Guest') as customer,
+            COALESCE(v.name, 'Unknown Vehicle') as vehicle,
+            b.total_amount as amount,
+            DATE_FORMAT(b.event_date, '%b %d') as date,
+            b.status
+        FROM bookings b
+        LEFT JOIN users u ON b.user_id = u.id
+        LEFT JOIN vehicles v ON b.vehicle_id = v.id
+        ORDER BY b.created_at DESC
+        LIMIT 4
+    ");
+    $recent_bookings = $stmt->fetchAll();
+} catch(PDOException $e) {
+    // Fallback if query fails
+}
 ?>
 
 <?php require_once 'includes/header.php'; ?>
