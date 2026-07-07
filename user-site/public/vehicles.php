@@ -42,7 +42,7 @@ $stmtEvent = $pdo->query("SELECT * FROM event_types WHERE is_active = 1");
 $eventTypes = $stmtEvent->fetchAll();
 ?>
 
-<main class="flex-1 md:ml-64 bg-surface-bright min-h-screen">
+<main class="flex-1 bg-surface-bright min-h-screen">
     <div class="max-w-[1440px] mx-auto p-gutter lg:p-margin">
         <div class="mb-10">
             <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-4">
@@ -56,8 +56,8 @@ $eventTypes = $stmtEvent->fetchAll();
                     <p class="text-body-lg text-gray-500 max-w-2xl">Premium selections curated for high-profile events, combining luxury with operational reliability.</p>
                 </div>
                 <div class="flex items-center gap-4 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
-                    <button class="px-4 py-2 bg-gray-100 text-gray-900 font-bold rounded">Grid View</button>
-                    <button class="px-4 py-2 text-gray-500 hover:text-red-600 font-medium rounded">List View</button>
+                    <button id="grid-view-btn" class="px-4 py-2 bg-gray-100 text-gray-900 font-bold rounded">Grid View</button>
+                    <button id="list-view-btn" class="px-4 py-2 text-gray-500 hover:text-red-600 font-medium rounded">List View</button>
                 </div>
             </div>
         </div>
@@ -90,7 +90,7 @@ $eventTypes = $stmtEvent->fetchAll();
                 <div>
                     <h4 class="font-h3 text-label-md text-on-surface uppercase tracking-widest mb-4">Price Range</h4>
                     <div class="px-2">
-                        <input type="range" min="50" max="1000" step="50" class="w-full h-2 bg-gray-200 rounded-lg accent-red-600" />
+                        <input type="range" min="50" max="1000" step="50" class="w-full h-2 bg-gray-200 rounded-lg" style="accent-color: var(--primary);" />
                         <div class="flex justify-between mt-2 text-label-sm text-gray-400">
                             <span>$50/hr</span>
                             <span>$1000/hr</span>
@@ -128,10 +128,10 @@ $eventTypes = $stmtEvent->fetchAll();
                     </form>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+                <div id="vehicles-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     <?php foreach ($vehicles as $vehicle): ?>
-                        <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-300 group">
-                            <div class="relative h-72 overflow-hidden">
+                        <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col vehicle-card">
+                            <div class="relative h-72 w-full overflow-hidden card-img-container flex-shrink-0">
                                 <?php if ($vehicle['image_url']): ?>
                                     <img src="<?php echo htmlspecialchars($vehicle['image_url']); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                 <?php else: ?>
@@ -144,12 +144,14 @@ $eventTypes = $stmtEvent->fetchAll();
                                     $<?php echo number_format($vehicle['price_per_hour'], 2); ?>/hr
                                 </div>
                             </div>
-                            <div class="p-6">
-                                <h3 class="font-h2 text-h3 text-on-surface mb-4"><?php echo htmlspecialchars($vehicle['name']); ?></h3>
-                                <div class="flex items-center gap-6 mb-6 text-gray-500">
-                                    <div class="flex items-center gap-2"><span class="material-symbols-outlined">person</span><span class="text-sm"><?php echo $vehicle['capacity']; ?> Seats</span></div>
-                                    <div class="flex items-center gap-2"><span class="material-symbols-outlined">luggage</span><span class="text-sm"><?php echo min($vehicle['capacity'], 5); ?> Bags</span></div>
-                                    <div class="flex items-center gap-2"><span class="material-symbols-outlined">settings</span><span class="text-sm"><?php echo $vehicle['transmission']; ?></span></div>
+                            <div class="p-6 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h3 class="font-h2 text-h3 text-on-surface mb-4"><?php echo htmlspecialchars($vehicle['name']); ?></h3>
+                                    <div class="flex items-center gap-6 mb-6 text-gray-500">
+                                        <div class="flex items-center gap-2"><span class="material-symbols-outlined">person</span><span class="text-sm"><?php echo $vehicle['capacity']; ?> Seats</span></div>
+                                        <div class="flex items-center gap-2"><span class="material-symbols-outlined">luggage</span><span class="text-sm"><?php echo min($vehicle['capacity'], 5); ?> Bags</span></div>
+                                        <div class="flex items-center gap-2"><span class="material-symbols-outlined">settings</span><span class="text-sm"><?php echo $vehicle['transmission']; ?></span></div>
+                                    </div>
                                 </div>
                                 <a href="booking.php?vehicle=<?php echo $vehicle['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-red-600 text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-red-700 transition">View Details <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
                             </div>
@@ -166,6 +168,67 @@ $eventTypes = $stmtEvent->fetchAll();
             </section>
         </div>
     </div>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const gridBtn = document.getElementById('grid-view-btn');
+        const listBtn = document.getElementById('list-view-btn');
+        const container = document.getElementById('vehicles-container');
+        
+        if (gridBtn && listBtn && container) {
+            const cards = container.querySelectorAll('.vehicle-card');
+            const images = container.querySelectorAll('.card-img-container');
+            
+            listBtn.addEventListener('click', () => {
+                // Update active/inactive button styling
+                listBtn.classList.add('bg-gray-100', 'text-gray-900', 'font-bold');
+                listBtn.classList.remove('text-gray-500', 'hover:text-red-600', 'font-medium');
+                gridBtn.classList.remove('bg-gray-100', 'text-gray-900', 'font-bold');
+                gridBtn.classList.add('text-gray-500', 'hover:text-red-600', 'font-medium');
+                
+                // Adjust container layout
+                container.classList.remove('grid-cols-1', 'md:grid-cols-2', 'xl:grid-cols-3', 'gap-8');
+                container.classList.add('grid-cols-1', 'gap-6');
+                
+                // Adjust cards layout
+                cards.forEach(card => {
+                    card.classList.remove('flex-col');
+                    card.classList.add('md:flex-row');
+                });
+                
+                // Adjust images sizing
+                images.forEach(img => {
+                    img.classList.remove('h-72', 'w-full');
+                    img.classList.add('h-72', 'md:h-auto', 'md:w-80', 'w-full');
+                });
+            });
+            
+            gridBtn.addEventListener('click', () => {
+                // Update active/inactive button styling
+                gridBtn.classList.add('bg-gray-100', 'text-gray-900', 'font-bold');
+                gridBtn.classList.remove('text-gray-500', 'hover:text-red-600', 'font-medium');
+                listBtn.classList.remove('bg-gray-100', 'text-gray-900', 'font-bold');
+                listBtn.classList.add('text-gray-500', 'hover:text-red-600', 'font-medium');
+                
+                // Adjust container layout
+                container.classList.remove('grid-cols-1', 'gap-6');
+                container.classList.add('grid-cols-1', 'md:grid-cols-2', 'xl:grid-cols-3', 'gap-8');
+                
+                // Adjust cards layout
+                cards.forEach(card => {
+                    card.classList.remove('md:flex-row');
+                    card.classList.add('flex-col');
+                });
+                
+                // Adjust images sizing
+                images.forEach(img => {
+                    img.classList.remove('h-72', 'md:h-auto', 'md:w-80', 'w-full');
+                    img.classList.add('h-72', 'w-full');
+                });
+            });
+        }
+    });
+    </script>
 </main>
 
 <?php require_once '../includes/footer.php'; ?>
