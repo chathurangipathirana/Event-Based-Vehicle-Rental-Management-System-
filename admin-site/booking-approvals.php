@@ -1,22 +1,42 @@
 <?php
 $page_title = 'Booking Approvals';
 require_once 'includes/auth.php';
+require_once 'config/database.php';
 requireAdminLogin();
 
-// Amounts converted to Sri Lankan Rupees (LKR)
-// Conversion rate: 1 USD = 295 LKR
-$pending_bookings = [
-    ['id' => 1, 'number' => '#FE-8821', 'customer' => 'Global Horizon Events', 'vehicle' => 'Mercedes S-Class', 'event' => 'Corporate Gala', 'amount' => 2450 * 295, 'date' => 'Oct 24', 'priority' => 'high'],   // LKR 722,750
-    ['id' => 2, 'number' => '#FE-8819', 'customer' => 'Vanguard Logistics', 'vehicle' => 'Freightliner M2', 'event' => 'Logistics', 'amount' => 2840 * 295, 'date' => 'Oct 23', 'priority' => 'normal'],   // LKR 837,800
-    ['id' => 3, 'number' => '#FE-8790', 'customer' => 'Artisan Catering', 'vehicle' => 'Ford Transit', 'event' => 'Catering', 'amount' => 820 * 295, 'date' => 'Oct 22', 'priority' => 'normal'],     // LKR 241,900
-];
+// Fetch pending bookings from the database, joined with related tables
+$stmt = $pdo->prepare("
+    SELECT 
+        b.id,
+        b.booking_number AS number,
+        u.full_name AS customer,
+        v.name AS vehicle,
+        et.name AS event,
+        b.event_date AS date,
+        b.total_amount AS amount,
+        b.status
+    FROM bookings b
+    JOIN users u ON b.user_id = u.id
+    JOIN vehicles v ON b.vehicle_id = v.id
+    JOIN event_types et ON b.event_type_id = et.id
+    WHERE b.status = 'pending'
+    ORDER BY b.created_at DESC
+");
+$stmt->execute();
+$pending_bookings = $stmt->fetchAll();
 
-$available_vehicles = [
-    ['id' => 1, 'plate' => 'SUV-702', 'name' => 'Cadillac Escalade'],
-    ['id' => 2, 'plate' => 'SUV-708', 'name' => 'Range Rover'],
-    ['id' => 3, 'plate' => 'SED-401', 'name' => 'Mercedes S-Class'],
-];
+// Add a 'priority' flag manually since it doesn't exist in the schema yet
+foreach ($pending_bookings as &$booking) {
+    $booking['priority'] = 'normal'; // adjust later if you add real priority logic
+}
+unset($booking);
 
+// Available vehicles — only ones marked available
+$stmt = $pdo->prepare("SELECT id, name, model FROM vehicles WHERE status = 'available' LIMIT 10");
+$stmt->execute();
+$available_vehicles = $stmt->fetchAll();
+
+// Drivers — no drivers table exists yet in your schema, so this stays static for now
 $available_drivers = [
     ['id' => 1, 'name' => 'Marcus Vance', 'rating' => '4.98', 'level' => 5],
     ['id' => 2, 'name' => 'Sarah Jennings', 'rating' => '4.95', 'level' => 4],
@@ -26,7 +46,7 @@ $available_drivers = [
 $pending_count = count($pending_bookings);
 $available_count = count($available_vehicles);
 $drivers_count = count($available_drivers);
-$urgent_count = 2;
+$urgent_count = 2; // still static — can compute later based on event_date
 ?>
 
 <!DOCTYPE html>
@@ -171,6 +191,11 @@ $urgent_count = 2;
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
             <!-- Pending List -->
             <div class="xl:col-span-2 space-y-4">
+                <?php if (empty($pending_bookings)): ?>
+                <div class="bg-white border border-gray-100 rounded-xl p-10 text-center text-gray-500">
+                    No pending bookings right now.
+                </div>
+                <?php endif; ?>
                 <?php foreach ($pending_bookings as $booking): ?>
                 <div class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
                     <div class="flex flex-col md:flex-row">
@@ -183,8 +208,8 @@ $urgent_count = 2;
                         <div class="flex-1 p-6">
                             <div class="flex justify-between items-start mb-4">
                                 <div>
-                                    <h3 class="text-2xl font-bold text-gray-900"><?php echo $booking['vehicle']; ?> - <?php echo $booking['event']; ?></h3>
-                                    <p class="text-sm text-gray-500"><?php echo $booking['number']; ?> • Submitted 2h ago</p>
+                                    <h3 class="text-2xl font-bold text-gray-900"><?php echo htmlspecialchars($booking['vehicle']); ?> - <?php echo htmlspecialchars($booking['event']); ?></h3>
+                                    <p class="text-sm text-gray-500"><?php echo htmlspecialchars($booking['number']); ?></p>
                                 </div>
                                 <div class="text-right">
                                     <p class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($booking['amount'], 2); ?></p>
@@ -196,21 +221,21 @@ $urgent_count = 2;
                                     <span class="material-symbols-outlined text-red-600">person</span>
                                     <div>
                                         <p class="text-xs text-gray-500 uppercase">Client</p>
-                                        <p class="text-sm font-medium"><?php echo $booking['customer']; ?></p>
+                                        <p class="text-sm font-medium"><?php echo htmlspecialchars($booking['customer']); ?></p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="material-symbols-outlined text-red-600">calendar_today</span>
                                     <div>
                                         <p class="text-xs text-gray-500 uppercase">Dates</p>
-                                        <p class="text-sm font-medium"><?php echo $booking['date']; ?></p>
+                                        <p class="text-sm font-medium"><?php echo date('M j, Y', strtotime($booking['date'])); ?></p>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <span class="material-symbols-outlined text-red-600">location_on</span>
                                     <div>
                                         <p class="text-xs text-gray-500 uppercase">Event Type</p>
-                                        <p class="text-sm font-medium"><?php echo $booking['event']; ?></p>
+                                        <p class="text-sm font-medium"><?php echo htmlspecialchars($booking['event']); ?></p>
                                     </div>
                                 </div>
                             </div>
@@ -242,7 +267,7 @@ $urgent_count = 2;
                         <select id="targetBooking" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
                             <option value="">Select a booking</option>
                             <?php foreach ($pending_bookings as $booking): ?>
-                            <option value="<?php echo $booking['id']; ?>">#<?php echo substr($booking['number'], -6); ?> - <?php echo $booking['customer']; ?></option>
+                            <option value="<?php echo $booking['id']; ?>">#<?php echo htmlspecialchars(substr($booking['number'], -6)); ?> - <?php echo htmlspecialchars($booking['customer']); ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -257,8 +282,8 @@ $urgent_count = 2;
                             <?php foreach ($available_vehicles as $vehicle): ?>
                             <button type="button" onclick="selectVehicle(this, <?php echo $vehicle['id']; ?>)" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition vehicle-option">
                                 <span class="material-symbols-outlined text-gray-500 mb-1">directions_car</span>
-                                <span class="text-sm font-medium"><?php echo $vehicle['plate']; ?></span>
-                                <span class="text-[10px] text-gray-500"><?php echo $vehicle['name']; ?></span>
+                                <span class="text-sm font-medium"><?php echo htmlspecialchars($vehicle['name']); ?></span>
+                                <span class="text-[10px] text-gray-500"><?php echo htmlspecialchars($vehicle['model']); ?></span>
                             </button>
                             <?php endforeach; ?>
                         </div>
@@ -355,19 +380,66 @@ function openRejectModal(id) {
     document.getElementById('rejectModal').style.display = 'block';
 }
 
-function confirmApprove() {
-    alert('Booking #' + currentBookingId + ' approved!');
+function removeBookingCard(id) {
+    const card = document.querySelector('button[onclick="openApproveModal(' + id + ')"]')?.closest('.bg-white.border.border-gray-100.rounded-xl.overflow-hidden');
+    if (card) {
+        card.remove();
+    }
+    const option = document.querySelector('#targetBooking option[value="' + id + '"]');
+    if (option) option.remove();
+}
+
+async function confirmApprove() {
+    const notes = document.getElementById('approveNotes').value;
+    try {
+        const res = await fetch('ajax/update-status.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ booking_id: currentBookingId, action: 'approve', notes: notes })
+        });
+        const data = await res.json();
+        if (data.success) {
+            removeBookingCard(currentBookingId);
+            alert('Booking approved!');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        alert('Request failed: ' + err.message);
+    }
     closeModals();
 }
 
-function confirmReject() {
-    alert('Booking #' + currentBookingId + ' rejected!');
+async function confirmReject() {
+    const reason = document.getElementById('rejectReason').value.trim();
+    if (!reason) {
+        alert('Please provide a rejection reason.');
+        return;
+    }
+    try {
+        const res = await fetch('ajax/update-status.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ booking_id: currentBookingId, action: 'reject', notes: reason })
+        });
+        const data = await res.json();
+        if (data.success) {
+            removeBookingCard(currentBookingId);
+            alert('Booking rejected.');
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (err) {
+        alert('Request failed: ' + err.message);
+    }
     closeModals();
 }
 
 function closeModals() {
     document.getElementById('approveModal').style.display = 'none';
     document.getElementById('rejectModal').style.display = 'none';
+    document.getElementById('approveNotes').value = '';
+    document.getElementById('rejectReason').value = '';
 }
 
 function openNewBooking() {
