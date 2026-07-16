@@ -221,7 +221,7 @@ INSERT INTO admin_users (username, email, password, full_name, role) VALUES
 INSERT INTO event_types (name, slug, description, sort_order) VALUES
 ('Wedding', 'wedding', 'Timeless elegance for special occasions', 1),
 ('Business', 'business', 'Executive logistics for corporate events', 2),
-('Tours', 'tours', 'Group travel and sightseeing', 3);Q
+('Tours', 'tours', 'Group travel and sightseeing', 3);
 
 -- Insert Vehicles
 INSERT INTO vehicles (name, model, license_plate, vin_number, price_per_day, price_per_hour, status, category, capacity, transmission, fuel_type) VALUES

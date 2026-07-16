@@ -2,21 +2,86 @@
 $page_title = 'Fleet Management';
 require_once 'includes/auth.php';
 requireAdminLogin();
+require_once 'config/database.php';
 
-// Vehicle prices converted to Sri Lankan Rupees (LKR)
-// Conversion rate: 1 USD = 295 LKR
-$vehicles = [
-    ['id' => 1, 'name' => 'Porsche 911 GT3', 'model' => '992', 'plate' => 'FLT-001', 'price' => 850 * 295, 'status' => 'available', 'category' => 'Sports', 'vin' => 'FLT-8829-PX'],      // LKR 250,750
-    ['id' => 2, 'name' => 'Range Rover SV', 'model' => 'L405', 'plate' => 'FLT-002', 'price' => 680 * 295, 'status' => 'booked', 'category' => 'Luxury SUV', 'vin' => 'FLT-1142-RR'],        // LKR 200,600
-    ['id' => 3, 'name' => 'BMW 7 Series', 'model' => 'G70', 'plate' => 'FLT-003', 'price' => 450 * 295, 'status' => 'maintenance', 'category' => 'Executive Sedan', 'vin' => 'FLT-5510-BM'],   // LKR 132,750
-    ['id' => 4, 'name' => 'Mercedes S-Class', 'model' => 'W223', 'plate' => 'FLT-004', 'price' => 520 * 295, 'status' => 'available', 'category' => 'Luxury', 'vin' => 'FLT-4432-MB'],        // LKR 153,400
-    ['id' => 5, 'name' => 'Tesla Model S', 'model' => 'Plaid', 'plate' => 'FLT-005', 'price' => 380 * 295, 'status' => 'available', 'category' => 'Electric', 'vin' => 'FLT-9912-TS'],         // LKR 112,100
-];
+$message = '';
+$error = '';
+
+// Handle POST actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    
+    if ($action === 'save') {
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $name = trim($_POST['name'] ?? '');
+        $model = trim($_POST['model'] ?? '');
+        $plate = trim($_POST['plate'] ?? '');
+        $vin = trim($_POST['vin'] ?? '');
+        $price = (float)($_POST['price'] ?? 0);
+        $category = trim($_POST['category'] ?? 'Sports');
+        $status = trim($_POST['status'] ?? 'available');
+        
+        if (empty($name) || empty($model)) {
+            $_SESSION['error'] = 'Name and Model are required fields.';
+        } else {
+            try {
+                if ($id > 0) {
+                    $stmt = $pdo->prepare("
+                        UPDATE vehicles 
+                        SET name = ?, model = ?, license_plate = ?, vin_number = ?, price_per_day = ?, category = ?, status = ? 
+                        WHERE id = ?
+                    ");
+                    $stmt->execute([$name, $model, $plate, $vin, $price, $category, $status, $id]);
+                    $_SESSION['message'] = 'Vehicle updated successfully!';
+                } else {
+                    $stmt = $pdo->prepare("
+                        INSERT INTO vehicles (name, model, license_plate, vin_number, price_per_day, category, status) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmt->execute([$name, $model, $plate, $vin, $price, $category, $status]);
+                    $_SESSION['message'] = 'Vehicle added successfully!';
+                }
+            } catch(PDOException $e) {
+                $_SESSION['error'] = 'Database error: ' . $e->getMessage();
+            }
+        }
+        header('Location: fleet.php');
+        exit();
+    } elseif ($action === 'delete') {
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        if ($id > 0) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM vehicles WHERE id = ?");
+                $stmt->execute([$id]);
+                $_SESSION['message'] = 'Vehicle deleted successfully!';
+            } catch(PDOException $e) {
+                $_SESSION['error'] = 'Database error: ' . $e->getMessage();
+            }
+        }
+        header('Location: fleet.php');
+        exit();
+    }
+}
+
+// Fetch all vehicles from database
+$vehicles = [];
+try {
+    $vehicles = $pdo->query("
+        SELECT *, 
+               price_per_day as price, 
+               license_plate as plate, 
+               vin_number as vin 
+        FROM vehicles 
+        ORDER BY id DESC
+    ")->fetchAll();
+} catch(PDOException $e) {
+    // Keep list empty if tables don't exist
+}
 
 $total_fleet = count($vehicles);
 $total_booked = count(array_filter($vehicles, fn($v) => $v['status'] == 'booked'));
 $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'maintenance'));
-$fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 100) : 0;
+$fleet_health = $total_fleet > 0 ? round((($total_fleet - $maintenance_count) / $total_fleet) * 100) : 100;
 ?>
 
 <?php require_once 'includes/header.php'; ?>
@@ -24,6 +89,12 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
 
 <main class="ml-64 min-h-screen bg-slate-50">
     <div class="p-8 max-w-7xl mx-auto">
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="alert-success mb-6 p-4 rounded-xl"><?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?></div>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="alert-error mb-6 p-4 rounded-xl"><?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+        <?php endif; ?>
         <section class="rounded-[2rem] overflow-hidden mb-10">
             <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
@@ -207,15 +278,17 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
         <div class="p-6 border-b">
             <h3 id="modalTitle" class="text-xl font-bold">Add New Vehicle</h3>
         </div>
-        <form id="vehicleForm" class="p-6 space-y-4">
+        <form id="vehicleForm" method="POST" action="fleet.php" class="p-6 space-y-4">
+            <input type="hidden" name="action" value="save">
+            <input type="hidden" name="id" id="vehicleId" value="0">
             <div class="grid grid-cols-2 gap-4">
-                <div><input type="text" id="vehicleName" placeholder="Vehicle Name" class="w-full px-3 py-2 border rounded-lg"></div>
-                <div><input type="text" id="vehicleModel" placeholder="Model" class="w-full px-3 py-2 border rounded-lg"></div>
-                <div><input type="text" id="vehiclePlate" placeholder="License Plate" class="w-full px-3 py-2 border rounded-lg"></div>
-                <div><input type="text" id="vehicleVin" placeholder="VIN Number" class="w-full px-3 py-2 border rounded-lg"></div>
-                <div><input type="number" id="vehiclePrice" placeholder="Daily Rate (LKR)" class="w-full px-3 py-2 border rounded-lg"></div>
+                <div><input type="text" name="name" id="vehicleName" placeholder="Vehicle Name" required class="w-full px-3 py-2 border rounded-lg"></div>
+                <div><input type="text" name="model" id="vehicleModel" placeholder="Model" required class="w-full px-3 py-2 border rounded-lg"></div>
+                <div><input type="text" name="plate" id="vehiclePlate" placeholder="License Plate" class="w-full px-3 py-2 border rounded-lg"></div>
+                <div><input type="text" name="vin" id="vehicleVin" placeholder="VIN Number" class="w-full px-3 py-2 border rounded-lg"></div>
+                <div><input type="number" name="price" id="vehiclePrice" placeholder="Daily Rate (LKR)" required class="w-full px-3 py-2 border rounded-lg"></div>
                 <div>
-                    <select id="vehicleCategory" class="w-full px-3 py-2 border rounded-lg">
+                    <select name="category" id="vehicleCategory" class="w-full px-3 py-2 border rounded-lg">
                         <option value="Sports">Sports Performance</option>
                         <option value="Luxury">Executive Sedan</option>
                         <option value="Luxury SUV">Luxury SUV</option>
@@ -223,7 +296,7 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
                     </select>
                 </div>
                 <div>
-                    <select id="vehicleStatus" class="w-full px-3 py-2 border rounded-lg">
+                    <select name="status" id="vehicleStatus" class="w-full px-3 py-2 border rounded-lg">
                         <option value="available">Available</option>
                         <option value="booked">Booked</option>
                         <option value="maintenance">Maintenance</option>
@@ -231,7 +304,7 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
                 </div>
             </div>
             <div class="flex gap-3 pt-4">
-                <button type="button" onclick="saveVehicle()" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Save</button>
+                <button type="submit" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Save</button>
                 <button type="button" onclick="closeModal()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
             </div>
         </form>
@@ -241,16 +314,18 @@ $fleet_health = $total_fleet > 0 ? round(($maintenance_count / $total_fleet) * 1
 <script>
 function openAddModal() {
     document.getElementById('modalTitle').innerText = 'Add New Vehicle';
+    document.getElementById('vehicleId').value = 0;
     document.getElementById('vehicleForm').reset();
     document.getElementById('vehicleModal').style.display = 'block';
 }
 
 function editVehicle(vehicle) {
     document.getElementById('modalTitle').innerText = 'Edit Vehicle';
+    document.getElementById('vehicleId').value = vehicle.id;
     document.getElementById('vehicleName').value = vehicle.name;
     document.getElementById('vehicleModel').value = vehicle.model;
-    document.getElementById('vehiclePlate').value = vehicle.plate;
-    document.getElementById('vehicleVin').value = vehicle.vin;
+    document.getElementById('vehiclePlate').value = vehicle.plate || '';
+    document.getElementById('vehicleVin').value = vehicle.vin || '';
     document.getElementById('vehiclePrice').value = vehicle.price;
     document.getElementById('vehicleCategory').value = vehicle.category;
     document.getElementById('vehicleStatus').value = vehicle.status;
@@ -259,13 +334,25 @@ function editVehicle(vehicle) {
 
 function deleteVehicle(id) {
     if (confirm('Are you sure you want to delete this vehicle?')) {
-        showMessage('Vehicle deleted successfully!', 'success');
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'fleet.php';
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete';
+        form.appendChild(actionInput);
+        
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'id';
+        idInput.value = id;
+        form.appendChild(idInput);
+        
+        document.body.appendChild(form);
+        form.submit();
     }
-}
-
-function saveVehicle() {
-    showMessage('Vehicle saved successfully!', 'success');
-    closeModal();
 }
 
 function closeModal() {
