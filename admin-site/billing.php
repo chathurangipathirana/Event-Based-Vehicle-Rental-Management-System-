@@ -260,7 +260,7 @@ function markAsPaid(id) {
 }
 
 function downloadPDF(invoiceNumber) {
-    alert('Downloading PDF for invoice #' + invoiceNumber);
+    window.open('../user-site/public/invoice-print.php?number=' + encodeURIComponent(invoiceNumber), '_blank');
 }
 
 function viewInvoiceDetails(invoiceId) {

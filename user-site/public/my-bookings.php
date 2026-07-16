@@ -91,9 +91,11 @@ if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
                                     <p class="text-2xl font-bold text-primary">$<?php echo number_format($booking['total_amount'], 2); ?></p>
                                 </div>
                                 <div class="space-x-3">
-                                    <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="inline-block px-4 py-2 border border-primary text-primary rounded hover:bg-primary hover:text-white transition">
-                                        View Details
-                                    </a>
+                                    <?php if ($booking['invoice_generated']): ?>
+                                        <a href="invoice-print.php?booking_id=<?php echo $booking['id']; ?>" target="_blank" class="inline-block px-4 py-2 bg-primary text-white rounded hover:bg-red-700 transition">
+                                            Download Invoice
+                                        </a>
+                                    <?php endif; ?>
                                     <?php if ($booking['status'] == 'pending'): ?>
                                         <a href="?cancel=<?php echo $booking['id']; ?>" onclick="return confirm('Are you sure you want to cancel this booking?')" class="inline-block px-4 py-2 border border-red-500 text-red-500 rounded hover:bg-red-500 hover:text-white transition">
                                             Cancel

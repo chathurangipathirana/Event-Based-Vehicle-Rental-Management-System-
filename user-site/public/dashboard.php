@@ -116,9 +116,13 @@ $upcoming = $stmt->fetch();
                                         <?php echo ucfirst($booking['status']); ?>
                                     </span>
                                 </td>
-                                <td class="py-3">
-                                    <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="text-primary hover:underline">View</a>
-                                </td>
+                                 <td class="py-3">
+                                     <?php if ($booking['invoice_generated']): ?>
+                                         <a href="invoice-print.php?booking_id=<?php echo $booking['id']; ?>" target="_blank" class="text-primary hover:underline font-semibold">Invoice</a>
+                                     <?php else: ?>
+                                         <span class="text-gray-400 italic font-normal">No Invoice</span>
+                                     <?php endif; ?>
+                                 </td>
                             </tr>
                             <?php endforeach; ?>
                         </tbody>
