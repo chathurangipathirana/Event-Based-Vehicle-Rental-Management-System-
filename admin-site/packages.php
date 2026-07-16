@@ -2,14 +2,80 @@
 $page_title = 'Event Packages';
 require_once 'includes/auth.php';
 requireAdminLogin();
+require_once 'config/database.php';
 
-// Package prices converted to Sri Lankan Rupees (LKR)
-// Conversion rate: 1 USD = 295 LKR
-$packages = [
-    ['id' => 1, 'name' => 'Wedding Premium', 'price' => 2500 * 295, 'description' => 'The ultimate luxury experience for high-profile weddings.', 'services' => '3 Luxury Sedans + 1 Stretch Limousine,8-Hour Chauffeur Service,Champagne & Concierge', 'vehicles' => 'Sedan,Limousine', 'status' => 'active'],   // LKR 737,500
-    ['id' => 2, 'name' => 'Business Pro', 'price' => 1800 * 295, 'description' => 'Optimized logistics for corporate summits.', 'services' => '5 Executive SUVs,Airport Transfer Coordination,Real-time Fleet Tracking', 'vehicles' => 'SUV', 'status' => 'active'],   // LKR 531,000
-    ['id' => 3, 'name' => 'Gala Elite', 'price' => 3200 * 295, 'description' => 'Premium gala night package with multiple arrival points.', 'services' => 'Red Carpet Service,Multiple Arrival Points,VIP Coordination', 'vehicles' => 'Sedan,Limo,Bus', 'status' => 'draft'],   // LKR 944,000
-];
+$message = '';
+$error = '';
+
+// Handle POST actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    
+    if ($action === 'save') {
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $name = trim($_POST['name'] ?? '');
+        $price = (float)($_POST['price'] ?? 0);
+        $description = trim($_POST['description'] ?? '');
+        $services = trim($_POST['services'] ?? '');
+        $vehicles = trim($_POST['vehicles'] ?? '');
+        $status = trim($_POST['status'] ?? 'draft');
+        
+        if (empty($name)) {
+            $_SESSION['error'] = 'Package Name is required.';
+        } else {
+            try {
+                if ($id > 0) {
+                    $stmt = $pdo->prepare("
+                        UPDATE event_packages 
+                        SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, status = ? 
+                        WHERE id = ?
+                    ");
+                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $id]);
+                    $_SESSION['message'] = 'Package updated successfully!';
+                } else {
+                    $stmt = $pdo->prepare("
+                        INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status) 
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ");
+                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status]);
+                    $_SESSION['message'] = 'Package created successfully!';
+                }
+            } catch(PDOException $e) {
+                $_SESSION['error'] = 'Database error: ' . $e->getMessage();
+            }
+        }
+        header('Location: packages.php');
+        exit();
+    } elseif ($action === 'delete') {
+        $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        if ($id > 0) {
+            try {
+                $stmt = $pdo->prepare("DELETE FROM event_packages WHERE id = ?");
+                $stmt->execute([$id]);
+                $_SESSION['message'] = 'Package deleted successfully!';
+            } catch(PDOException $e) {
+                $_SESSION['error'] = 'Database error: ' . $e->getMessage();
+            }
+        }
+        header('Location: packages.php');
+        exit();
+    }
+}
+
+// Fetch event packages from database
+$packages = [];
+try {
+    $packages = $pdo->query("
+        SELECT *, 
+               base_price as price, 
+               included_services as services, 
+               vehicle_types as vehicles 
+        FROM event_packages 
+        ORDER BY id DESC
+    ")->fetchAll();
+} catch(PDOException $e) {
+    // Keep list empty if tables don't exist
+}
 
 $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'active'));
 ?>
@@ -61,6 +127,12 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
 
 <main class="ml-64 min-h-screen bg-slate-50">
     <div class="p-8 max-w-7xl mx-auto">
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="alert-success mb-6 p-4 rounded-xl"><?php echo htmlspecialchars($_SESSION['message']); unset($_SESSION['message']); ?></div>
+        <?php endif; ?>
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="alert-error mb-6 p-4 rounded-xl"><?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></div>
+        <?php endif; ?>
         <section class="rounded-[2rem] overflow-hidden mb-10">
             <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
@@ -109,7 +181,7 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
                         <?php endforeach; ?>
                     </div>
                     <div class="mt-auto flex gap-3">
-                        <button onclick="viewDetails(<?php echo $package['id']; ?>)" class="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg text-sm transition">View Details</button>
+                        <button onclick="viewDetails(<?php echo htmlspecialchars(json_encode($package)); ?>)" class="flex-1 border border-gray-300 text-gray-700 hover:bg-gray-50 py-2 rounded-lg text-sm transition">View Details</button>
                         <button onclick="editPackage(<?php echo htmlspecialchars(json_encode($package)); ?>)" class="flex-1 bg-gray-900 text-white hover:bg-black py-2 rounded-lg text-sm transition">Edit Package</button>
                     </div>
                 </div>
@@ -131,32 +203,34 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
                 </div>
 
                 <!-- Quick Edit Panel - UI 6 Style -->
-                <div class="bg-gray-100 p-6 rounded-xl border border-gray-200">
+                <form method="POST" action="packages.php" class="bg-gray-100 p-6 rounded-xl border border-gray-200">
+                    <input type="hidden" name="action" value="save">
+                    <input type="hidden" name="id" id="quickId" value="0">
                     <h4 class="text-2xl font-bold text-gray-900 mb-6">Quick Edit Context</h4>
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm text-gray-700 mb-2">Package Name</label>
-                            <input type="text" id="quickName" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500">
+                            <input type="text" name="name" id="quickName" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500" required>
                         </div>
                         <div>
                             <label class="block text-sm text-gray-700 mb-2">Base Price (LKR)</label>
-                            <input type="number" id="quickPrice" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500">
+                            <input type="number" name="price" id="quickPrice" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500" required>
                         </div>
                         <div>
                             <label class="block text-sm text-gray-700 mb-2">Description</label>
-                            <textarea id="quickDesc" rows="3" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500"></textarea>
+                            <textarea name="description" id="quickDesc" rows="3" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500"></textarea>
                         </div>
                         <div>
                             <label class="block text-sm text-gray-700 mb-2">Status</label>
-                            <select id="quickStatus" class="w-full bg-white border border-gray-200 rounded px-4 py-2">
+                            <select name="status" id="quickStatus" class="w-full bg-white border border-gray-200 rounded px-4 py-2">
                                 <option value="active">Active</option>
                                 <option value="draft">Draft</option>
                                 <option value="archived">Archived</option>
                             </select>
                         </div>
-                        <button onclick="quickSave()" class="w-full bg-red-600 text-white py-3 rounded-lg font-medium mt-2 hover:bg-red-700 transition">Save Changes</button>
+                        <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-medium mt-2 hover:bg-red-700 transition">Save Changes</button>
                     </div>
-                </div>
+                </form>
             </div>
 
             <!-- Data Table - UI 6 Style -->
@@ -261,25 +335,66 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
     </div>
 </main>
 
+<!-- View Details Modal -->
+<div id="detailsModal" class="modal">
+    <div class="modal-content mx-4 p-6 space-y-4">
+        <div class="flex justify-between items-start border-b pb-4">
+            <div>
+                <h3 id="detailsName" class="text-2xl font-bold text-gray-900">Package Name</h3>
+                <span id="detailsStatus" class="inline-block mt-2 px-2 py-1 text-xs rounded-full bg-green-100 text-green-700 uppercase font-semibold">Active</span>
+            </div>
+            <button onclick="closeDetailsModal()" class="text-gray-400 hover:text-gray-600">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 font-semibold mb-1">Base Price</h4>
+                <p id="detailsPrice" class="text-lg font-bold text-gray-900">LKR 0.00</p>
+            </div>
+            <div>
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 font-semibold mb-1">Description</h4>
+                <p id="detailsDesc" class="text-gray-600 text-sm leading-relaxed"></p>
+            </div>
+            <div>
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 font-semibold mb-1">Included Services</h4>
+                <ul id="detailsServices" class="list-disc list-inside text-gray-600 text-sm space-y-1">
+                </ul>
+            </div>
+            <div>
+                <h4 class="text-xs uppercase tracking-widest text-gray-500 font-semibold mb-1">Vehicle Types</h4>
+                <p id="detailsVehicles" class="text-gray-600 text-sm"></p>
+            </div>
+        </div>
+        <div class="pt-4 border-t flex gap-3">
+            <button id="detailsEditBtn" class="flex-1 bg-gray-900 text-white hover:bg-black py-2 rounded-lg text-sm transition">Edit Package</button>
+            <button onclick="closeDetailsModal()" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-lg text-sm transition">Close</button>
+        </div>
+    </div>
+</div>
+
 <!-- Add/Edit Modal -->
 <div id="packageModal" class="modal">
     <div class="modal-content mx-4">
         <div class="p-6 border-b">
             <h3 id="modalTitle" class="text-xl font-bold">Add Package</h3>
         </div>
-        <form class="p-6 space-y-4">
-            <input type="text" id="pkgName" placeholder="Package Name" class="w-full px-3 py-2 border rounded-lg">
-            <input type="number" id="pkgPrice" placeholder="Base Price (LKR)" class="w-full px-3 py-2 border rounded-lg">
-            <textarea id="pkgDesc" rows="3" placeholder="Description" class="w-full px-3 py-2 border rounded-lg"></textarea>
-            <textarea id="pkgServices" rows="2" placeholder="Included Services (comma separated)" class="w-full px-3 py-2 border rounded-lg"></textarea>
-            <input type="text" id="pkgVehicles" placeholder="Vehicle Types (comma separated)" class="w-full px-3 py-2 border rounded-lg">
-            <select id="pkgStatus" class="w-full px-3 py-2 border rounded-lg">
+        <form id="packageForm" method="POST" action="packages.php" class="p-6 space-y-4">
+            <input type="hidden" name="action" value="save">
+            <input type="hidden" name="id" id="pkgId" value="0">
+            <input type="text" name="name" id="pkgName" placeholder="Package Name" required class="w-full px-3 py-2 border rounded-lg">
+            <input type="number" name="price" id="pkgPrice" placeholder="Base Price (LKR)" required class="w-full px-3 py-2 border rounded-lg">
+            <textarea name="description" id="pkgDesc" rows="3" placeholder="Description" class="w-full px-3 py-2 border rounded-lg"></textarea>
+            <textarea name="services" id="pkgServices" rows="2" placeholder="Included Services (comma separated)" class="w-full px-3 py-2 border rounded-lg"></textarea>
+            <input type="text" name="vehicles" id="pkgVehicles" placeholder="Vehicle Types (comma separated)" class="w-full px-3 py-2 border rounded-lg">
+            <select name="status" id="pkgStatus" class="w-full px-3 py-2 border rounded-lg">
                 <option value="active">Active</option>
                 <option value="draft">Draft</option>
                 <option value="archived">Archived</option>
             </select>
             <div class="flex gap-3">
-                <button type="button" onclick="savePackage()" class="flex-1 bg-red-600 text-white py-2 rounded-lg">Save</button>
+                <button type="submit" class="flex-1 bg-red-600 text-white py-2 rounded-lg">Save</button>
+                <button type="button" id="modalDeleteBtn" onclick="deletePackage(document.getElementById('pkgId').value)" class="flex-1 bg-red-100 text-red-600 hover:bg-red-200 py-2 rounded-lg" style="display: none;">Delete</button>
                 <button type="button" onclick="closeModal()" class="flex-1 bg-gray-200 py-2 rounded-lg">Cancel</button>
             </div>
         </form>
@@ -289,11 +404,15 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
 <script>
 function openAddModal() {
     document.getElementById('modalTitle').innerText = 'Add Package';
+    document.getElementById('pkgId').value = 0;
+    document.getElementById('modalDeleteBtn').style.display = 'none';
+    document.getElementById('packageForm').reset();
     document.getElementById('packageModal').style.display = 'block';
 }
 
 function editPackage(pkg) {
     document.getElementById('modalTitle').innerText = 'Edit Package';
+    document.getElementById('pkgId').value = pkg.id;
     document.getElementById('pkgName').value = pkg.name;
     document.getElementById('pkgPrice').value = pkg.price;
     document.getElementById('pkgDesc').value = pkg.description;
@@ -301,29 +420,73 @@ function editPackage(pkg) {
     document.getElementById('pkgVehicles').value = pkg.vehicles;
     document.getElementById('pkgStatus').value = pkg.status;
     
+    document.getElementById('quickId').value = pkg.id;
     document.getElementById('quickName').value = pkg.name;
     document.getElementById('quickPrice').value = pkg.price;
     document.getElementById('quickDesc').value = pkg.description;
     document.getElementById('quickStatus').value = pkg.status;
     
+    document.getElementById('modalDeleteBtn').style.display = 'block';
     document.getElementById('packageModal').style.display = 'block';
 }
 
 function deletePackage(id) {
-    if (confirm('Delete this package?')) alert('Package deleted');
+    if (confirm('Are you sure you want to delete this package?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'packages.php';
+        
+        const actionInput = document.createElement('input');
+        actionInput.type = 'hidden';
+        actionInput.name = 'action';
+        actionInput.value = 'delete';
+        form.appendChild(actionInput);
+        
+        const idInput = document.createElement('input');
+        idInput.type = 'hidden';
+        idInput.name = 'id';
+        idInput.value = id;
+        form.appendChild(idInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+    }
 }
 
-function savePackage() {
-    alert('Package saved!');
-    closeModal();
+function viewDetails(pkg) {
+    document.getElementById('detailsName').innerText = pkg.name;
+    document.getElementById('detailsStatus').innerText = pkg.status.toUpperCase();
+    
+    const statusEl = document.getElementById('detailsStatus');
+    statusEl.className = 'inline-block mt-2 px-2 py-1 text-xs rounded-full uppercase font-semibold ' + 
+        (pkg.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700');
+        
+    document.getElementById('detailsPrice').innerText = 'LKR ' + parseFloat(pkg.price).toLocaleString(undefined, {minimumFractionDigits: 2});
+    document.getElementById('detailsDesc').innerText = pkg.description || 'No description provided.';
+    document.getElementById('detailsVehicles').innerText = pkg.vehicles || 'None specified.';
+    
+    const servicesList = document.getElementById('detailsServices');
+    servicesList.innerHTML = '';
+    if (pkg.services) {
+        pkg.services.split(',').forEach(service => {
+            const li = document.createElement('li');
+            li.innerText = service.trim();
+            servicesList.appendChild(li);
+        });
+    } else {
+        servicesList.innerHTML = '<li class="italic text-gray-400">No services specified.</li>';
+    }
+    
+    document.getElementById('detailsEditBtn').onclick = function() {
+        closeDetailsModal();
+        editPackage(pkg);
+    };
+    
+    document.getElementById('detailsModal').style.display = 'block';
 }
 
-function quickSave() {
-    alert('Changes saved!');
-}
-
-function viewDetails(id) {
-    alert('Package details view');
+function closeDetailsModal() {
+    document.getElementById('detailsModal').style.display = 'none';
 }
 
 function closeModal() {
