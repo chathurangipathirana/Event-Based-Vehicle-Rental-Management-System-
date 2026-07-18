@@ -9,7 +9,20 @@ $booking_data = $_SESSION['booking_data'] ?? [];
 
 // Step 1: Vehicle and Schedule Selection
 if ($step == 1) {
+    $package_id = isset($_GET['package_id']) ? (int)$_GET['package_id'] : 0;
+    $selected_package = null;
+    if ($package_id > 0) {
+        $stmtPkg = $pdo->prepare("SELECT * FROM event_packages WHERE id = ?");
+        $stmtPkg->execute([$package_id]);
+        $selected_package = $stmtPkg->fetch();
+    }
+
     $vehicle_id = $_GET['vehicle'] ?? 0;
+    if ($selected_package) {
+        // Find a fallback vehicle to fulfill foreign key constraint
+        $vehicle_id = $pdo->query("SELECT id FROM vehicles LIMIT 1")->fetchColumn();
+    }
+    
     $selected_vehicle = getVehicleById($vehicle_id);
     
     if (!$selected_vehicle) {
@@ -20,8 +33,9 @@ if ($step == 1) {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['booking_data'] = [
             'vehicle_id' => $vehicle_id,
+            'package_id' => $package_id,
             'event_type_id' => $_POST['event_type_id'],
-            'event_name' => $_POST['event_name'],
+            'event_name' => $_POST['event_name'] ?: ($selected_package ? $selected_package['name'] : ''),
             'event_date' => $_POST['event_date'],
             'start_time' => $_POST['start_time'],
             'end_time' => $_POST['end_time'],
@@ -193,22 +207,37 @@ if ($step == 1) {
         // Calculate total
         $vehicle = getVehicleById($booking_data['vehicle_id']);
         
+        $package_id = isset($booking_data['package_id']) ? (int)$booking_data['package_id'] : 0;
+        $selected_package = null;
+        if ($package_id > 0) {
+            $stmtPkg = $pdo->prepare("SELECT * FROM event_packages WHERE id = ?");
+            $stmtPkg->execute([$package_id]);
+            $selected_package = $stmtPkg->fetch();
+        }
+
         // Calculate base cost
         $start = new DateTime($booking_data['event_date'] . ' ' . $booking_data['start_time']);
         $end = new DateTime($booking_data['event_date'] . ' ' . $booking_data['end_time']);
         $interval = $start->diff($end);
         $total_hours = $interval->h + ($interval->days * 24);
         
-        $subtotal = $vehicle['price_per_hour'] * $total_hours;
-        
-        // Add extras
-        $extras_total = 0;
-        if ($booking_data['extras']['professional_driver']) $extras_total += 120;
-        if ($booking_data['extras']['decorations']) $extras_total += 75;
-        if ($booking_data['extras']['extra_hours'] > 0) $extras_total += $booking_data['extras']['extra_hours'] * $vehicle['price_per_hour'];
-        
-        $tax = ($subtotal + $extras_total) * 0.10;
-        $total_amount = $subtotal + $extras_total + $tax;
+        if ($selected_package) {
+            $subtotal = $selected_package['base_price'];
+            $extras_total = 0;
+            $tax = $subtotal * 0.10;
+            $total_amount = $subtotal + $tax;
+        } else {
+            $subtotal = $vehicle['price_per_hour'] * $total_hours;
+            
+            // Add extras
+            $extras_total = 0;
+            if ($booking_data['extras']['professional_driver']) $extras_total += 120;
+            if ($booking_data['extras']['decorations']) $extras_total += 75;
+            if ($booking_data['extras']['extra_hours'] > 0) $extras_total += $booking_data['extras']['extra_hours'] * $vehicle['price_per_hour'];
+            
+            $tax = ($subtotal + $extras_total) * 0.10;
+            $total_amount = $subtotal + $extras_total + $tax;
+        }
         
         // Create booking
         $booking_number = 'FLT' . date('Ymd') . rand(1000, 9999);
@@ -243,19 +272,34 @@ if ($step == 1) {
     $vehicle = getVehicleById($booking_data['vehicle_id']);
     $event_type = getEventTypeById($booking_data['event_type_id']);
     
+    $package_id = isset($booking_data['package_id']) ? (int)$booking_data['package_id'] : 0;
+    $selected_package = null;
+    if ($package_id > 0) {
+        $stmtPkg = $pdo->prepare("SELECT * FROM event_packages WHERE id = ?");
+        $stmtPkg->execute([$package_id]);
+        $selected_package = $stmtPkg->fetch();
+    }
+
     // Calculate costs
     $start = new DateTime($booking_data['event_date'] . ' ' . $booking_data['start_time']);
     $end = new DateTime($booking_data['event_date'] . ' ' . $booking_data['end_time']);
     $interval = $start->diff($end);
     $total_hours = $interval->h + ($interval->days * 24);
     
-    $subtotal = $vehicle['price_per_hour'] * $total_hours;
-    $extras_total = 0;
-    if ($booking_data['extras']['professional_driver']) $extras_total += 120;
-    if ($booking_data['extras']['decorations']) $extras_total += 75;
-    if ($booking_data['extras']['extra_hours'] > 0) $extras_total += $booking_data['extras']['extra_hours'] * $vehicle['price_per_hour'];
-    $tax = ($subtotal + $extras_total) * 0.10;
-    $grand_total = $subtotal + $extras_total + $tax;
+    if ($selected_package) {
+        $subtotal = $selected_package['base_price'];
+        $extras_total = 0;
+        $tax = $subtotal * 0.10;
+        $grand_total = $subtotal + $tax;
+    } else {
+        $subtotal = $vehicle['price_per_hour'] * $total_hours;
+        $extras_total = 0;
+        if ($booking_data['extras']['professional_driver']) $extras_total += 120;
+        if ($booking_data['extras']['decorations']) $extras_total += 75;
+        if ($booking_data['extras']['extra_hours'] > 0) $extras_total += $booking_data['extras']['extra_hours'] * $vehicle['price_per_hour'];
+        $tax = ($subtotal + $extras_total) * 0.10;
+        $grand_total = $subtotal + $extras_total + $tax;
+    }
     ?>
     
     <?php require_once '../includes/header.php'; ?>
@@ -270,8 +314,14 @@ if ($step == 1) {
                 <div class="p-8">
                     <div class="space-y-6">
                         <div class="border-b pb-4">
-                            <h3 class="font-bold text-lg mb-3">Vehicle Details</h3>
-                            <p><strong>Vehicle:</strong> <?php echo htmlspecialchars($vehicle['name']); ?></p>
+                            <?php if ($selected_package): ?>
+                                <h3 class="font-bold text-lg mb-3">Package Details</h3>
+                                <p><strong>Package:</strong> <?php echo htmlspecialchars($selected_package['name']); ?></p>
+                                <p><strong>Vehicles Included:</strong> <?php echo htmlspecialchars($selected_package['vehicle_types']); ?></p>
+                            <?php else: ?>
+                                <h3 class="font-bold text-lg mb-3">Vehicle Details</h3>
+                                <p><strong>Vehicle:</strong> <?php echo htmlspecialchars($vehicle['name']); ?></p>
+                            <?php endif; ?>
                             <p><strong>Event Type:</strong> <?php echo htmlspecialchars($event_type['name']); ?></p>
                             <p><strong>Event Name:</strong> <?php echo htmlspecialchars($booking_data['event_name'] ?: 'Not specified'); ?></p>
                         </div>
@@ -289,6 +339,7 @@ if ($step == 1) {
                             <p><strong>Dropoff:</strong> <?php echo htmlspecialchars($booking_data['dropoff_location']); ?></p>
                         </div>
                         
+                        <?php if (!$selected_package): ?>
                         <div class="border-b pb-4">
                             <h3 class="font-bold text-lg mb-3">Extras</h3>
                             <?php if ($booking_data['extras']['professional_driver']): ?>
@@ -304,27 +355,35 @@ if ($step == 1) {
                                 <p class="text-gray-500">No extras selected</p>
                             <?php endif; ?>
                         </div>
+                        <?php endif; ?>
                         
                         <div class="bg-gray-50 p-6 rounded-lg">
                             <h3 class="font-bold text-lg mb-3">Cost Summary</h3>
                             <div class="space-y-2">
-                                <div class="flex justify-between">
-                                    <span>Base Rental (<?php echo $total_hours; ?> hours)</span>
-                                    <span>$<?php echo number_format($subtotal, 2); ?></span>
-                                </div>
-                                <?php if ($extras_total > 0): ?>
+                                <?php if ($selected_package): ?>
                                     <div class="flex justify-between">
-                                        <span>Extras</span>
-                                        <span>$<?php echo number_format($extras_total, 2); ?></span>
+                                        <span><?php echo htmlspecialchars($selected_package['name']); ?> Base Price</span>
+                                        <span>LKR <?php echo number_format($subtotal, 2); ?></span>
                                     </div>
+                                <?php else: ?>
+                                    <div class="flex justify-between">
+                                        <span>Base Rental (<?php echo $total_hours; ?> hours)</span>
+                                        <span>$<?php echo number_format($subtotal, 2); ?></span>
+                                    </div>
+                                    <?php if ($extras_total > 0): ?>
+                                        <div class="flex justify-between">
+                                            <span>Extras</span>
+                                            <span>$<?php echo number_format($extras_total, 2); ?></span>
+                                        </div>
+                                    <?php endif; ?>
                                 <?php endif; ?>
                                 <div class="flex justify-between">
                                     <span>Tax (10%)</span>
-                                    <span>$<?php echo number_format($tax, 2); ?></span>
+                                    <span>LKR <?php echo number_format($tax, 2); ?></span>
                                 </div>
                                 <div class="flex justify-between pt-2 border-t font-bold text-lg">
                                     <span>Grand Total</span>
-                                    <span class="text-red-600">$<?php echo number_format($grand_total, 2); ?></span>
+                                    <span class="text-red-600 font-bold">LKR <?php echo number_format($grand_total, 2); ?></span>
                                 </div>
                             </div>
                         </div>

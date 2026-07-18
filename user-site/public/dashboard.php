@@ -27,8 +27,8 @@ $stmt = $pdo->prepare("SELECT COUNT(*) as upcoming FROM bookings
 $stmt->execute([$_SESSION['user_id']]);
 $upcoming = $stmt->fetch();
 ?>
-
 <?php require_once '../includes/header.php'; ?>
+<?php require_once '../includes/navbar.php'; ?>
 
 <main class="min-h-screen py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-8">

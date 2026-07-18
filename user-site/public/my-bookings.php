@@ -24,8 +24,8 @@ if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
     }
 }
 ?>
-
 <?php require_once '../includes/header.php'; ?>
+<?php require_once '../includes/navbar.php'; ?>
 
 <main class="min-h-screen py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-8">

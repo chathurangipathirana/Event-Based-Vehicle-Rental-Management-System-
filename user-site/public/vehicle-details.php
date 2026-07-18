@@ -16,8 +16,8 @@ $stmt = $pdo->prepare("SELECT * FROM vehicles WHERE status = 'available' AND id 
 $stmt->execute([$vehicle_id]);
 $similar_vehicles = $stmt->fetchAll();
 ?>
-
 <?php require_once '../includes/header.php'; ?>
+<?php require_once '../includes/navbar.php'; ?>
 
 <main class="pt-16 min-h-screen bg-gray-50">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
