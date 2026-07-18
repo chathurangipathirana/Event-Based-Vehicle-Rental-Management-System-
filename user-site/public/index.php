@@ -11,6 +11,33 @@ $vehicles = $stmt->fetchAll();
 // Fetch event types
 $stmtEvent = $pdo->query("SELECT * FROM event_types WHERE is_active = 1 ORDER BY sort_order");
 $eventTypes = $stmtEvent->fetchAll();
+
+// Fetch hero images dynamically from vehicles table
+$stmtHero = $pdo->query("SELECT image_url FROM vehicles WHERE status = 'available' AND image_url IS NOT NULL LIMIT 4");
+$heroImages = $stmtHero->fetchAll();
+
+$fallbackImages = [
+    ['image_url' => 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&h=1080&fit=crop&crop=center'],
+    ['image_url' => 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=1920&h=1080&fit=crop&crop=center'],
+    ['image_url' => 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1920&h=1080&fit=crop&crop=center'],
+    ['image_url' => 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1920&h=1080&fit=crop&crop=center']
+];
+
+// Ensure we have at least 2 images for the transition to work
+if (count($heroImages) < 2) {
+    foreach ($fallbackImages as $fb) {
+        if (count($heroImages) >= 4) break;
+        $heroImages[] = $fb;
+    }
+}
+
+// Fetch stats dynamically
+$stmtTotalVehicles = $pdo->query("SELECT COUNT(*) FROM vehicles");
+$totalVehicles = $stmtTotalVehicles->fetchColumn();
+
+$stmtTotalBookings = $pdo->query("SELECT COUNT(*) FROM bookings WHERE status = 'completed'");
+$totalBookings = $stmtTotalBookings->fetchColumn();
+$totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $totalBookings);
 ?>
 
 <?php require_once '../includes/navbar.php'; ?>
@@ -31,10 +58,11 @@ $eventTypes = $stmtEvent->fetchAll();
     <!-- Hero Section -->
     <section class="relative h-[870px] w-full flex items-center overflow-hidden">
         <div class="absolute inset-0 z-0 bg-black" id="hero-slider">
-            <img class="hero-slide active absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&h=1080&fit=crop&crop=center" alt="Luxury black sedan"/>
-            <img class="hero-slide absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1563720223185-11003d516935?w=1920&h=1080&fit=crop&crop=center" alt="Premium sports car"/>
-            <img class="hero-slide absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1920&h=1080&fit=crop&crop=center" alt="Classic luxury vehicle"/>
-            <img class="hero-slide absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1920&h=1080&fit=crop&crop=center" alt="Corporate premium fleet"/>
+            <?php foreach ($heroImages as $index => $img): ?>
+                <img class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?> absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" 
+                     src="<?php echo htmlspecialchars(strpos($img['image_url'], 'http') === 0 ? $img['image_url'] : '../uploads/' . $img['image_url']); ?>" 
+                     alt="Premium Fleet Vehicle"/>
+            <?php endforeach; ?>
             
             <!-- Gradient Overlay -->
             <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10 pointer-events-none"></div>
@@ -151,11 +179,11 @@ $eventTypes = $stmtEvent->fetchAll();
     <section class="bg-surface-container py-20 border-y border-outline-variant/30">
         <div class="max-w-[1440px] mx-auto px-8 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
             <div>
-                <p class="text-h1 font-h1 text-primary mb-2">500+</p>
+                <p class="text-h1 font-h1 text-primary mb-2"><?php echo $totalVehicles; ?>+</p>
                 <p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-widest">Premium Vehicles</p>
             </div>
             <div>
-                <p class="text-h1 font-h1 text-primary mb-2">12k</p>
+                <p class="text-h1 font-h1 text-primary mb-2"><?php echo number_format($totalBookingsDisplay); ?>+</p>
                 <p class="text-label-md font-label-md text-on-surface-variant uppercase tracking-widest">Events Managed</p>
             </div>
             <div>

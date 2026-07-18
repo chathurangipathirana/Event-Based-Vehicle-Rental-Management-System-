@@ -24,28 +24,70 @@ if ($action === 'approve') {
         echo json_encode(['success' => false, 'message' => 'Rejection reason is required']);
         exit;
     }
+} elseif ($action === 'dispatch') {
+    $new_status = 'confirmed';
+    $vehicle_id = isset($data['vehicle_id']) ? (int)$data['vehicle_id'] : null;
+    $driver_id = isset($data['driver_id']) ? (int)$data['driver_id'] : null;
+
+    if (!$vehicle_id || !$driver_id) {
+        echo json_encode(['success' => false, 'message' => 'Vehicle and Driver must be selected for dispatch.']);
+        exit;
+    }
 } else {
     echo json_encode(['success' => false, 'message' => 'Invalid action']);
     exit;
 }
 
 try {
-    $stmt = $pdo->prepare("
-        UPDATE bookings
-        SET status = :status, admin_notes = :notes
-        WHERE id = :id AND status = 'pending'
-    ");
-    $stmt->execute([
-        'status' => $new_status,
-        'notes' => $notes,
-        'id' => $booking_id
-    ]);
+    $pdo->beginTransaction();
 
-    if ($stmt->rowCount() > 0) {
-        echo json_encode(['success' => true, 'message' => 'Booking ' . $new_status]);
+    if ($action === 'dispatch') {
+        $stmt = $pdo->prepare("
+            UPDATE bookings
+            SET status = :status, admin_notes = :notes, vehicle_id = :v_id, driver_id = :d_id
+            WHERE id = :id AND status = 'pending'
+        ");
+        $stmt->execute([
+            'status' => $new_status,
+            'notes' => $notes,
+            'v_id' => $vehicle_id,
+            'd_id' => $driver_id,
+            'id' => $booking_id
+        ]);
+        
+        if ($stmt->rowCount() > 0) {
+            // Update vehicle to booked
+            $pdo->prepare("UPDATE vehicles SET status = 'booked' WHERE id = ?")->execute([$vehicle_id]);
+            // Update driver to on_duty
+            $pdo->prepare("UPDATE drivers SET status = 'on_duty' WHERE id = ?")->execute([$driver_id]);
+            
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Booking confirmed and dispatched!']);
+        } else {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);
+        }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);
+        $stmt = $pdo->prepare("
+            UPDATE bookings
+            SET status = :status, admin_notes = :notes
+            WHERE id = :id AND status = 'pending'
+        ");
+        $stmt->execute([
+            'status' => $new_status,
+            'notes' => $notes,
+            'id' => $booking_id
+        ]);
+
+        if ($stmt->rowCount() > 0) {
+            $pdo->commit();
+            echo json_encode(['success' => true, 'message' => 'Booking ' . $new_status]);
+        } else {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);
+        }
     }
 } catch (PDOException $e) {
+    $pdo->rollBack();
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }

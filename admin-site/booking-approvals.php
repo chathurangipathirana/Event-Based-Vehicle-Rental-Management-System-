@@ -10,11 +10,17 @@ $stmt = $pdo->prepare("
         b.id,
         b.booking_number AS number,
         u.full_name AS customer,
+        u.email AS email,
+        u.phone AS phone,
         v.name AS vehicle,
-        v.image_url AS vehicle_image,
+        v.category AS category,
         et.name AS event,
         b.event_date AS date,
         b.total_amount AS amount,
+        b.pickup_location,
+        b.dropoff_location,
+        b.start_time,
+        b.end_time,
         b.status
     FROM bookings b
     JOIN users u ON b.user_id = u.id
@@ -33,38 +39,19 @@ foreach ($pending_bookings as &$booking) {
 unset($booking);
 
 // Available vehicles — only ones marked available
-$stmt = $pdo->prepare("SELECT id, name, model FROM vehicles WHERE status = 'available' LIMIT 10");
+$stmt = $pdo->prepare("SELECT id, name, model, category FROM vehicles WHERE status = 'available'");
 $stmt->execute();
 $available_vehicles = $stmt->fetchAll();
 
-// Available Sri Lankan drivers from the drivers table, with a fallback for fresh installs.
-try {
-    $stmt = $pdo->prepare("
-        SELECT id, name, rating, rating_level AS level
-        FROM drivers
-        WHERE status = 'available'
-        ORDER BY rating DESC
-        LIMIT 6
-    ");
-    $stmt->execute();
-    $available_drivers = $stmt->fetchAll();
-} catch (PDOException $e) {
-    $available_drivers = [];
-}
-
-if (empty($available_drivers)) {
-    $available_drivers = [
-        ['id' => 1, 'name' => 'Sunil Perera', 'rating' => '4.98', 'level' => 5],
-        ['id' => 2, 'name' => 'Kumari Silva', 'rating' => '4.95', 'level' => 4],
-        ['id' => 3, 'name' => 'Chaminda Bandara', 'rating' => '4.92', 'level' => 4],
-    ];
-}
+// Drivers — fetch from drivers table
+$stmt = $pdo->prepare("SELECT id, name, rating, rating_level as level FROM drivers WHERE status = 'available'");
+$stmt->execute();
+$available_drivers = $stmt->fetchAll();
 
 $pending_count = count($pending_bookings);
 $available_count = count($available_vehicles);
 $drivers_count = count($available_drivers);
 $urgent_count = 2; // still static — can compute later based on event_date
-$default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80';
 ?>
 
 <!DOCTYPE html>
@@ -160,12 +147,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
             </div>
         </div>
 
-        <div class="flex justify-end mb-8">
-            <button onclick="openNewBooking()" class="inline-flex items-center gap-2 px-5 py-3 bg-red-600 text-white rounded-2xl shadow-lg hover:bg-red-700 transition">
-                <span class="material-symbols-outlined">add</span>
-                New Reservation
-            </button>
-        </div>
+
 
         <!-- Stats Bar - UI 7 Style -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -205,330 +187,68 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
             </div>
         </div>
 
-        <!-- Main Grid: List and Sidebar - UI 7 Style -->
-        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
-            <!-- Pending List -->
-            <div class="xl:col-span-2 space-y-4">
-                <?php if (empty($pending_bookings)): ?>
-                <div class="bg-white border border-gray-100 rounded-xl p-10 text-center text-gray-500">
-                    No pending bookings right now.
-                </div>
-                <?php endif; ?>
-                <?php foreach ($pending_bookings as $booking): ?>
-                <div class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
-                    <div class="flex flex-col md:flex-row">
-                                <div class="md:w-64 h-48 md:h-auto overflow-hidden relative bg-gray-100 flex items-center justify-center">
-                                    <?php
-                                        // Support multiple images for a vehicle: JSON array, comma-separated, or single URL
-                                        $rawImages = $booking['vehicle_image'] ?? '';
-                                        $images = [];
-                                        if (!empty($rawImages)) {
-                                            $rawImages = trim($rawImages);
-                                            if (($dec = json_decode($rawImages, true)) && is_array($dec)) {
-                                                $images = $dec;
-                                            } elseif (strpos($rawImages, ',') !== false) {
-                                                $images = array_map('trim', explode(',', $rawImages));
-                                            } else {
-                                                $images = [$rawImages];
-                                            }
-                                        }
-                                        if (empty($images)) {
-                                            $images = [$default_vehicle_image];
-                                        }
-                                        $mainImg = htmlspecialchars($images[0]);
-                                    ?>
-                                    <img id="main-img-<?php echo $booking['id']; ?>" src="<?php echo $mainImg; ?>" alt="<?php echo htmlspecialchars($booking['vehicle']); ?>" class="w-full h-full object-cover">
-                                    <?php if ($booking['priority'] == 'high'): ?>
-                                    <div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded">High Priority</div>
-                                    <?php endif; ?>
-
-                                    <?php if (count($images) > 1): ?>
-                                    <div class="absolute left-3 bottom-3 flex gap-2 z-20">
-                                        <?php foreach (array_slice($images, 0, 4) as $idx => $img): ?>
-                                            <button type="button" onclick="switchImage(<?php echo $booking['id']; ?>, <?php echo $idx; ?>)" class="w-12 h-8 rounded overflow-hidden border border-white/60 shadow-sm bg-white/60">
-                                                <img src="<?php echo htmlspecialchars($img); ?>" class="w-full h-full object-cover">
-                                            </button>
-                                        <?php endforeach; ?>
-                                    </div>
-                                    <script>
-                                        function switchImage(id, idx) {
-                                            var imgs = <?php echo json_encode(array_values($images)); ?>;
-                                            var el = document.getElementById('main-img-' + id);
-                                            if (el && imgs[idx]) el.src = imgs[idx];
-                                        }
-                                    </script>
-                                    <?php endif; ?>
-                                </div>
-                        <div class="flex-1 p-6">
-                            <div class="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 class="text-2xl font-bold text-gray-900"><?php echo htmlspecialchars($booking['vehicle']); ?> - <?php echo htmlspecialchars($booking['event']); ?></h3>
-                                    <p class="text-sm text-gray-500"><?php echo htmlspecialchars($booking['number']); ?></p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($booking['amount'], 2); ?></p>
-                                    <p class="text-xs text-gray-500">Total Revenue</p>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-red-600">person</span>
-                                    <div>
-                                        <p class="text-xs text-gray-500 uppercase">Client</p>
-                                        <p class="text-sm font-medium"><?php echo htmlspecialchars($booking['customer']); ?></p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-red-600">calendar_today</span>
-                                    <div>
-                                        <p class="text-xs text-gray-500 uppercase">Dates</p>
-                                        <p class="text-sm font-medium"><?php echo date('M j, Y', strtotime($booking['date'])); ?></p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <span class="material-symbols-outlined text-red-600">location_on</span>
-                                    <div>
-                                        <p class="text-xs text-gray-500 uppercase">Event Type</p>
-                                        <p class="text-sm font-medium"><?php echo htmlspecialchars($booking['event']); ?></p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex gap-3 pt-4 border-t border-gray-100">
-                                <button onclick="openApproveModal(<?php echo $booking['id']; ?>)" class="flex-1 bg-red-600 text-white font-medium py-2.5 rounded-lg hover:bg-red-700 flex items-center justify-center gap-2">
-                                    <span class="material-symbols-outlined text-sm">check_circle</span>
-                                    Approve & Dispatch
-                                </button>
-                                <button onclick="openRejectModal(<?php echo $booking['id']; ?>)" class="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50">
-                                    Reject
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <?php endforeach; ?>
+        <!-- Main List (Centered and Wide) -->
+        <div class="max-w-5xl mx-auto space-y-4">
+            <?php if (empty($pending_bookings)): ?>
+            <div class="bg-white border border-gray-100 rounded-xl p-10 text-center text-gray-500">
+                No pending bookings right now.
             </div>
-
-            <!-- Dispatch Sidebar - UI 7 Style -->
-            <aside class="sticky top-24 bg-white border border-gray-100 rounded-xl shadow-lg p-6">
-                <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Logistics Dispatch</h2>
-                    <p class="text-sm text-gray-500 mt-1">Assign resources for Approved bookings.</p>
-                </div>
-                
-                <div class="space-y-6 mt-6">
-                    <div>
-                        <label class="text-sm font-medium text-gray-700 block mb-2">Target Booking</label>
-                        <select id="targetBooking" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
-                            <option value="">Select a booking</option>
-                            <?php foreach ($pending_bookings as $booking): ?>
-                            <option value="<?php echo $booking['id']; ?>">#<?php echo htmlspecialchars(substr($booking['number'], -6)); ?> - <?php echo htmlspecialchars($booking['customer']); ?></option>
-                            <?php endforeach; ?>
-                        </select>
+            <?php endif; ?>
+            <?php foreach ($pending_bookings as $booking): ?>
+            <div id="booking-card-<?php echo $booking['id']; ?>" class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
+                <div class="flex flex-col md:flex-row flex-row">
+                    <div class="md:w-64 h-48 md:h-auto overflow-hidden relative bg-gray-100 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-5xl text-gray-400">directions_car</span>
+                        <?php if ($booking['priority'] == 'high'): ?>
+                        <div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded">High Priority</div>
+                        <?php endif; ?>
                     </div>
-
-                    <!-- Vehicle Assignment -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <label class="text-sm font-medium text-gray-700">Select Vehicle</label>
-                            <span class="text-xs text-green-600 font-medium"><?php echo $available_count; ?> Available</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <?php foreach ($available_vehicles as $vehicle): ?>
-                            <button type="button" onclick="selectVehicle(this, <?php echo $vehicle['id']; ?>)" class="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition vehicle-option">
-                                <span class="material-symbols-outlined text-gray-500 mb-1">directions_car</span>
-                                <span class="text-sm font-medium"><?php echo htmlspecialchars($vehicle['name']); ?></span>
-                                <span class="text-[10px] text-gray-500"><?php echo htmlspecialchars($vehicle['model']); ?></span>
-                            </button>
-                            <?php endforeach; ?>
-                        </div>
-                        <input type="hidden" id="selectedVehicleId">
-                    </div>
-
-                    <!-- Driver Assignment -->
-                    <div>
-                        <label class="text-sm font-medium text-gray-700 block mb-2">Assign Driver</label>
-                        <div class="space-y-3">
-                            <?php foreach ($available_drivers as $driver): ?>
-                            <div class="flex items-center gap-3 p-2 rounded-lg border border-gray-200 hover:bg-gray-50 transition cursor-pointer driver-option" onclick="selectDriver(this, <?php echo $driver['id']; ?>)">
-                                <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold">
-                                    <?php echo strtoupper(substr($driver['name'], 0, 1)); ?>
-                                </div>
-                                <div class="flex-1">
-                                    <p class="text-sm font-bold text-gray-900"><?php echo $driver['name']; ?></p>
-                                    <p class="text-[10px] text-gray-500 uppercase">Level <?php echo $driver['level']; ?> • <?php echo $driver['rating']; ?> Rating</p>
-                                </div>
-                                <input type="radio" name="driver" value="<?php echo $driver['id']; ?>" class="driver-radio">
+                    <div class="flex-1 p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-2xl font-bold text-gray-900"><?php echo htmlspecialchars($booking['vehicle']); ?> - <?php echo htmlspecialchars($booking['event']); ?></h3>
+                                <p class="text-sm text-gray-500"><?php echo htmlspecialchars($booking['number']); ?></p>
                             </div>
-                            <?php endforeach; ?>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold text-gray-900">LKR <?php echo number_format($booking['amount'], 2); ?></p>
+                                <p class="text-xs text-gray-500">Total Revenue</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-red-600">person</span>
+                                <div>
+                                    <p class="text-xs text-gray-500 uppercase">Client</p>
+                                    <p class="text-sm font-medium"><?php echo htmlspecialchars($booking['customer']); ?></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-red-600">calendar_today</span>
+                                <div>
+                                    <p class="text-xs text-gray-500 uppercase">Dates</p>
+                                    <p class="text-sm font-medium"><?php echo date('M j, Y', strtotime($booking['date'])); ?></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-red-600">location_on</span>
+                                <div>
+                                    <p class="text-xs text-gray-500 uppercase">Event Type</p>
+                                    <p class="text-sm font-medium"><?php echo htmlspecialchars($booking['event']); ?></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-3 pt-4 border-t border-gray-100">
+                            <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition text-center text-sm">
+                                <span class="material-symbols-outlined text-sm">visibility</span>
+                                View Details & Process
+                            </a>
                         </div>
                     </div>
-
-                    <!-- Progress Indicator -->
-                    <div class="pt-4 border-t border-gray-100">
-                        <div class="flex items-center justify-between mb-2">
-                            <p class="text-sm font-medium uppercase tracking-wider text-gray-500">Preparation Status</p>
-                            <span class="text-xs font-bold text-red-600">60%</span>
-                        </div>
-                        <div class="flex gap-1 h-1.5 w-full">
-                            <div class="flex-1 bg-red-600 rounded-full"></div>
-                            <div class="flex-1 bg-red-600 rounded-full"></div>
-                            <div class="flex-1 bg-red-600 rounded-full"></div>
-                            <div class="flex-1 bg-gray-200 rounded-full"></div>
-                            <div class="flex-1 bg-gray-200 rounded-full"></div>
-                        </div>
-                        <p class="text-[10px] text-gray-500 mt-2 italic">Vehicle cleaning and fueling in progress...</p>
-                    </div>
-
-                    <button onclick="finalizeDispatch()" class="w-full bg-gray-900 text-white font-medium py-4 rounded-xl hover:bg-black transition shadow-md flex items-center justify-center gap-2 mt-4">
-                        <span class="material-symbols-outlined">send</span>
-                        Finalize Dispatch
-                    </button>
                 </div>
-            </aside>
+            </div>
+            <?php endforeach; ?>
         </div>
     </div>
 </main>
-
-<!-- Approve Modal -->
-<div id="approveModal" class="modal">
-    <div class="modal-content">
-        <div class="p-6 border-b">
-            <h3 class="text-xl font-bold">Approve Booking</h3>
-        </div>
-        <form class="p-6 space-y-4">
-            <textarea id="approveNotes" rows="3" class="w-full px-3 py-2 border rounded-lg" placeholder="Admin Notes (Optional)"></textarea>
-            <div class="flex gap-3">
-                <button type="button" onclick="confirmApprove()" class="flex-1 bg-red-600 text-white py-2 rounded-lg">Approve Booking</button>
-                <button type="button" onclick="closeModals()" class="flex-1 bg-gray-200 py-2 rounded-lg">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Reject Modal -->
-<div id="rejectModal" class="modal">
-    <div class="modal-content">
-        <div class="p-6 border-b">
-            <h3 class="text-xl font-bold">Reject Booking</h3>
-        </div>
-        <form class="p-6 space-y-4">
-            <textarea id="rejectReason" rows="3" class="w-full px-3 py-2 border rounded-lg" placeholder="Reason for rejection *" required></textarea>
-            <div class="flex gap-3">
-                <button type="button" onclick="confirmReject()" class="flex-1 bg-red-600 text-white py-2 rounded-lg">Reject Booking</button>
-                <button type="button" onclick="closeModals()" class="flex-1 bg-gray-200 py-2 rounded-lg">Cancel</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-let currentBookingId = null;
-
-function openApproveModal(id) {
-    currentBookingId = id;
-    document.getElementById('approveModal').style.display = 'block';
-}
-
-function openRejectModal(id) {
-    currentBookingId = id;
-    document.getElementById('rejectModal').style.display = 'block';
-}
-
-function removeBookingCard(id) {
-    const card = document.querySelector('button[onclick="openApproveModal(' + id + ')"]')?.closest('.bg-white.border.border-gray-100.rounded-xl.overflow-hidden');
-    if (card) {
-        card.remove();
-    }
-    const option = document.querySelector('#targetBooking option[value="' + id + '"]');
-    if (option) option.remove();
-}
-
-async function confirmApprove() {
-    const notes = document.getElementById('approveNotes').value;
-    try {
-        const res = await fetch('ajax/update-status.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ booking_id: currentBookingId, action: 'approve', notes: notes })
-        });
-        const data = await res.json();
-        if (data.success) {
-            removeBookingCard(currentBookingId);
-            alert('Booking approved!');
-        } else {
-            alert('Error: ' + data.message);
-        }
-    } catch (err) {
-        alert('Request failed: ' + err.message);
-    }
-    closeModals();
-}
-
-async function confirmReject() {
-    const reason = document.getElementById('rejectReason').value.trim();
-    if (!reason) {
-        alert('Please provide a rejection reason.');
-        return;
-    }
-    try {
-        const res = await fetch('ajax/update-status.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ booking_id: currentBookingId, action: 'reject', notes: reason })
-        });
-        const data = await res.json();
-        if (data.success) {
-            removeBookingCard(currentBookingId);
-            alert('Booking rejected.');
-        } else {
-            alert('Error: ' + data.message);
-        }
-    } catch (err) {
-        alert('Request failed: ' + err.message);
-    }
-    closeModals();
-}
-
-function closeModals() {
-    document.getElementById('approveModal').style.display = 'none';
-    document.getElementById('rejectModal').style.display = 'none';
-    document.getElementById('approveNotes').value = '';
-    document.getElementById('rejectReason').value = '';
-}
-
-function openNewBooking() {
-    alert('New booking form');
-}
-
-function selectVehicle(btn, vehicleId) {
-    document.querySelectorAll('.vehicle-option').forEach(opt => {
-        opt.classList.remove('border-2', 'border-red-600', 'bg-red-50');
-        opt.classList.add('border', 'border-gray-200');
-    });
-    btn.classList.remove('border', 'border-gray-200');
-    btn.classList.add('border-2', 'border-red-600', 'bg-red-50');
-    document.getElementById('selectedVehicleId').value = vehicleId;
-}
-
-function selectDriver(div, driverId) {
-    document.querySelectorAll('.driver-option').forEach(d => {
-        d.classList.remove('bg-red-50', 'border-red-600');
-        d.classList.add('border', 'border-gray-200');
-    });
-    div.classList.remove('border', 'border-gray-200');
-    div.classList.add('bg-red-50', 'border-red-600');
-    div.querySelector('.driver-radio').checked = true;
-}
-
-function finalizeDispatch() {
-    alert('Booking dispatched successfully!');
-}
-
-window.onclick = function(event) {
-    if (event.target.classList && event.target.classList.contains('modal')) {
-        closeModals();
-    }
-}
-</script>
 
 <?php require_once 'includes/footer.php'; ?>

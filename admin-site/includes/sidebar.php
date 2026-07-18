@@ -17,6 +17,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="material-symbols-outlined mr-3">directions_car</span>
             Fleet
         </a>
+        <a href="drivers.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'drivers.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1">
+            <span class="material-symbols-outlined mr-3">group</span>
+            Drivers
+        </a>
         <a href="fleet-mobile.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'fleet-mobile.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1 lg:hidden">
             <span class="material-symbols-outlined mr-3">smartphone</span>
             Mobile Fleet

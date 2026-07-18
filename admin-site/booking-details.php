@@ -20,6 +20,8 @@ try {
             v.model as vehicle_model,
             v.license_plate as vehicle_plate,
             v.category as vehicle_category,
+            d.name as driver_name,
+            d.phone as driver_phone,
             u.full_name as client_name,
             u.email as client_email,
             u.phone as client_phone,
@@ -29,6 +31,7 @@ try {
             et.name as event_type_name
         FROM bookings b
         LEFT JOIN vehicles v ON b.vehicle_id = v.id
+        LEFT JOIN drivers d ON b.driver_id = d.id
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN event_types et ON b.event_type_id = et.id
         WHERE b.id = ?
@@ -44,12 +47,63 @@ if (!$booking) {
     exit;
 }
 
+// Decode extras and check driver requirement
+$extras = null;
+$driver_requested = false;
+$special_requests_text = '';
+
+if (!empty($booking['special_requests'])) {
+    $decoded = json_decode($booking['special_requests'], true);
+    if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+        $extras = $decoded;
+        $driver_requested = isset($extras['professional_driver']) && $extras['professional_driver'] === true;
+        
+        $special_requests_text = "Extras Selected:\n";
+        $special_requests_text .= "• Professional Driver: " . ($driver_requested ? "Yes" : "No") . "\n";
+        $special_requests_text .= "• Decorations: " . ((isset($extras['decorations']) && $extras['decorations']) ? "Yes" : "No") . "\n";
+        $special_requests_text .= "• Extra Hours: " . (isset($extras['extra_hours']) ? $extras['extra_hours'] : 0) . " hr(s)";
+    } else {
+        $special_requests_text = $booking['special_requests'];
+    }
+} else {
+    $special_requests_text = 'No special instructions or requests provided by the customer.';
+}
+
 // Fetch invoice if exists
 $invoice = null;
 try {
     $stmtInv = $pdo->prepare("SELECT * FROM invoices WHERE booking_id = ?");
     $stmtInv->execute([$booking_id]);
     $invoice = $stmtInv->fetch();
+} catch(PDOException $e) {
+    // Suppress error
+}
+
+// Fetch drivers for assignment (available drivers OR the one currently assigned to this booking)
+$drivers = [];
+try {
+    $stmtDrv = $pdo->prepare("
+        SELECT id, name, status 
+        FROM drivers 
+        WHERE status = 'available' OR id = ? 
+        ORDER BY name
+    ");
+    $stmtDrv->execute([$booking['driver_id']]);
+    $drivers = $stmtDrv->fetchAll();
+} catch(PDOException $e) {
+    // Suppress error
+}
+
+// Fetch available vehicles matching requested category (available OR currently assigned)
+$available_vehicles = [];
+try {
+    $stmtVeh = $pdo->prepare("
+        SELECT id, name, model 
+        FROM vehicles 
+        WHERE (status = 'available' AND category = ?) OR id = ?
+    ");
+    $stmtVeh->execute([$booking['vehicle_category'], $booking['vehicle_id']]);
+    $available_vehicles = $stmtVeh->fetchAll();
 } catch(PDOException $e) {
     // Suppress error
 }
@@ -61,29 +115,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'update_status') {
         $new_status = $_POST['status'] ?? '';
         $admin_notes = trim($_POST['admin_notes'] ?? '');
+        $driver_id = !empty($_POST['driver_id']) ? (int)$_POST['driver_id'] : null;
+        $vehicle_id = !empty($_POST['vehicle_id']) ? (int)$_POST['vehicle_id'] : null;
         
         $valid_statuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
         if (in_array($new_status, $valid_statuses)) {
             try {
+                // Fetch previous assignments before update
+                $old_vehicle_id = $booking['vehicle_id'];
+                $old_driver_id = $booking['driver_id'];
+
                 $stmt = $pdo->prepare("
                     UPDATE bookings 
-                    SET status = ?, admin_notes = ? 
+                    SET status = ?, admin_notes = ?, driver_id = ?, vehicle_id = ? 
                     WHERE id = ?
                 ");
-                $stmt->execute([$new_status, $admin_notes, $booking_id]);
+                $stmt->execute([$new_status, $admin_notes, $driver_id, $vehicle_id, $booking_id]);
                 
                 // Update vehicle availability status
-                if ($booking['vehicle_id']) {
-                    if ($new_status === 'completed' || $new_status === 'cancelled') {
-                        $stmtVeh = $pdo->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?");
-                        $stmtVeh->execute([$booking['vehicle_id']]);
-                    } elseif ($new_status === 'confirmed' || $new_status === 'in_progress') {
-                        $stmtVeh = $pdo->prepare("UPDATE vehicles SET status = 'booked' WHERE id = ?");
-                        $stmtVeh->execute([$booking['vehicle_id']]);
+                if ($new_status === 'completed' || $new_status === 'cancelled') {
+                    if ($old_vehicle_id) {
+                        $pdo->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?")->execute([$old_vehicle_id]);
+                    }
+                } elseif ($new_status === 'confirmed' || $new_status === 'in_progress') {
+                    if ($old_vehicle_id && $old_vehicle_id != $vehicle_id) {
+                        $pdo->prepare("UPDATE vehicles SET status = 'available' WHERE id = ?")->execute([$old_vehicle_id]);
+                    }
+                    if ($vehicle_id) {
+                        $pdo->prepare("UPDATE vehicles SET status = 'booked' WHERE id = ?")->execute([$vehicle_id]);
+                    }
+                }
+
+                // Update driver status
+                if ($new_status === 'completed' || $new_status === 'cancelled') {
+                    if ($old_driver_id) {
+                        $pdo->prepare("UPDATE drivers SET status = 'available' WHERE id = ?")->execute([$old_driver_id]);
+                    }
+                } elseif ($new_status === 'confirmed' || $new_status === 'in_progress') {
+                    if ($old_driver_id && $old_driver_id != $driver_id) {
+                        $pdo->prepare("UPDATE drivers SET status = 'available' WHERE id = ?")->execute([$old_driver_id]);
+                    }
+                    if ($driver_id) {
+                        $pdo->prepare("UPDATE drivers SET status = 'on_duty' WHERE id = ?")->execute([$driver_id]);
                     }
                 }
                 
-                $_SESSION['message'] = 'Booking status updated successfully!';
+                $_SESSION['message'] = 'Booking status and assignments updated successfully!';
             } catch(PDOException $e) {
                 $_SESSION['error'] = 'Database error: ' . $e->getMessage();
             }
@@ -216,187 +293,222 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endif; ?>
             </div>
         </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- Left 2 Columns: Information Details -->
-            <div class="lg:col-span-2 space-y-8">
-                <!-- Customer Details Card -->
-                <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-gray-400">person</span>
-                        Customer Information
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Full Name</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['client_name'] ?? 'N/A'); ?></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Company Name</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['company_name'] ?? 'N/A'); ?></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Email Address</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['client_email'] ?? 'N/A'); ?></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Phone Number</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['client_phone'] ?? 'N/A'); ?></p>
-                        </div>
-                        <div class="md:col-span-2">
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Billing Address</p>
-                            <p class="text-gray-900 font-medium text-base">
-                                <?php 
-                                $address_parts = array_filter([$booking['client_address'], $booking['client_city']]);
-                                echo htmlspecialchars(implode(', ', $address_parts) ?: 'N/A');
-                                ?>
-                            </p>
-                        </div>
+        <div class="max-w-4xl mx-auto space-y-8">
+            <!-- Customer Details Card -->
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-gray-400">person</span>
+                    Customer Information
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Full Name</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['client_name'] ?? 'N/A'); ?></p>
                     </div>
-                </div>
-
-                <!-- Event Details Card -->
-                <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-gray-400">celebration</span>
-                        Event Logistics
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Event Name</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['event_name'] ?? 'N/A'); ?></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Event Category</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['event_type_name'] ?? 'N/A'); ?></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Date of Event</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo date('l, F d, Y', strtotime($booking['event_date'])); ?></p>
-                        </div>
-                        <div>
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Service Timing</p>
-                            <p class="text-gray-900 font-medium text-base">
-                                <?php 
-                                $start = date('g:i a', strtotime($booking['start_time']));
-                                $end = date('g:i a', strtotime($booking['end_time']));
-                                echo "$start to $end";
-                                ?>
-                            </p>
-                        </div>
-                        <div class="md:col-span-2">
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Pickup Location</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['pickup_location'] ?? 'N/A'); ?></p>
-                        </div>
-                        <div class="md:col-span-2">
-                            <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Drop-off Location</p>
-                            <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['dropoff_location'] ?? 'N/A'); ?></p>
-                        </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Company Name</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['company_name'] ?? 'N/A'); ?></p>
                     </div>
-                </div>
-
-                <!-- Special Requests -->
-                <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-gray-400">notes</span>
-                        Customer Special Requests
-                    </h3>
-                    <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line"><?php echo htmlspecialchars($booking['special_requests'] ?: 'No special instructions or requests provided by the customer.'); ?></p>
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Email Address</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['client_email'] ?? 'N/A'); ?></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Phone Number</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['client_phone'] ?? 'N/A'); ?></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Billing Address</p>
+                        <p class="text-gray-900 font-medium text-base">
+                            <?php 
+                            $address_parts = array_filter([$booking['client_address'], $booking['client_city']]);
+                            echo htmlspecialchars(implode(', ', $address_parts) ?: 'N/A');
+                            ?>
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Right 1 Column: Vehicle, Invoice, and Status Control -->
-            <div class="space-y-8">
-                <!-- Vehicle Details -->
-                <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-lg font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-gray-400">directions_car</span>
-                        Assigned Vehicle
-                    </h3>
-                    <?php if ($booking['vehicle_id']): ?>
-                        <div class="space-y-3">
-                            <div>
-                                <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Vehicle Name</p>
-                                <p class="text-gray-900 font-bold text-base"><?php echo htmlspecialchars($booking['vehicle_name']); ?></p>
-                            </div>
-                            <div class="grid grid-cols-2 gap-4 text-sm pt-2">
-                                <div>
-                                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">License Plate</p>
-                                    <p class="text-gray-900 font-medium"><?php echo htmlspecialchars($booking['vehicle_plate'] ?: 'N/A'); ?></p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-400 font-semibold uppercase tracking-wider">Category</p>
-                                    <p class="text-gray-900 font-medium"><?php echo htmlspecialchars($booking['vehicle_category'] ?: 'N/A'); ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <p class="text-gray-500 text-sm italic">No vehicle assigned to this booking.</p>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Price and Cost Summary -->
-                <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-lg font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-gray-400">payments</span>
-                        Pricing Details
-                    </h3>
-                    <div class="space-y-4 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Rental Duration</span>
-                            <span class="font-medium text-gray-900">
-                                <?php 
-                                if ($booking['total_days'] > 0) {
-                                    echo $booking['total_days'] . ' Day(s)';
-                                } else {
-                                    echo ($booking['total_hours'] ?: 0) . ' Hour(s)';
-                                }
-                                ?>
-                            </span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Subtotal</span>
-                            <span class="font-medium text-gray-900">LKR <?php echo number_format($booking['subtotal'] ?: $booking['total_amount'], 2); ?></span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Tax</span>
-                            <span class="font-medium text-gray-900">LKR <?php echo number_format($booking['tax'] ?: 0, 2); ?></span>
-                        </div>
-                        <div class="border-t pt-3 flex justify-between items-center">
-                            <span class="text-base font-bold text-gray-900">Total Amount</span>
-                            <span class="text-xl font-extrabold text-cyan-600">LKR <?php echo number_format($booking['total_amount'], 2); ?></span>
-                        </div>
+            <!-- Event Details Card -->
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-gray-400">celebration</span>
+                    Event Logistics
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Event Name</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['event_name'] ?? 'N/A'); ?></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Event Category</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['event_type_name'] ?? 'N/A'); ?></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Date of Event</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo date('l, F d, Y', strtotime($booking['event_date'])); ?></p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Service Timing</p>
+                        <p class="text-gray-900 font-medium text-base">
+                            <?php 
+                            $start = date('g:i a', strtotime($booking['start_time']));
+                            $end = date('g:i a', strtotime($booking['end_time']));
+                            echo "$start to $end";
+                            ?>
+                        </p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Pickup Location</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['pickup_location'] ?? 'N/A'); ?></p>
+                    </div>
+                    <div class="md:col-span-2">
+                        <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Drop-off Location</p>
+                        <p class="text-gray-900 font-medium text-base"><?php echo htmlspecialchars($booking['dropoff_location'] ?? 'N/A'); ?></p>
                     </div>
                 </div>
+            </div>
 
-                <!-- Update Status Form -->
-                <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
-                    <h3 class="text-lg font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-gray-400">edit_note</span>
-                        Manage & Status Notes
-                    </h3>
-                    <form method="POST" action="" class="space-y-4">
-                        <input type="hidden" name="action" value="update_status">
+            <!-- Special Requests -->
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-gray-400">notes</span>
+                    Customer Special Requests & Extras
+                </h3>
+                <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line"><?php echo htmlspecialchars($special_requests_text); ?></p>
+            </div>
+
+            <!-- Price and Cost Summary -->
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-gray-400">payments</span>
+                    Pricing Details
+                </h3>
+                <div class="space-y-4 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Rental Duration</span>
+                        <span class="font-medium text-gray-900">
+                            <?php 
+                            if ($booking['total_days'] > 0) {
+                                echo $booking['total_days'] . ' Day(s)';
+                            } else {
+                                echo ($booking['total_hours'] ?: 0) . ' Hour(s)';
+                            }
+                            ?>
+                        </span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Subtotal</span>
+                        <span class="font-medium text-gray-900">LKR <?php echo number_format($booking['subtotal'] ?: $booking['total_amount'], 2); ?></span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">Tax</span>
+                        <span class="font-medium text-gray-900">LKR <?php echo number_format($booking['tax'] ?: 0, 2); ?></span>
+                    </div>
+                    <div class="border-t pt-3 flex justify-between items-center">
+                        <span class="text-base font-bold text-gray-900">Total Amount</span>
+                        <span class="text-xl font-extrabold text-cyan-600">LKR <?php echo number_format($booking['total_amount'], 2); ?></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logistics Assignment & Status Decision Form -->
+            <div class="bg-white border border-gray-200 rounded-3xl p-6 shadow-sm">
+                <h3 class="text-xl font-bold text-gray-900 border-b pb-4 mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-gray-400">assignment_turned_in</span>
+                    Logistics & Booking Decision
+                </h3>
+                <form method="POST" action="" class="space-y-6">
+                    <input type="hidden" name="action" value="update_status">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Booking Status</label>
-                            <select name="status" class="w-full px-3 py-2 border rounded-lg focus:ring-cyan-500 focus:border-cyan-500 bg-white">
-                                <option value="pending" <?php echo $booking['status'] === 'pending' ? 'selected' : ''; ?>>Pending Approval</option>
-                                <option value="confirmed" <?php echo $booking['status'] === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
-                                <option value="in_progress" <?php echo $booking['status'] === 'in_progress' ? 'selected' : ''; ?>>In Progress (Dispatched)</option>
-                                <option value="completed" <?php echo $booking['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option>
-                                <option value="cancelled" <?php echo $booking['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                            <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Assign Vehicle *</label>
+                            <select name="vehicle_id" id="assignVehicleSelect" onchange="validateForm()" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 bg-white text-sm text-gray-900" required>
+                                <option value="">-- Choose Available Vehicle --</option>
+                                <?php foreach ($available_vehicles as $veh): ?>
+                                    <option value="<?php echo $veh['id']; ?>" <?php echo $booking['vehicle_id'] == $veh['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($veh['name']); ?> (<?php echo htmlspecialchars($veh['model']); ?>)
+                                    </option>
+                                <?php endforeach; ?>
                             </select>
+                            <p class="text-[10px] text-gray-400 mt-1 italic">Filtered to show only available vehicles matching category: <strong><?php echo htmlspecialchars($booking['vehicle_category']); ?></strong></p>
                         </div>
+
                         <div>
-                            <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Admin Notes</label>
-                            <textarea name="admin_notes" rows="4" placeholder="Enter notes visible to administrators only..." class="w-full px-3 py-2 border rounded-lg focus:ring-cyan-500 focus:border-cyan-500 text-sm bg-white"><?php echo htmlspecialchars($booking['admin_notes'] ?? ''); ?></textarea>
+                            <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">
+                                Assign Driver <?php echo $driver_requested ? '*' : '(Optional)'; ?>
+                            </label>
+                            <select name="driver_id" id="assignDriverSelect" onchange="validateForm()" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 bg-white text-sm text-gray-900" <?php echo $driver_requested ? 'required' : ''; ?>>
+                                <option value="">-- Choose Available Driver --</option>
+                                <?php foreach ($drivers as $driver): ?>
+                                    <option value="<?php echo $driver['id']; ?>" <?php echo $booking['driver_id'] == $driver['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($driver['name']); ?> <?php echo $driver['status'] !== 'available' ? '('.ucfirst($driver['status']).')' : ''; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="text-[10px] text-gray-400 mt-1 italic">
+                                <?php echo $driver_requested ? '<span class="text-red-500 font-bold">* Required:</span> Driver was requested in booking.' : 'Optional: Driver was not requested (Self-Drive).'; ?>
+                            </p>
                         </div>
-                        <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-3 rounded-xl transition shadow-sm text-sm">
-                            Save Changes
-                        </button>
-                    </form>
-                </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Internal Admin Notes / Remarks</label>
+                        <textarea name="admin_notes" rows="3" placeholder="Enter notes visible to administrators only..." class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 text-sm bg-white"><?php echo htmlspecialchars($booking['admin_notes'] ?? ''); ?></textarea>
+                    </div>
+
+                    <div class="pt-4 border-t border-gray-100 flex flex-col md:flex-row gap-4">
+                        <?php if ($booking['status'] === 'pending'): ?>
+                            <button type="submit" name="status" value="confirmed" id="approveBtn" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2 shadow disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-red-600" disabled>
+                                <span class="material-symbols-outlined">check_circle</span>
+                                Approve & Dispatch
+                            </button>
+                            <button type="submit" name="status" value="cancelled" formnovalidate class="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-red-600 font-bold py-3.5 rounded-xl transition flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">cancel</span>
+                                Reject Booking
+                            </button>
+                        <?php else: ?>
+                            <div class="w-full">
+                                <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Update Booking Status</label>
+                                <div class="flex gap-4">
+                                    <select name="status" class="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 bg-white text-sm text-gray-900">
+                                        <option value="confirmed" <?php echo $booking['status'] === 'confirmed' ? 'selected' : ''; ?>>Confirmed</option>
+                                        <option value="in_progress" <?php echo $booking['status'] === 'in_progress' ? 'selected' : ''; ?>>In Progress</option>
+                                        <option value="completed" <?php echo $booking['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option>
+                                        <option value="cancelled" <?php echo $booking['status'] === 'cancelled' ? 'selected' : ''; ?>>Cancelled</option>
+                                    </select>
+                                    <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold px-6 py-3.5 rounded-xl transition flex items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined">save</span>
+                                        Save Status
+                                    </button>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </form>
             </div>
+
+            <script>
+            function validateForm() {
+                const approveBtn = document.getElementById('approveBtn');
+                if (!approveBtn) return;
+                
+                const vehicleSelect = document.getElementById('assignVehicleSelect');
+                const driverSelect = document.getElementById('assignDriverSelect');
+                const driverRequired = <?php echo $driver_requested ? 'true' : 'false'; ?>;
+                
+                const vehicleAssigned = vehicleSelect && vehicleSelect.value;
+                const driverAssigned = driverSelect && driverSelect.value;
+                
+                if (vehicleAssigned && (!driverRequired || driverAssigned)) {
+                    approveBtn.removeAttribute('disabled');
+                } else {
+                    approveBtn.setAttribute('disabled', 'true');
+                }
+            }
+            document.addEventListener('DOMContentLoaded', validateForm);
+            </script>
         </div>
     </div>
 </main>
