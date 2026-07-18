@@ -11,6 +11,7 @@ $stmt = $pdo->prepare("
         b.booking_number AS number,
         u.full_name AS customer,
         v.name AS vehicle,
+        v.image_url AS vehicle_image,
         et.name AS event,
         b.event_date AS date,
         b.total_amount AS amount,
@@ -36,17 +37,34 @@ $stmt = $pdo->prepare("SELECT id, name, model FROM vehicles WHERE status = 'avai
 $stmt->execute();
 $available_vehicles = $stmt->fetchAll();
 
-// Drivers — no drivers table exists yet in your schema, so this stays static for now
-$available_drivers = [
-    ['id' => 1, 'name' => 'Marcus Vance', 'rating' => '4.98', 'level' => 5],
-    ['id' => 2, 'name' => 'Sarah Jennings', 'rating' => '4.95', 'level' => 4],
-    ['id' => 3, 'name' => 'David Chen', 'rating' => '4.92', 'level' => 4],
-];
+// Available Sri Lankan drivers from the drivers table, with a fallback for fresh installs.
+try {
+    $stmt = $pdo->prepare("
+        SELECT id, name, rating, rating_level AS level
+        FROM drivers
+        WHERE status = 'available'
+        ORDER BY rating DESC
+        LIMIT 6
+    ");
+    $stmt->execute();
+    $available_drivers = $stmt->fetchAll();
+} catch (PDOException $e) {
+    $available_drivers = [];
+}
+
+if (empty($available_drivers)) {
+    $available_drivers = [
+        ['id' => 1, 'name' => 'Sunil Perera', 'rating' => '4.98', 'level' => 5],
+        ['id' => 2, 'name' => 'Kumari Silva', 'rating' => '4.95', 'level' => 4],
+        ['id' => 3, 'name' => 'Chaminda Bandara', 'rating' => '4.92', 'level' => 4],
+    ];
+}
 
 $pending_count = count($pending_bookings);
 $available_count = count($available_vehicles);
 $drivers_count = count($available_drivers);
 $urgent_count = 2; // still static — can compute later based on event_date
+$default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=600&q=80';
 ?>
 
 <!DOCTYPE html>
@@ -199,12 +217,48 @@ $urgent_count = 2; // still static — can compute later based on event_date
                 <?php foreach ($pending_bookings as $booking): ?>
                 <div class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
                     <div class="flex flex-col md:flex-row">
-                        <div class="md:w-64 h-48 md:h-auto overflow-hidden relative bg-gray-100 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-5xl text-gray-400">directions_car</span>
-                            <?php if ($booking['priority'] == 'high'): ?>
-                            <div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded">High Priority</div>
-                            <?php endif; ?>
-                        </div>
+                                <div class="md:w-64 h-48 md:h-auto overflow-hidden relative bg-gray-100 flex items-center justify-center">
+                                    <?php
+                                        // Support multiple images for a vehicle: JSON array, comma-separated, or single URL
+                                        $rawImages = $booking['vehicle_image'] ?? '';
+                                        $images = [];
+                                        if (!empty($rawImages)) {
+                                            $rawImages = trim($rawImages);
+                                            if (($dec = json_decode($rawImages, true)) && is_array($dec)) {
+                                                $images = $dec;
+                                            } elseif (strpos($rawImages, ',') !== false) {
+                                                $images = array_map('trim', explode(',', $rawImages));
+                                            } else {
+                                                $images = [$rawImages];
+                                            }
+                                        }
+                                        if (empty($images)) {
+                                            $images = [$default_vehicle_image];
+                                        }
+                                        $mainImg = htmlspecialchars($images[0]);
+                                    ?>
+                                    <img id="main-img-<?php echo $booking['id']; ?>" src="<?php echo $mainImg; ?>" alt="<?php echo htmlspecialchars($booking['vehicle']); ?>" class="w-full h-full object-cover">
+                                    <?php if ($booking['priority'] == 'high'): ?>
+                                    <div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded">High Priority</div>
+                                    <?php endif; ?>
+
+                                    <?php if (count($images) > 1): ?>
+                                    <div class="absolute left-3 bottom-3 flex gap-2 z-20">
+                                        <?php foreach (array_slice($images, 0, 4) as $idx => $img): ?>
+                                            <button type="button" onclick="switchImage(<?php echo $booking['id']; ?>, <?php echo $idx; ?>)" class="w-12 h-8 rounded overflow-hidden border border-white/60 shadow-sm bg-white/60">
+                                                <img src="<?php echo htmlspecialchars($img); ?>" class="w-full h-full object-cover">
+                                            </button>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <script>
+                                        function switchImage(id, idx) {
+                                            var imgs = <?php echo json_encode(array_values($images)); ?>;
+                                            var el = document.getElementById('main-img-' + id);
+                                            if (el && imgs[idx]) el.src = imgs[idx];
+                                        }
+                                    </script>
+                                    <?php endif; ?>
+                                </div>
                         <div class="flex-1 p-6">
                             <div class="flex justify-between items-start mb-4">
                                 <div>

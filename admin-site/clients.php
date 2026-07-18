@@ -22,63 +22,80 @@ try {
     $clients = [];
 }
 
-// Calculate statistics
-$total_clients = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'")->fetchColumn();
-$active_corporate = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer' AND company_name IS NOT NULL AND company_name != ''")->fetchColumn();
-$vip_clients = $pdo->query("
-    SELECT COUNT(*) FROM (
-        SELECT u.id, COUNT(b.id) as booking_count 
-        FROM users u 
-        LEFT JOIN bookings b ON u.id = b.user_id 
-        WHERE u.role = 'customer' 
-        GROUP BY u.id 
-        HAVING booking_count > 5
-    ) as vip
-")->fetchColumn();
+$sample_mode = false;
+$sample_bookings = [];
+$sample_clients = [
+    ['id' => 101, 'full_name' => 'Nimal Perera', 'email' => 'nimal.perera@example.lk', 'phone' => '+94 77 111 2233', 'company_name' => 'Ceylon Luxury Events', 'address' => 'No. 45, Galle Road', 'city' => 'Colombo', 'state' => 'Western', 'zip_code' => '00300', 'total_bookings' => 4, 'last_event_date' => '2025-01-15', 'total_spent' => 1249325, 'created_at' => '2025-01-05 09:00:00'],
+    ['id' => 102, 'full_name' => 'Anjali Fernando', 'email' => 'anjali.fernando@example.lk', 'phone' => '+94 71 222 3344', 'company_name' => 'Kandy Heritage Weddings', 'address' => 'No. 12, Peradeniya Road', 'city' => 'Kandy', 'state' => 'Central', 'zip_code' => '20000', 'total_bookings' => 3, 'last_event_date' => '2024-02-22', 'total_spent' => 944000, 'created_at' => '2024-02-10 11:15:00'],
+    ['id' => 103, 'full_name' => 'Sameera Jayawardena', 'email' => 'sameera.jayawardena@example.lk', 'phone' => '+94 70 333 5566', 'company_name' => 'Southern Event Rentals', 'address' => 'No. 9, Galle Road', 'city' => 'Galle', 'state' => 'Southern', 'zip_code' => '80000', 'total_bookings' => 2, 'last_event_date' => '2024-03-12', 'total_spent' => 359500, 'created_at' => '2024-03-18 14:20:00'],
+    ['id' => 104, 'full_name' => 'Priya Senanayake', 'email' => 'priya.senanayake@example.lk', 'phone' => '+94 78 444 7788', 'company_name' => null, 'address' => 'No. 77, Lotus Road', 'city' => 'Colombo', 'state' => 'Western', 'zip_code' => '00500', 'total_bookings' => 1, 'last_event_date' => '2025-04-22', 'total_spent' => 132750, 'created_at' => '2025-04-20 08:45:00'],
+    ['id' => 105, 'full_name' => 'Sanduni Kumar', 'email' => 'sanduni.kumar@example.lk', 'phone' => '+94 76 555 8899', 'company_name' => 'Colombo Gala Planners', 'address' => 'No. 123, Park Street', 'city' => 'Colombo', 'state' => 'Western', 'zip_code' => '00700', 'total_bookings' => 6, 'last_event_date' => '2025-05-30', 'total_spent' => 1760000, 'created_at' => '2025-05-25 10:00:00'],
+];
 
-$top10_revenue = $pdo->query("
-    SELECT COALESCE(SUM(total_amount), 0) as revenue FROM (
-        SELECT b.total_amount
-        FROM bookings b
-        JOIN users u ON b.user_id = u.id
-        WHERE u.role = 'customer'
-        ORDER BY b.total_amount DESC
-        LIMIT 10
-    ) as top10
-")->fetchColumn();
+$sample_bookings = [
+    101 => [
+        ['event_name'=>'Kandy Royal Wedding','vehicle_name'=>'Toyota Premio','status'=>'confirmed','event_date'=>'2025-01-15','total_amount'=>826000],
+        ['event_name'=>'Executive Transfer','vehicle_name'=>'Toyota Axio','status'=>'completed','event_date'=>'2025-02-05','total_amount'=>185000],
+        ['event_name'=>'Corporate Roadshow','vehicle_name'=>'Honda Vezel','status'=>'completed','event_date'=>'2025-03-20','total_amount'=>183325],
+        ['event_name'=>'VIP Airport Pickup','vehicle_name'=>'Toyota HiAce','status'=>'completed','event_date'=>'2025-04-10','total_amount'=>180000],
+    ],
+    102 => [
+        ['event_name'=>'Colombo Tech Summit Logistics','vehicle_name'=>'Honda Vezel','status'=>'completed','event_date'=>'2024-10-22','total_amount'=>944000],
+        ['event_name'=>'Island Tour Charter','vehicle_name'=>'Toyota HiAce','status'=>'completed','event_date'=>'2024-09-30','total_amount'=>380000],
+        ['event_name'=>'City Wedding Shuttle','vehicle_name'=>'Toyota Axio','status'=>'completed','event_date'=>'2024-09-15','total_amount'=>216000],
+    ],
+    103 => [
+        ['event_name'=>'Galle Event Transport','vehicle_name'=>'Toyota HiAce','status'=>'overdue','event_date'=>'2024-10-24','total_amount'=>226748],
+        ['event_name'=>'Beach Wedding Transfer','vehicle_name'=>'Honda Vezel','status'=>'completed','event_date'=>'2024-09-25','total_amount'=>132752],
+    ],
+    104 => [
+        ['event_name'=>'Airport Pickup','vehicle_name'=>'Toyota Axio','status'=>'pending','event_date'=>'2025-06-02','total_amount'=>132750],
+    ],
+    105 => [
+        ['event_name'=>'Colombo Gala VIP Service','vehicle_name'=>'Toyota Premio','status'=>'confirmed','event_date'=>'2025-07-10','total_amount'=>1760000],
+        ['event_name'=>'Executive Meeting Transfer','vehicle_name'=>'Honda Vezel','status'=>'completed','event_date'=>'2025-08-15','total_amount'=>215000],
+    ],
+];
 
-// Get selected client for sidebar
-$selected_client_id = isset($_GET['view']) ? intval($_GET['view']) : ($clients[0]['id'] ?? 0);
-$selected_client = null;
-
-if ($selected_client_id) {
-    $stmt = $pdo->prepare("
-        SELECT 
-            u.*,
-            COUNT(b.id) as total_bookings,
-            MAX(b.event_date) as last_event_date,
-            COALESCE(SUM(b.total_amount), 0) as total_spent,
-            SUM(CASE WHEN b.status = 'pending' THEN b.total_amount ELSE 0 END) as outstanding_balance
-        FROM users u
-        LEFT JOIN bookings b ON u.id = b.user_id
-        WHERE u.id = ? AND u.role = 'customer'
-        GROUP BY u.id
-    ");
-    $stmt->execute([$selected_client_id]);
-    $selected_client = $stmt->fetch();
-    
-    // Get recent bookings for this client
-    $stmt2 = $pdo->prepare("
-        SELECT b.*, v.name as vehicle_name
-        FROM bookings b
-        JOIN vehicles v ON b.vehicle_id = v.id
-        WHERE b.user_id = ?
-        ORDER BY b.created_at DESC
-        LIMIT 5
-    ");
-    $stmt2->execute([$selected_client_id]);
-    $recent_bookings = $stmt2->fetchAll();
+if (empty($clients)) {
+    $sample_mode = true;
+    $clients = $sample_clients;
 }
+
+// Calculate statistics
+if ($sample_mode) {
+    $total_clients = count($clients);
+    $active_corporate = count(array_filter($clients, fn($c) => !empty($c['company_name'])));
+    $vip_clients = count(array_filter($clients, fn($c) => $c['total_bookings'] > 5));
+    $top10_revenue = array_sum(array_map(fn($c) => $c['total_spent'], $clients));
+} else {
+    $total_clients = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'")->fetchColumn();
+    $active_corporate = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer' AND company_name IS NOT NULL AND company_name != ''")->fetchColumn();
+    $vip_clients = $pdo->query("
+        SELECT COUNT(*) FROM (
+            SELECT u.id, COUNT(b.id) as booking_count 
+            FROM users u 
+            LEFT JOIN bookings b ON u.id = b.user_id 
+            WHERE u.role = 'customer' 
+            GROUP BY u.id 
+            HAVING booking_count > 5
+        ) as vip
+    ")->fetchColumn();
+
+    $top10_revenue = $pdo->query("
+        SELECT COALESCE(SUM(total_amount), 0) as revenue FROM (
+            SELECT b.total_amount
+            FROM bookings b
+            JOIN users u ON b.user_id = u.id
+            WHERE u.role = 'customer'
+            ORDER BY b.total_amount DESC
+            LIMIT 10
+        ) as top10
+    ")->fetchColumn();
+}
+
+// Sidebar removed from this page; profile view handled on `client-details.php` instead
+$recent_bookings = [];
 ?>
 
 <?php require_once 'includes/header.php'; ?>
@@ -156,7 +173,7 @@ if ($selected_client_id) {
         <!-- Client Directory Table & Sidebar -->
         <div class="grid grid-cols-12 gap-6">
             <!-- Client Directory Table -->
-            <div class="col-span-12 lg:col-span-8 bg-white rounded-xl shadow-sm border border-[#c0c8ca] overflow-hidden">
+            <div class="col-span-12 lg:col-span-12 bg-white rounded-xl shadow-sm border border-[#c0c8ca] overflow-hidden">
                 <div class="p-6 border-b border-[#c0c8ca] flex justify-between items-center">
                     <h3 class="text-2xl font-bold">Client Directory</h3>
                     <div class="flex space-x-2">
@@ -217,7 +234,7 @@ if ($selected_client_id) {
                         </thead>
                         <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]" id="clientsTable">
                             <?php foreach ($clients as $client): ?>
-                            <tr class="cursor-pointer client-row" data-id="<?php echo $client['id']; ?>" data-name="<?php echo strtolower($client['full_name'] . ' ' . $client['company_name']); ?>" onclick="viewClient(<?php echo $client['id']; ?>)">
+                            <tr class="client-row" data-id="<?php echo $client['id']; ?>" data-name="<?php echo strtolower($client['full_name'] . ' ' . $client['company_name']); ?>">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-3">
                                         <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
@@ -243,7 +260,7 @@ if ($selected_client_id) {
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <a href="?view=<?php echo $client['id']; ?>" class="text-red-600 font-bold text-xs hover:underline">View Profile</a>
+                                    <a href="client-details.php?id=<?php echo $client['id']; ?>" class="text-red-600 font-bold text-xs hover:underline">View Profile</a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -269,97 +286,7 @@ if ($selected_client_id) {
                 </div> 
             </div>
 
-            <!-- Sidebar Detail (Selected Client) -->
-            <aside class="col-span-12 lg:col-span-4 space-y-6">
-                <?php if ($selected_client): ?>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden sticky top-24">
-                    <div class="h-24 bg-red-600 relative">
-                        <div class="absolute -bottom-6 left-6">
-                            <div class="w-16 h-16 rounded-xl bg-white shadow-md flex items-center justify-center text-red-600 text-2xl font-black border-2 border-white">
-                                <?php echo strtoupper(substr($selected_client['full_name'], 0, 2)); ?>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-6 pt-10 pb-6">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="text-2xl font-bold text-gray-900"><?php echo htmlspecialchars($selected_client['full_name']); ?></h3>
-                                <p class="text-sm text-gray-500"><?php echo htmlspecialchars($selected_client['company_name'] ?: 'Private Client'); ?></p>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-[10px] font-bold uppercase">VIP Client</span>
-                        </div>
-                        <div class="mt-8 space-y-6">
-                            <div class="flex items-start space-x-4">
-                                <span class="material-symbols-outlined text-gray-400">badge</span>
-                                <div>
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Account Manager</p>
-                                    <p class="text-base font-medium"><?php echo $_SESSION['admin_name'] ?? 'Admin'; ?></p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <span class="material-symbols-outlined text-gray-400">contact_mail</span>
-                                <div>
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Primary Contact</p>
-                                    <p class="text-base font-medium"><?php echo htmlspecialchars($selected_client['full_name']); ?></p>
-                                    <p class="text-xs text-gray-500"><?php echo htmlspecialchars($selected_client['phone'] ?: '+94 77 123 4567'); ?></p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <span class="material-symbols-outlined text-gray-400">directions_car</span>
-                                <div>
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Preferred Category</p>
-                                    <p class="text-base font-medium">Luxury Sedans &amp; SUVs</p>
-                                </div>
-                            </div>
-                            <div class="p-4 bg-red-50 rounded-lg border border-red-200">
-                                <div class="flex justify-between items-center">
-                                    <p class="text-xs text-red-800 font-bold uppercase">Outstanding Balance</p>
-                                    <span class="material-symbols-outlined text-red-600">warning</span>
-                                </div>
-                                <p class="text-3xl font-bold text-red-800 mt-1">LKR <?php echo number_format($selected_client['outstanding_balance'] ?? 0, 2); ?></p>
-                            </div>
-                        </div>
-                        <div class="mt-8 grid grid-cols-2 gap-3">
-                            <button onclick="sendStatement(<?php echo $selected_client['id']; ?>)" class="bg-gray-100 hover:bg-gray-200 text-gray-900 py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transition-colors">
-                                <span class="material-symbols-outlined">account_balance_wallet</span>
-                                <span>Send Statement</span>
-                            </button>
-                            <button onclick="bookNew(<?php echo $selected_client['id']; ?>)" class="bg-red-600 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transition-transform active:scale-95">
-                                <span class="material-symbols-outlined">calendar_add_on</span>
-                                <span>Book New</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 px-6 py-4 flex justify-center border-t border-gray-100">
-                        <a href="client-details.php?id=<?php echo $selected_client['id']; ?>" class="text-red-600 font-bold text-sm flex items-center">
-                            <span>View Full Profile &amp; History</span>
-                            <span class="material-symbols-outlined ml-1 text-sm">arrow_forward</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Recent Activity Feed -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h4 class="text-sm font-bold text-gray-900 uppercase mb-4">Recent Bookings</h4>
-                    <div class="space-y-4">
-                        <?php if (!empty($recent_bookings)): ?>
-                            <?php foreach ($recent_bookings as $booking): ?>
-                            <div class="flex items-center space-x-3 text-sm">
-                                <div class="w-2 h-2 rounded-full bg-red-600"></div>
-                                <div class="flex-1">
-                                    <p class="font-bold"><?php echo htmlspecialchars($booking['event_name'] ?: 'Vehicle Rental'); ?></p>
-                                    <p class="text-gray-500 text-xs"><?php echo htmlspecialchars($booking['vehicle_name']); ?> • <?php echo ucfirst($booking['status']); ?></p>
-                                </div>
-                                <span class="text-gray-400 text-xs"><?php echo date('M d', strtotime($booking['event_date'])); ?></span>
-                            </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <p class="text-gray-500 text-sm text-center">No recent bookings</p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </aside>
+            
         </div>
     </div>
 </main>
@@ -411,7 +338,7 @@ document.getElementById('searchClients')?.addEventListener('keyup', function(e) 
 });
 
 function viewClient(clientId) {
-    window.location.href = 'clients.php?view=' + clientId;
+    window.location.href = 'client-details.php?id=' + clientId;
 }
 
 function openAddClientModal() {

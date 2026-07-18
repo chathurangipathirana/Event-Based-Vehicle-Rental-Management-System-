@@ -177,30 +177,6 @@ CREATE TABLE IF NOT EXISTS payments (
     FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
 );
 
--- Create bookings table
-CREATE TABLE IF NOT EXISTS bookings (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    booking_number VARCHAR(50) UNIQUE,
-    user_id INT,
-    vehicle_id INT,
-    event_type_id INT,
-    event_name VARCHAR(200),
-    event_date DATE,
-    start_time TIME,
-    end_time TIME,
-    pickup_location TEXT,
-    dropoff_location TEXT,
-    total_hours INT,
-    subtotal DECIMAL(15,2) DEFAULT 0,
-    tax DECIMAL(15,2)  DEFAULT 0,
-    total_amount DECIMAL(15,2)  DEFAULT 0,
-    status ENUM('pending', 'confirmed', 'in_progress', 'completed', 'cancelled') DEFAULT 'pending',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL,
-    FOREIGN KEY (event_type_id) REFERENCES event_types(id) ON DELETE SET NULL
-);
-
 CREATE TABLE IF NOT EXISTS settings (
     id INT PRIMARY KEY AUTO_INCREMENT,
     setting_key VARCHAR(100) UNIQUE NOT NULL,
@@ -217,19 +193,27 @@ CREATE TABLE IF NOT EXISTS settings (
 INSERT INTO admin_users (username, email, password, full_name, role) VALUES
 ('admin', 'admin@fleetelite.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'Administrator', 'admin');
 
+-- Insert Sri Lankan customer users
+INSERT INTO users (full_name, email, password, phone, company_name, address, city, state, zip_code, role) VALUES
+('Nimal Perera', 'nimal.perera@example.lk', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '+94 77 111 2233', 'Ceylon Luxury Events', 'No. 45, Galle Road', 'Colombo', 'Western', '00300', 'customer'),
+('Anjali Fernando', 'anjali.fernando@example.lk', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '+94 71 222 3344', 'Kandy Heritage Weddings', 'No. 12, Peradeniya Road', 'Kandy', 'Central', '20000', 'customer'),
+('Sameera Jayawardena', 'sameera.jayawardena@example.lk', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '+94 70 333 5566', 'Southern Event Rentals', 'No. 9, Galle Road', 'Galle', 'Southern', '80000', 'customer'),
+('Priya Senanayake', 'priya.senanayake@example.lk', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '+94 78 444 7788', NULL, 'No. 77, Lotus Road', 'Colombo', 'Western', '00500', 'customer'),
+('Sanduni Kumar', 'sanduni.kumar@example.lk', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '+94 76 555 8899', 'Colombo Gala Planners', 'No. 123, Park Street', 'Colombo', 'Western', '00700', 'customer');
+
 -- Insert Event Types
 INSERT INTO event_types (name, slug, description, sort_order) VALUES
-('Wedding', 'wedding', 'Timeless elegance for special occasions', 1),
-('Business', 'business', 'Executive logistics for corporate events', 2),
-('Tours', 'tours', 'Group travel and sightseeing', 3);
+('Kandyan Wedding', 'kandyan-wedding', 'Elegant transport for traditional Sri Lankan weddings', 1),
+('Colombo Business', 'colombo-business', 'Executive logistics for corporate events in Sri Lanka', 2),
+('Island Tours', 'island-tours', 'Comfortable travel for Sri Lankan sightseeing routes', 3);
 
 -- Insert Vehicles
-INSERT INTO vehicles (name, model, license_plate, vin_number, price_per_day, price_per_hour, status, category, capacity, transmission, fuel_type) VALUES
-('Porsche 911 GT3', '992', 'FLT-001', 'FLT-8829-PX', 850, 95, 'available', 'Sports', 2, 'Automatic', 'Petrol'),
-('Range Rover SV', 'L405', 'FLT-002', 'FLT-1142-RR', 680, 75, 'available', 'Luxury SUV', 5, 'Automatic', 'Petrol'),
-('BMW 7 Series', 'G70', 'FLT-003', 'FLT-5510-BM', 450, 50, 'maintenance', 'Executive', 5, 'Automatic', 'Petrol'),
-('Mercedes S-Class', 'W223', 'FLT-004', 'FLT-4432-MB', 520, 58, 'available', 'Luxury', 4, 'Automatic', 'Petrol'),
-('Tesla Model S', 'Plaid', 'FLT-005', 'FLT-9912-TS', 380, 42, 'available', 'Electric', 5, 'Automatic', 'Electric');
+INSERT INTO vehicles (name, model, license_plate, vin_number, price_per_day, price_per_hour, status, category, capacity, transmission, fuel_type, description, image_url) VALUES
+('Colombo Toyota Axio', 'Toyota Corolla Axio', 'WP CAA-2345', 'LK-1001-AXIO', 18500, 2400, 'available', 'Luxury', 4, 'Automatic', 'Petrol', 'Popular Sri Lankan sedan for weddings, business transfers, and city events.', 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=900&q=80'),
+('Kandy Toyota Premio', 'Toyota Premio', 'CP CAD-9876', 'LK-1002-PREMIO', 22000, 2800, 'available', 'Luxury', 4, 'Automatic', 'Petrol', 'Comfortable executive sedan commonly used for Sri Lankan wedding hires.', 'https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=900&q=80'),
+('Galle Honda Vezel', 'Honda Vezel', 'SP CBA-4456', 'LK-1003-VEZEL', 24500, 3200, 'available', 'Luxury SUV', 5, 'Automatic', 'Hybrid', 'Compact hybrid SUV suited for coastal trips and event guest transport.', 'https://images.unsplash.com/photo-1563720226436-8f8319a887b6?auto=format&fit=crop&w=900&q=80'),
+('Negombo Toyota HiAce', 'Toyota HiAce', 'WP NB-1123', 'LK-1004-HIACE', 30000, 3800, 'maintenance', 'Executive', 10, 'Automatic', 'Diesel', 'Reliable van for airport pickups, group travel, and family events.', 'https://images.unsplash.com/photo-1610647752706-3bb12232b3b1?auto=format&fit=crop&w=900&q=80'),
+('Matara Suzuki Wagon R', 'Suzuki Wagon R', 'SP CAR-7788', 'LK-1005-WAGONR', 14000, 1800, 'available', 'Electric', 4, 'Automatic', 'Hybrid', 'Efficient city car for compact event errands and short hires.', 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?auto=format&fit=crop&w=900&q=80');
 
 -- Insert Drivers
 INSERT INTO drivers (name, email, phone, rating, status) VALUES
@@ -239,15 +223,15 @@ INSERT INTO drivers (name, email, phone, rating, status) VALUES
 
 -- Insert Event Packages
 INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status) VALUES
-('Wedding Premium', 'Ultimate luxury for weddings', 737500, '3 Sedans + Limousine,8-Hour Service', 'Sedan,Limousine', 'active'),
-('Business Pro', 'Corporate logistics', 531000, '5 SUVs,Airport Transfer', 'SUV', 'active'),
-('Gala Elite', 'Premium gala package',  944000, 'Red Carpet Service,VIP Coordination', 'Sedan,Limo,Bus', 'active');
+('Kandyan Wedding Premium', 'Premium transport for Sri Lankan weddings', 737500, '3 Sedans + Decorated Wedding Car,8-Hour Service', 'Toyota Premio,Toyota Axio', 'active'),
+('Colombo Business Pro', 'Corporate logistics for Colombo events', 531000, '3 SUVs,Airport Transfer', 'Honda Vezel,Toyota Premio', 'active'),
+('Galle Island Tour Elite', 'Premium coastal tour package',  944000, 'VIP Coordination,Group Van Service', 'Toyota HiAce,Honda Vezel', 'active');
 
 -- Insert Sample Invoices
 INSERT INTO invoices (invoice_number, client_name, client_email, amount, tax, total_amount, status, issue_date, due_date, description) VALUES
-('INV-8842', 'Luxury Events Ltd', 'billing@luxuryevents.com', 1135750, 113575, 1249325, 'paid', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Wedding services'),
-('INV-8843', 'Global Logistics Co', 'accounts@globallogistics.com', 506863, 50686, 557549, 'pending', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Corporate transport'),
-('INV-8844', 'Premiere Rentals', 'finance@premiererentals.com', 226748, 22675, 249423, 'overdue', DATE_SUB(CURDATE(), INTERVAL 20 DAY), CURDATE(), 'Equipment transport');
+('INV-8842', 'Ceylon Luxury Events', 'billing@ceylonevents.lk', 1135750, 113575, 1249325, 'paid', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Kandyan wedding transport services'),
+('INV-8843', 'Lanka Corporate Logistics', 'accounts@lankalogistics.lk', 506863, 50686, 557549, 'pending', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), 'Colombo corporate transport'),
+('INV-8844', 'Southern Event Rentals', 'finance@southernevents.lk', 226748, 22675, 249423, 'overdue', DATE_SUB(CURDATE(), INTERVAL 20 DAY), CURDATE(), 'Galle event transport');
 
 -- Insert Invoice Items
 INSERT INTO invoice_items (invoice_id, description, quantity, unit_price, total) VALUES
@@ -262,7 +246,11 @@ INSERT INTO bookings (booking_number, user_id, vehicle_id, event_type_id, event_
 ('BK-9021', 1, 3, 2, 'Colombo Corporate Gala', '2024-10-24', '18:00:00', '23:30:00', 368750, 'in_progress'),
 ('BK-8842', 2, 1, 1, 'Kandy Royal Wedding', '2024-10-26', '14:00:00', '20:00:00', 826000, 'confirmed'),
 ('BK-9105', 1, 5, 2, 'BIA Airport Transfer', '2024-10-24', '06:30:00', '08:00:00', 132750, 'pending'),
-('BK-7721', 2, 2, 2, 'Tech Summit Logistics', '2024-10-22', '09:00:00', '17:00:00', 944000, 'completed');
+('BK-7721', 2, 2, 2, 'Colombo Tech Summit Logistics', '2024-10-22', '09:00:00', '17:00:00', 944000, 'completed'),
+('BK-9110', 3, 4, 3, 'Galle Beach Wedding Transport', '2024-10-20', '10:00:00', '15:00:00', 560000, 'confirmed'),
+('BK-9111', 3, 2, 3, 'Island Tour VIP Service', '2024-10-26', '08:00:00', '18:00:00', 725000, 'completed'),
+('BK-9112', 4, 1, 2, 'Colombo Airport Transfer', '2024-10-28', '09:30:00', '11:00:00', 132750, 'pending'),
+('BK-9113', 5, 3, 1, 'Luxury Wedding Shuttle', '2024-10-29', '16:00:00', '22:00:00', 980000, 'confirmed');
 
 SELECT 'Database setup completed successfully! (Prices in Sri Lankan Rupees - LKR)' as Status;
 

@@ -19,25 +19,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $services = trim($_POST['services'] ?? '');
         $vehicles = trim($_POST['vehicles'] ?? '');
         $status = trim($_POST['status'] ?? 'draft');
+        $image_url = null;
+
+        // Handle image upload if provided
+        if (!empty($_FILES['image']['name']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+            $tmp = $_FILES['image']['tmp_name'];
+            $origName = $_FILES['image']['name'];
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $mime = finfo_file($finfo, $tmp);
+            finfo_close($finfo);
+            $allowed = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+            if (isset($allowed[$mime])) {
+                $ext = $allowed[$mime];
+                $uploadDir = __DIR__ . '/uploads/packages/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+                $filename = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $dest = $uploadDir . $filename;
+                if (move_uploaded_file($tmp, $dest)) {
+                    // store web-accessible path relative to admin-site
+                    $image_url = 'uploads/packages/' . $filename;
+                }
+            } else {
+                $_SESSION['error'] = 'Invalid image file type. Allowed: JPG, PNG, GIF, WEBP.';
+            }
+        }
         
         if (empty($name)) {
             $_SESSION['error'] = 'Package Name is required.';
         } else {
             try {
+                if ($id <= 0) {
+                    $check = $pdo->prepare("SELECT id FROM event_packages WHERE LOWER(name) = LOWER(?) LIMIT 1");
+                    $check->execute([$name]);
+                    $existingId = $check->fetchColumn();
+                    if ($existingId) {
+                        $id = (int)$existingId;
+                    }
+                }
+
                 if ($id > 0) {
-                    $stmt = $pdo->prepare("
+                    if ($image_url === null) {
+                        $q = $pdo->prepare("SELECT image_url FROM event_packages WHERE id = ?");
+                        $q->execute([$id]);
+                        $image_url = $q->fetchColumn();
+                    }
+
+                    $stmt = $pdo->prepare("\
                         UPDATE event_packages 
-                        SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, status = ? 
+                        SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, status = ?, image_url = ? 
                         WHERE id = ?
                     ");
-                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $id]);
+                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $image_url, $id]);
                     $_SESSION['message'] = 'Package updated successfully!';
                 } else {
-                    $stmt = $pdo->prepare("
-                        INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status) 
-                        VALUES (?, ?, ?, ?, ?, ?)
+                    $stmt = $pdo->prepare("\
+                        INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status, image_url) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
                     ");
-                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status]);
+                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $image_url]);
                     $_SESSION['message'] = 'Package created successfully!';
                 }
             } catch(PDOException $e) {
@@ -77,7 +116,76 @@ try {
     // Keep list empty if tables don't exist
 }
 
+// Remove duplicate package names if the database has duplicate rows
+$seenPackageNames = [];
+$packages = array_values(array_filter($packages, function($pkg) use (&$seenPackageNames) {
+    $key = strtolower(trim($pkg['name']));
+    if ($key === '') {
+        return true;
+    }
+    if (isset($seenPackageNames[$key])) {
+        return false;
+    }
+    $seenPackageNames[$key] = true;
+    return true;
+}));
+
 $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'active'));
+// Default image used when a package has no image or the image fails to load
+$default_package_image = 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=0c3ea7f5b3b7c8f0c9a9a9b1e2d6d8b6';
+
+function getPackageImageUrl(array $package): string {
+    global $default_package_image;
+    $image_url = trim($package['image_url'] ?? '');
+    $defaultImages = [
+        'Business Pro' => 'https://images.unsplash.com/photo-1520974735194-8b3482385cf9?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3',
+        'Wedding Premium' => 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3',
+        'Gala Elite' => 'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3',
+    ];
+
+    if (!empty($image_url)) {
+        return $image_url;
+    }
+
+    $name = trim($package['name'] ?? '');
+    return $defaultImages[$name] ?? $default_package_image;
+}
+
+// If there are no packages in the database, provide a small set of sample packages
+if (empty($packages)) {
+    $packages = [
+        [
+            'id' => 101,
+            'name' => 'Wedding Premium',
+            'description' => 'Full event transportation for weddings including VIP cars and shuttle services.',
+            'price' => 120000,
+            'services' => 'VIP transport,Shuttle,Decoration setup',
+            'vehicles' => 'Sedan,Van,Bus',
+            'status' => 'active',
+            'image_url' => 'https://images.unsplash.com/photo-1505577058444-a3dab4b83a6b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3'
+        ],
+        [
+            'id' => 102,
+            'name' => 'Corporate Shuttle',
+            'description' => 'Scheduled shuttles and executive transfers for corporate events and conferences.',
+            'price' => 80000,
+            'services' => 'Shuttle,On-site coordinator,Badge pickup',
+            'vehicles' => 'Minibus,Coach',
+            'status' => 'active',
+            'image_url' => 'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3'
+        ],
+        [
+            'id' => 103,
+            'name' => 'Airport Transfers',
+            'description' => 'Reliable airport pickup and drop with meet-and-greet options.',
+            'price' => 25000,
+            'services' => 'Meet & Greet,Luggage assistance,Real-time tracking',
+            'vehicles' => 'Sedan,SUV',
+            'status' => 'draft',
+            'image_url' => 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3'
+        ],
+    ];
+}
 ?>
 
 <!DOCTYPE html>
@@ -157,8 +265,9 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
             <?php foreach ($packages as $package): ?>
             <!-- Package Card -->
             <div class="md:col-span-4 bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition overflow-hidden flex flex-col group">
+                <?php $pkgImage = getPackageImageUrl($package); ?>
                 <div class="h-48 relative overflow-hidden bg-gray-100 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-6xl text-gray-400">celebration</span>
+                    <img src="<?php echo htmlspecialchars($pkgImage); ?>" alt="<?php echo htmlspecialchars($package['name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='<?php echo htmlspecialchars($default_package_image, ENT_QUOTES); ?>'">
                     <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded text-sm text-red-600 shadow-sm">
                         LKR <?php echo number_format($package['price'], 0); ?>/BASE
                     </div>
@@ -379,7 +488,7 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
         <div class="p-6 border-b">
             <h3 id="modalTitle" class="text-xl font-bold">Add Package</h3>
         </div>
-        <form id="packageForm" method="POST" action="packages.php" class="p-6 space-y-4">
+        <form id="packageForm" method="POST" action="packages.php" class="p-6 space-y-4" enctype="multipart/form-data">
             <input type="hidden" name="action" value="save">
             <input type="hidden" name="id" id="pkgId" value="0">
             <input type="text" name="name" id="pkgName" placeholder="Package Name" required class="w-full px-3 py-2 border rounded-lg">
@@ -392,6 +501,11 @@ $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'acti
                 <option value="draft">Draft</option>
                 <option value="archived">Archived</option>
             </select>
+            <div>
+                <label class="block text-sm text-gray-700 mb-2">Package Image</label>
+                <input type="file" name="image" id="pkgImage" accept="image/*" class="w-full">
+                <p class="text-xs text-gray-400 mt-1">Upload an image (JPG, PNG, GIF, WEBP). Leave blank to keep existing.</p>
+            </div>
             <div class="flex gap-3">
                 <button type="submit" class="flex-1 bg-red-600 text-white py-2 rounded-lg">Save</button>
                 <button type="button" id="modalDeleteBtn" onclick="deletePackage(document.getElementById('pkgId').value)" class="flex-1 bg-red-100 text-red-600 hover:bg-red-200 py-2 rounded-lg" style="display: none;">Delete</button>

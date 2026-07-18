@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $model = trim($_POST['model'] ?? '');
         $plate = trim($_POST['plate'] ?? '');
         $vin = trim($_POST['vin'] ?? '');
+        $image_url = trim($_POST['image_url'] ?? '');
         $price = (float)($_POST['price'] ?? 0);
         $category = trim($_POST['category'] ?? 'Sports');
         $status = trim($_POST['status'] ?? 'available');
@@ -28,17 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($id > 0) {
                     $stmt = $pdo->prepare("
                         UPDATE vehicles 
-                        SET name = ?, model = ?, license_plate = ?, vin_number = ?, price_per_day = ?, category = ?, status = ? 
+                        SET name = ?, model = ?, license_plate = ?, vin_number = ?, image_url = ?, price_per_day = ?, category = ?, status = ? 
                         WHERE id = ?
                     ");
-                    $stmt->execute([$name, $model, $plate, $vin, $price, $category, $status, $id]);
+                    $stmt->execute([$name, $model, $plate, $vin, $image_url, $price, $category, $status, $id]);
                     $_SESSION['message'] = 'Vehicle updated successfully!';
                 } else {
                     $stmt = $pdo->prepare("
-                        INSERT INTO vehicles (name, model, license_plate, vin_number, price_per_day, category, status) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO vehicles (name, model, license_plate, vin_number, image_url, price_per_day, category, status) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
-                    $stmt->execute([$name, $model, $plate, $vin, $price, $category, $status]);
+                    $stmt->execute([$name, $model, $plate, $vin, $image_url, $price, $category, $status]);
                     $_SESSION['message'] = 'Vehicle added successfully!';
                 }
             } catch(PDOException $e) {
@@ -65,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch all vehicles from database
 $vehicles = [];
+$is_sample_fleet = false;
 try {
     $vehicles = $pdo->query("
         SELECT *, 
@@ -78,10 +80,61 @@ try {
     // Keep list empty if tables don't exist
 }
 
+if (empty($vehicles)) {
+    $is_sample_fleet = true;
+    $vehicles = [
+        [
+            'id' => 101,
+            'name' => 'Colombo Toyota Axio',
+            'model' => 'Toyota Corolla Axio',
+            'plate' => 'WP CAA-2345',
+            'vin' => 'LK-1001-AXIO',
+            'image_url' => 'https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=900&q=80',
+            'price' => 18500,
+            'category' => 'Luxury',
+            'status' => 'available'
+        ],
+        [
+            'id' => 102,
+            'name' => 'Kandy Toyota Premio',
+            'model' => 'Toyota Premio',
+            'plate' => 'CP CAD-9876',
+            'vin' => 'LK-1002-PREMIO',
+            'image_url' => 'https://images.unsplash.com/photo-1502877338535-766e1452684a?auto=format&fit=crop&w=900&q=80',
+            'price' => 22000,
+            'category' => 'Luxury',
+            'status' => 'available'
+        ],
+        [
+            'id' => 103,
+            'name' => 'Galle Honda Vezel',
+            'model' => 'Honda Vezel',
+            'plate' => 'SP CBA-4456',
+            'vin' => 'LK-1003-VEZEL',
+            'image_url' => 'https://images.unsplash.com/photo-1549399735-cef2e2c3f638?auto=format&fit=crop&w=900&q=80',
+            'price' => 24500,
+            'category' => 'Luxury SUV',
+            'status' => 'available'
+        ],
+        [
+            'id' => 104,
+            'name' => 'Negombo Toyota HiAce',
+            'model' => 'Toyota HiAce',
+            'plate' => 'WP NB-1123',
+            'vin' => 'LK-1004-HIACE',
+            'image_url' => 'https://images.unsplash.com/photo-1610647752706-3bb12232b3b1?auto=format&fit=crop&w=900&q=80',
+            'price' => 30000,
+            'category' => 'Executive',
+            'status' => 'maintenance'
+        ],
+    ];
+}
+
 $total_fleet = count($vehicles);
 $total_booked = count(array_filter($vehicles, fn($v) => $v['status'] == 'booked'));
 $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'maintenance'));
 $fleet_health = $total_fleet > 0 ? round((($total_fleet - $maintenance_count) / $total_fleet) * 100) : 100;
+$default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=80';
 ?>
 
 <?php require_once 'includes/header.php'; ?>
@@ -235,8 +288,19 @@ $fleet_health = $total_fleet > 0 ? round((($total_fleet - $maintenance_count) / 
                         <tr data-name="<?php echo strtolower($vehicle['name']); ?>" data-category="<?php echo $vehicle['category']; ?>" data-status="<?php echo $vehicle['status']; ?>">
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
-                                    <div class="w-12 h-12 rounded-lg bg-gray-100 mr-4 flex items-center justify-center">
-                                        <span class="material-symbols-outlined text-3xl text-gray-400">directions_car</span>
+                                    <div class="w-12 h-12 rounded-lg bg-gray-100 mr-4 overflow-hidden flex items-center justify-center">
+                                        <?php
+                                            $imageSource = $vehicle['image_url'] ?? '';
+                                            if (!empty($imageSource)) {
+                                                // allow commas, semicolons, pipes, or newlines as separators
+                                                $imageParts = preg_split('/\s*[,;|\n\r]\s*/', $imageSource);
+                                                $imageSource = trim($imageParts[0]);
+                                            }
+                                            if (empty($imageSource) || !filter_var($imageSource, FILTER_VALIDATE_URL)) {
+                                                $imageSource = $default_vehicle_image;
+                                            }
+                                        ?>
+                                        <img src="<?php echo htmlspecialchars($imageSource); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='<?php echo $default_vehicle_image; ?>'">
                                     </div>
                                     <div>
                                         <div class="font-medium text-gray-900"><?php echo $vehicle['name']; ?></div>
@@ -255,12 +319,21 @@ $fleet_health = $total_fleet > 0 ? round((($total_fleet - $maintenance_count) / 
                             <td class="px-6 py-4 text-right font-bold text-red-600">LKR <?php echo number_format($vehicle['price']); ?></td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex justify-center items-center space-x-2">
-                                    <button onclick="editVehicle(<?php echo htmlspecialchars(json_encode($vehicle)); ?>)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition">
-                                        <span class="material-symbols-outlined text-xl">edit</span>
-                                    </button>
-                                    <button onclick="deleteVehicle(<?php echo $vehicle['id']; ?>)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-red-600 transition">
-                                        <span class="material-symbols-outlined text-xl">delete</span>
-                                    </button>
+                                    <?php if (!$is_sample_fleet): ?>
+                                        <button onclick="editVehicle(<?php echo htmlspecialchars(json_encode($vehicle)); ?>)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-blue-600 transition">
+                                            <span class="material-symbols-outlined text-xl">edit</span>
+                                        </button>
+                                        <button onclick="deleteVehicle(<?php echo $vehicle['id']; ?>)" class="p-2 hover:bg-gray-100 rounded-lg text-gray-500 hover:text-red-600 transition">
+                                            <span class="material-symbols-outlined text-xl">delete</span>
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="p-2 rounded-lg text-gray-400 cursor-not-allowed" disabled>
+                                            <span class="material-symbols-outlined text-xl">edit</span>
+                                        </button>
+                                        <button class="p-2 rounded-lg text-gray-400 cursor-not-allowed" disabled>
+                                            <span class="material-symbols-outlined text-xl">delete</span>
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -286,6 +359,7 @@ $fleet_health = $total_fleet > 0 ? round((($total_fleet - $maintenance_count) / 
                 <div><input type="text" name="model" id="vehicleModel" placeholder="Model" required class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="text" name="plate" id="vehiclePlate" placeholder="License Plate" class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="text" name="vin" id="vehicleVin" placeholder="VIN Number" class="w-full px-3 py-2 border rounded-lg"></div>
+                <div class="col-span-2"><input type="url" name="image_url" id="vehicleImageUrl" placeholder="Vehicle Photo URL" class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="number" name="price" id="vehiclePrice" placeholder="Daily Rate (LKR)" required class="w-full px-3 py-2 border rounded-lg"></div>
                 <div>
                     <select name="category" id="vehicleCategory" class="w-full px-3 py-2 border rounded-lg">
@@ -326,6 +400,7 @@ function editVehicle(vehicle) {
     document.getElementById('vehicleModel').value = vehicle.model;
     document.getElementById('vehiclePlate').value = vehicle.plate || '';
     document.getElementById('vehicleVin').value = vehicle.vin || '';
+    document.getElementById('vehicleImageUrl').value = vehicle.image_url || '';
     document.getElementById('vehiclePrice').value = vehicle.price;
     document.getElementById('vehicleCategory').value = vehicle.category;
     document.getElementById('vehicleStatus').value = vehicle.status;

@@ -116,20 +116,37 @@ $popular_vehicles = [
             <!-- Revenue Chart -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-xl font-bold text-gray-900 mb-6">Revenue Trend (Last 6 Months)</h2>
-                <div class="h-64 flex items-end gap-4">
-                    <?php 
-                    $max_revenue = max(array_column($monthly_revenue, 'revenue'));
-                    foreach($monthly_revenue as $data): 
-                        $height = ($data['revenue'] / $max_revenue) * 100;
-                    ?>
-                    <div class="flex-1 flex flex-col items-center">
-                        <div class="w-full bg-red-100 rounded-t-lg transition-all hover:bg-red-200" style="height: <?php echo $height; ?>%">
-                            <div class="w-full bg-red-500 rounded-t-lg transition-all" style="height: <?php echo $height; ?>%"></div>
+                <?php $max_revenue = max(array_column($monthly_revenue, 'revenue')); ?>
+                <div class="h-[34rem] flex gap-6">
+                    <div class="w-24 flex flex-col justify-between text-xs text-gray-500">
+                        <?php for ($tick = 5; $tick >= 0; $tick--): ?>
+                        <div class="h-1/6 flex items-center">
+                            <span>LKR <?php echo number_format(round($max_revenue * $tick / 5 / 1000)); ?>k</span>
                         </div>
-                        <span class="text-xs text-gray-500 mt-2"><?php echo substr($data['month'], 0, 3); ?></span>
-                        <span class="text-xs font-bold text-gray-700">LKR <?php echo round($data['revenue'] / 1000); ?>k</span>
+                        <?php endfor; ?>
+                        <div class="font-semibold mt-4">Revenue</div>
                     </div>
-                    <?php endforeach; ?>
+                    <div class="flex-1 flex flex-col justify-end">
+                        <div class="relative flex-1 flex items-end border-l border-b border-gray-200 pb-8">
+                            <?php foreach($monthly_revenue as $data): 
+                                $height = ($max_revenue > 0) ? round(($data['revenue'] / $max_revenue) * 100, 2) : 0;
+                            ?>
+                            <div class="flex flex-col items-center" style="width: 5rem;">
+                                <div class="w-full h-full flex items-end">
+                                    <div class="w-full bg-teal-100 rounded-t-3xl overflow-hidden" style="min-height: 4rem; height: 100%;">
+                                        <div class="w-full bg-teal-600 transition-all" style="height: <?php echo $height; ?>%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="mt-4 grid grid-cols-6 gap-4 text-xs text-gray-500">
+                            <?php foreach($monthly_revenue as $data): ?>
+                            <div class="text-center"><?php echo substr($data['month'], 0, 3); ?></div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="mt-3 text-sm font-semibold text-gray-700">Month</div>
+                    </div>
                 </div>
             </div>
 

@@ -78,7 +78,11 @@ $categories = [
                                 <div class="bg-white rounded-3xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
                                     <div>
                                         <!-- Package Header Image / Icon -->
+                                        <?php $pkgImg = $pkg['image_url'] ?? ''; ?>
                                         <div class="h-36 relative bg-slate-900 flex items-center justify-center overflow-hidden">
+                                            <?php if (!empty($pkgImg)): ?>
+                                                <img src="<?php echo htmlspecialchars($pkgImg); ?>" alt="<?php echo htmlspecialchars($pkg['name']); ?>" class="absolute inset-0 w-full h-full object-cover z-0">
+                                            <?php endif; ?>
                                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
                                             <span class="material-symbols-outlined text-white/20 text-[100px] absolute -right-6 -bottom-6 rotate-12"><?php echo $categories[$key]['icon']; ?></span>
                                             <div class="relative z-20 text-center px-6">
