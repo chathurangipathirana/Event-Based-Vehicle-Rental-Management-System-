@@ -16,12 +16,42 @@ $eventTypes = $stmtEvent->fetchAll();
 <?php require_once '../includes/navbar.php'; ?>
 
 <main class="pt-16">
+    <style>
+        .hero-slide {
+            opacity: 0;
+            transition: opacity 2s ease-in-out, transform 8s ease-out;
+            transform: scale(1);
+        }
+        .hero-slide.active {
+            opacity: 1;
+            transform: scale(1.1); /* 3D-like zoom effect */
+            z-index: 1;
+        }
+    </style>
     <!-- Hero Section -->
     <section class="relative h-[870px] w-full flex items-center overflow-hidden">
-        <div class="absolute inset-0 z-0">
-            <img class="w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" alt="A high-end luxury black sedan parked in front of a sleek, modern architectural building during twilight. The scene is illuminated by cool blue hour light with warm interior glows from the windows. The overall aesthetic is professional, premium, and sophisticated, utilizing a corporate color palette with deep blacks and sharp reflections." src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&h=1080&fit=crop&crop=center"/>
-            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent"></div>
+        <div class="absolute inset-0 z-0 bg-black" id="hero-slider">
+            <img class="hero-slide active absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&h=1080&fit=crop&crop=center" alt="Luxury black sedan"/>
+            <img class="hero-slide absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1563720223185-11003d516935?w=1920&h=1080&fit=crop&crop=center" alt="Premium sports car"/>
+            <img class="hero-slide absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1920&h=1080&fit=crop&crop=center" alt="Classic luxury vehicle"/>
+            <img class="hero-slide absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" src="https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1920&h=1080&fit=crop&crop=center" alt="Corporate premium fleet"/>
+            
+            <!-- Gradient Overlay -->
+            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10 pointer-events-none"></div>
         </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const slides = document.querySelectorAll('.hero-slide');
+                let currentSlide = 0;
+
+                setInterval(() => {
+                    slides[currentSlide].classList.remove('active');
+                    currentSlide = (currentSlide + 1) % slides.length;
+                    slides[currentSlide].classList.add('active');
+                }, 6000); // 6 seconds per slide
+            });
+        </script>
         <div class="relative z-10 max-w-[1440px] mx-auto w-full px-8">
             <div class="max-w-2xl">
                 <span class="text-primary font-bold tracking-widest uppercase text-label-sm mb-4 block">Precision in Motion</span>
@@ -46,16 +76,16 @@ $eventTypes = $stmtEvent->fetchAll();
     <section id="booking-options" class="py-24 bg-white border-y border-gray-150">
         <div class="max-w-7xl mx-auto px-8">
             <div class="text-center max-w-3xl mx-auto mb-16">
-                <span class="text-cyan-600 font-bold tracking-widest uppercase text-xs">How would you like to book?</span>
+                <span class="text-primary font-bold tracking-widest uppercase text-xs">How would you like to book?</span>
                 <h2 class="font-h2 text-3xl md:text-4xl font-extrabold text-gray-900 mt-2">Two Ways to Begin Your Journey</h2>
-                <div class="h-1 w-24 bg-cyan-600 mx-auto mt-4"></div>
+                <div class="h-1 w-24 bg-primary mx-auto mt-4"></div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
                 <!-- Option 1: Customized Booking -->
                 <div class="bg-gray-50 border border-gray-200 rounded-3xl p-8 md:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
                     <div class="space-y-6">
-                        <div class="w-16 h-16 rounded-2xl bg-cyan-50 flex items-center justify-center text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
+                        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                             <span class="material-symbols-outlined text-3xl">tune</span>
                         </div>
                         <h3 class="text-2xl font-bold text-gray-900">Customized Booking</h3>
@@ -64,20 +94,20 @@ $eventTypes = $stmtEvent->fetchAll();
                         </p>
                         <ul class="space-y-2 text-sm text-gray-600 font-medium">
                             <li class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-cyan-600 text-lg">check</span>
+                                <span class="material-symbols-outlined text-primary text-lg">check</span>
                                 Pick your preferred vehicle
                             </li>
                             <li class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-cyan-600 text-lg">check</span>
+                                <span class="material-symbols-outlined text-primary text-lg">check</span>
                                 Define custom hours/days
                             </li>
                             <li class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-cyan-600 text-lg">check</span>
+                                <span class="material-symbols-outlined text-primary text-lg">check</span>
                                 Select optional driver & decors
                             </li>
                         </ul>
                     </div>
-                    <a href="vehicles.php" class="mt-8 inline-flex items-center justify-center gap-2 py-4 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-2xl transition-colors shadow-sm text-sm uppercase tracking-wider">
+                    <a href="vehicles.php" class="mt-8 inline-flex items-center justify-center gap-2 py-4 bg-primary hover:bg-red-700 text-white font-bold rounded-2xl transition-colors shadow-sm text-sm uppercase tracking-wider">
                         Customize My Booking
                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </a>
@@ -86,7 +116,7 @@ $eventTypes = $stmtEvent->fetchAll();
                 <!-- Option 2: Pre-Configured Packages -->
                 <div class="bg-gray-50 border border-gray-200 rounded-3xl p-8 md:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
                     <div class="space-y-6">
-                        <div class="w-16 h-16 rounded-2xl bg-cyan-50 flex items-center justify-center text-cyan-600 group-hover:bg-cyan-600 group-hover:text-white transition-colors duration-300">
+                        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
                             <span class="material-symbols-outlined text-3xl">celebration</span>
                         </div>
                         <h3 class="text-2xl font-bold text-gray-900">Pre-Configured Packages</h3>
@@ -95,20 +125,20 @@ $eventTypes = $stmtEvent->fetchAll();
                         </p>
                         <ul class="space-y-2 text-sm text-gray-600 font-medium">
                             <li class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-cyan-600 text-lg">check</span>
+                                <span class="material-symbols-outlined text-primary text-lg">check</span>
                                 Flat-rate base pricing
                             </li>
                             <li class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-cyan-600 text-lg">check</span>
+                                <span class="material-symbols-outlined text-primary text-lg">check</span>
                                 Admin-configured bundles
                             </li>
                             <li class="flex items-center gap-2">
-                                <span class="material-symbols-outlined text-cyan-600 text-lg">check</span>
+                                <span class="material-symbols-outlined text-primary text-lg">check</span>
                                 Seamless one-click scheduling
                             </li>
                         </ul>
                     </div>
-                    <a href="packages.php" class="mt-8 inline-flex items-center justify-center gap-2 py-4 bg-cyan-600 hover:bg-cyan-700 text-white font-bold rounded-2xl transition-colors shadow-sm text-sm uppercase tracking-wider">
+                    <a href="packages.php" class="mt-8 inline-flex items-center justify-center gap-2 py-4 bg-primary hover:bg-red-700 text-white font-bold rounded-2xl transition-colors shadow-sm text-sm uppercase tracking-wider">
                         Browse Event Packages
                         <span class="material-symbols-outlined text-sm">arrow_forward</span>
                     </a>
