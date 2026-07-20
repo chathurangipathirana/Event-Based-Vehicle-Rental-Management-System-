@@ -140,6 +140,27 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
             letter-spacing: 0.1em;
             transform: translateX(5px);
         }
+        .premium-vehicle-card {
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .premium-vehicle-card img {
+            transition: transform 0.3s ease;
+        }
+        .premium-vehicle-button {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .premium-vehicle-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 22px 38px rgba(2, 65, 74, 0.2);
+        }
+        .premium-vehicle-card:hover img {
+            transform: scale(1.06);
+        }
+        .premium-vehicle-card:hover .premium-vehicle-button {
+            background-color: #0d6a75;
+            transform: translateY(-1px);
+        }
     </style>
     <!-- Hero Section -->
     <section class="relative w-full flex items-center overflow-hidden" style="min-height: calc(100vh - 4rem);">
@@ -305,7 +326,7 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <?php foreach ($vehicles as $vehicle): ?>
-                <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition">
+                <div class="premium-vehicle-card bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="h-48 bg-gray-300 flex items-center justify-center">
                         <?php if ($vehicle['image_url']): ?>
                             <img src="<?php echo htmlspecialchars($vehicle['image_url']); ?>" 
@@ -322,8 +343,8 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
                         <p class="text-gray-600 mb-2"><?php echo htmlspecialchars($vehicle['model']); ?> (<?php echo $vehicle['year']; ?>)</p>
                         <p class="text-gray-600 mb-2">Capacity: <?php echo $vehicle['capacity']; ?> persons</p>
                         <p class="text-2xl font-bold text-primary mb-4">$<?php echo number_format($vehicle['price_per_day'], 2); ?>/day</p>
-                        <a href="booking.php?vehicle=<?php echo $vehicle['id']; ?>" class="block w-full bg-primary text-white text-center py-3 rounded hover:bg-red-700 transition">
-                            Book This Vehicle
+                        <a href="booking.php?vehicle=<?php echo $vehicle['id']; ?>" class="premium-vehicle-button block w-full bg-primary text-white text-center py-3 rounded">
+                            Book Now →
                         </a>
                     </div>
                 </div>
