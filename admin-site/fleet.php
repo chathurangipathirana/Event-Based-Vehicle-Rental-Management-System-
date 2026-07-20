@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Fleet Management';
+$page_title = 'Vehicle Management';
 require_once 'includes/auth.php';
 requireAdminLogin();
 require_once 'config/database.php';
@@ -183,8 +183,8 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
                 <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
                     <div class="max-w-2xl">
-                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
-                        <h1 class="text-5xl font-semibold tracking-tight">Fleet Inventory</h1>
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Vehicle Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Vehicle Inventory</h1>
                         <p class="mt-4 text-slate-300 text-lg leading-8">Manage your luxury vehicle assets and availability status with operational precision.</p>
                     </div>
                     <div class="flex flex-wrap justify-end gap-3">
@@ -200,7 +200,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[260px_260px_520px] justify-center gap-6 mb-8">
             <div class="card-3d p-6 pr-24 min-h-[165px] bg-white" style="--card-accent: #0b6b6d;">
                 <div>
-                    <p class="text-sm text-gray-500 uppercase mb-3">Total Fleet</p>
+                    <p class="text-sm text-gray-500 uppercase mb-3">Total Vehicles</p>
                     <div class="kpi-value"><?php echo $total_fleet; ?></div>
                     <div class="text-xs text-green-600 mt-6 leading-5">+4% from last month</div>
                 </div>
@@ -216,7 +216,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
             </div>
             <div class="card-3d p-6 pr-24 min-h-[165px] bg-white sm:col-span-2 xl:col-span-1" style="--card-accent: #b36b2a;">
                 <div>
-                    <p class="text-sm text-gray-500 uppercase mb-3">Fleet Health</p>
+                    <p class="text-sm text-gray-500 uppercase mb-3">Vehicle Health</p>
                     <div class="kpi-value"><?php echo $fleet_health; ?>%</div>
                     <div class="mt-6">
                         <div class="flex justify-between mb-2">
@@ -245,7 +245,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                         <option value="Sports">Sports Performance</option>
                         <option value="Luxury">Executive Sedan</option>
                         <option value="Luxury SUV">Luxury SUV</option>
-                        <option value="Electric">Electric Fleet</option>
+                        <option value="Electric">Electric Vehicles</option>
                     </select>
                     <select id="statusFilter" class="rounded-xl border-gray-200 px-6 py-3 min-w-[160px]">
                         <option value="">All Status</option>
@@ -396,7 +396,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                         <option value="Sports">Sports Performance</option>
                         <option value="Luxury">Executive Sedan</option>
                         <option value="Luxury SUV">Luxury SUV</option>
-                        <option value="Electric">Electric Fleet</option>
+                        <option value="Electric">Electric Vehicles</option>
                     </select>
                 </div>
                 <div>

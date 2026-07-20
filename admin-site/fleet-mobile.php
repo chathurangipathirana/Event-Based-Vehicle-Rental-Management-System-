@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Fleet Management';
+$page_title = 'Vehicle Management';
 require_once 'includes/auth.php';
 requireAdminLogin();
 
@@ -83,7 +83,7 @@ $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'ma
                 <span class="material-symbols-outlined text-3xl">directions_car</span>
             </div>
             <div>
-                <p class="text-xs text-gray-500 uppercase">Total Fleet</p>
+                <p class="text-xs text-gray-500 uppercase">Total Vehicles</p>
                 <p class="text-2xl font-bold text-gray-900"><?php echo $total_fleet; ?></p>
             </div>
         </div>
@@ -161,7 +161,7 @@ $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'ma
 <nav class="fixed bottom-0 w-full z-50 rounded-t-xl bg-white border-t border-gray-200 shadow-lg flex justify-around items-center h-20 px-2">
     <a href="fleet-mobile.php" class="flex flex-col items-center justify-center bg-red-50 text-red-600 rounded-xl px-3 py-1.5 transition">
         <span class="material-symbols-outlined">directions_car</span>
-        <span class="text-[11px] font-semibold uppercase">Fleet</span>
+        <span class="text-[11px] font-semibold uppercase">Vehicle</span>
     </a>
     <a href="dashboard.php" class="flex flex-col items-center justify-center text-gray-400 px-3 py-1.5">
         <span class="material-symbols-outlined">analytics</span>

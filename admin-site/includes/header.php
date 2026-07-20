@@ -119,6 +119,20 @@ if (session_status() === PHP_SESSION_NONE) {
         [class*="focus:ring-red-"]:focus { box-shadow: 0 0 0 4px rgba(0, 168, 216, 0.2) !important; }
         [class*="focus:border-red-"]:focus { border-color: var(--primary) !important; }
         .bg-red-50, .bg-red-100 { background-color: rgba(0, 168, 216, 0.12) !important; }
+
+        @media print {
+            aside, .no-print, button, form, input, select, textarea, .flex-wrap, footer {
+                display: none !important;
+            }
+            .ml-64, main {
+                margin-left: 0 !important;
+                padding: 0 !important;
+            }
+            body, html {
+                background: white !important;
+                color: black !important;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900">

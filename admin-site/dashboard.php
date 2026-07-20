@@ -175,7 +175,7 @@ try {
                         border-right: none;
                     }
                 </style>
-                <table class="w-full booking-table">
+                <table id="recentBookingsTable" class="w-full booking-table">
                     <thead>
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Booking ID</th>
@@ -209,5 +209,11 @@ try {
         </div>
     </div>
 </main>
+
+<script>
+function exportDashboard() {
+    exportElementAsPDF('main', 'dashboard-report.pdf');
+}
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

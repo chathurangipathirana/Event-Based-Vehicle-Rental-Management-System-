@@ -122,7 +122,7 @@ $urgent_count = 2; // still static — can compute later based on event_date
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
                 <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
                     <div class="max-w-2xl">
-                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Vehicle Manager</p>
                         <h1 class="text-5xl font-semibold tracking-tight">Pending Approvals</h1>
                         <p class="mt-4 text-slate-300 text-lg leading-8">Review and dispatch logistics for upcoming elite event reservations.</p>
                     </div>
@@ -131,7 +131,7 @@ $urgent_count = 2; // still static — can compute later based on event_date
                             <span class="material-symbols-outlined text-sm">filter_list</span>
                             Filter
                         </button>
-                        <button class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                        <button onclick="exportApprovals()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
                             <span class="material-symbols-outlined text-sm">download</span>
                             Export
                         </button>
@@ -161,7 +161,7 @@ $urgent_count = 2; // still static — can compute later based on event_date
             </div>
             <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                 <div>
-                    <p class="text-sm text-gray-500 uppercase">Available Fleet</p>
+                    <p class="text-sm text-gray-500 uppercase">Available Vehicles</p>
                     <div class="kpi-value"><?php echo $available_count; ?></div>
                     <div class="w-full bg-gray-100 h-1.5 rounded-full mt-3">
                         <div class="bg-green-500 h-full rounded-full" style="width: 75%"></div>
@@ -250,5 +250,16 @@ $urgent_count = 2; // still static — can compute later based on event_date
         </div>
     </div>
 </main>
+
+<script>
+function exportApprovals() {
+    const cards = document.querySelectorAll('[id^="booking-card-"]');
+    if (cards.length === 0) {
+        alert("No pending approvals to export.");
+        return;
+    }
+    exportElementAsPDF('main', 'pending-booking-approvals.pdf');
+}
+</script>
 
 <?php require_once 'includes/footer.php'; ?>

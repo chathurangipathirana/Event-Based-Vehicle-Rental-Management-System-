@@ -39,12 +39,10 @@ $event_distribution = [
 
 // Popular vehicles revenue converted to LKR
 $popular_vehicles = [
-    ['name' => 'Toyota Axio', 'category' => 'Luxury', 'bookings' => 142, 'revenue' => 120700 * 295],   // LKR 35,606,500
-    ['name' => 'Toyota Premio', 'category' => 'Luxury', 'bookings' => 98, 'revenue' => 66640 * 295],  // LKR 19,658,800
-    ['name' => 'Honda Vezel', 'category' => 'Luxury SUV', 'bookings' => 87, 'revenue' => 45240 * 295],   // LKR 13,345,800
-    ['name' => 'Toyota HiAce', 'category' => 'Executive', 'bookings' => 76, 'revenue' => 34200 * 295],     // LKR 10,089,000
-    ['name' => 'Suzuki Wagon R', 'category' => 'Economy', 'bookings' => 54, 'revenue' => 28600 * 295],      // LKR 8,447,000
-    ['name' => 'Nissan Sunny', 'category' => 'Economy', 'bookings' => 48, 'revenue' => 24000 * 295],      // LKR 7,080,000
+    ['name' => 'Porsche 911 GT3', 'category' => 'Sports', 'bookings' => 142, 'revenue' => 120700 * 295],   // LKR 35,606,500
+    ['name' => 'Range Rover SV', 'category' => 'Luxury SUV', 'bookings' => 98, 'revenue' => 66640 * 295],  // LKR 19,658,800
+    ['name' => 'Mercedes S-Class', 'category' => 'Luxury', 'bookings' => 87, 'revenue' => 45240 * 295],   // LKR 13,345,800
+    ['name' => 'BMW 7 Series', 'category' => 'Executive', 'bookings' => 76, 'revenue' => 34200 * 295],     // LKR 10,089,000
 ];
 ?>
 
@@ -58,8 +56,8 @@ $popular_vehicles = [
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
                 <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
                     <div class="max-w-2xl">
-                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
-                        <h1 class="text-5xl font-semibold tracking-tight">Fleet Analytics</h1>
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Vehicle Manager</p>
+                        <h1 class="text-5xl font-semibold tracking-tight">Vehicle Analytics</h1>
                         <p class="mt-4 text-slate-300 text-lg leading-8">Comprehensive performance tracking for FleetElite logistics.</p>
                     </div>
                     <div class="flex flex-wrap justify-end gap-3">
@@ -103,7 +101,7 @@ $popular_vehicles = [
             </div>
             <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                 <div>
-                    <p class="text-sm text-gray-500 uppercase">Fleet Health</p>
+                    <p class="text-sm text-gray-500 uppercase">Vehicle Health</p>
                     <div class="kpi-value"><?php echo $fleet_health; ?>%</div>
                     <div class="w-full bg-gray-100 h-1.5 mt-3 rounded-full overflow-hidden">
                         <div class="bg-green-500 h-full" style="width: <?php echo $fleet_health; ?>%"></div>
@@ -118,43 +116,26 @@ $popular_vehicles = [
             <!-- Revenue Chart -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 class="text-xl font-bold text-gray-900 mb-6">Revenue Trend (Last 6 Months)</h2>
-                <?php $max_revenue = max(array_column($monthly_revenue, 'revenue')); ?>
-                <div class="h-[34rem] flex gap-6">
-                    <div class="w-24 flex flex-col justify-between text-xs text-gray-500">
-                        <?php for ($tick = 5; $tick >= 0; $tick--): ?>
-                        <div class="h-1/6 flex items-center">
-                            <span>LKR <?php echo number_format(round($max_revenue * $tick / 5 / 1000)); ?>k</span>
+                <div class="h-64 flex items-end gap-4">
+                    <?php 
+                    $max_revenue = max(array_column($monthly_revenue, 'revenue'));
+                    foreach($monthly_revenue as $data): 
+                        $height = ($data['revenue'] / $max_revenue) * 100;
+                    ?>
+                    <div class="flex-1 flex flex-col items-center">
+                        <div class="w-full bg-red-100 rounded-t-lg transition-all hover:bg-red-200" style="height: <?php echo $height; ?>%">
+                            <div class="w-full bg-red-500 rounded-t-lg transition-all" style="height: <?php echo $height; ?>%"></div>
                         </div>
-                        <?php endfor; ?>
-                        <div class="font-semibold mt-4">Revenue</div>
+                        <span class="text-xs text-gray-500 mt-2"><?php echo substr($data['month'], 0, 3); ?></span>
+                        <span class="text-xs font-bold text-gray-700">LKR <?php echo round($data['revenue'] / 1000); ?>k</span>
                     </div>
-                    <div class="flex-1 flex flex-col justify-end">
-                        <div class="relative flex-1 flex items-end border-l border-b border-gray-200 pb-8">
-                            <?php foreach($monthly_revenue as $data): 
-                                $height = ($max_revenue > 0) ? round(($data['revenue'] / $max_revenue) * 100, 2) : 0;
-                            ?>
-                            <div class="flex flex-col items-center" style="width: 5rem;">
-                                <div class="w-full h-full flex items-end">
-                                    <div class="w-full bg-teal-100 rounded-t-3xl overflow-hidden" style="min-height: 4rem; height: 100%;">
-                                        <div class="w-full bg-teal-600 transition-all" style="height: <?php echo $height; ?>%;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <?php endforeach; ?>
-                        </div>
-                        <div class="mt-4 grid grid-cols-6 gap-4 text-xs text-gray-500">
-                            <?php foreach($monthly_revenue as $data): ?>
-                            <div class="text-center"><?php echo substr($data['month'], 0, 3); ?></div>
-                            <?php endforeach; ?>
-                        </div>
-                        <div class="mt-3 text-sm font-semibold text-gray-700">Month</div>
-                    </div>
+                    <?php endforeach; ?>
                 </div>
             </div>
 
-            <!-- Fleet Distribution -->
+            <!-- Vehicle Distribution -->
             <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                <h2 class="text-xl font-bold text-gray-900 mb-6">Fleet Distribution by Event Type</h2>
+                <h2 class="text-xl font-bold text-gray-900 mb-6">Vehicle Distribution by Event Type</h2>
                 <div class="space-y-4">
                     <?php foreach($event_distribution as $event): ?>
                     <div>
@@ -262,7 +243,7 @@ $popular_vehicles = [
 
 <script>
 function exportReport() {
-    alert('Exporting report as PDF...');
+    exportElementAsPDF('main', 'analytics-report.pdf');
 }
 </script>
 

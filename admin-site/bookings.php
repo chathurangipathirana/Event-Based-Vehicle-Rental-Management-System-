@@ -72,7 +72,7 @@ try {
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
                 <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
                     <div class="max-w-2xl">
-                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Vehicle Manager</p>
                         <h1 class="text-5xl font-semibold tracking-tight">Manage Bookings</h1>
                         <p class="mt-4 text-slate-300 text-lg leading-8">Oversee and coordinate all upcoming event logistics and vehicle assignments with operational precision.</p>
                     </div>
@@ -289,7 +289,7 @@ try {
 
             <div class="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col justify-between shadow-sm">
                 <div>
-                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Fleet Availability</h3>
+                    <h3 class="text-2xl font-bold text-slate-900 mb-2">Vehicle Availability</h3>
                     <p class="text-xs text-slate-500 uppercase mb-6">Current Inventory Status</p>
                     <div class="space-y-4">
                         <div>
@@ -303,7 +303,7 @@ try {
                         </div>
                         <div>
                             <div class="flex justify-between text-sm mb-1 text-slate-700">
-                                <span>Total Fleet</span>
+                                <span>Total Vehicles</span>
                                 <span class="font-bold"><?php echo $total_all_vehicles; ?> Vehicles</span>
                             </div>
                             <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
@@ -313,7 +313,7 @@ try {
                     </div>
                 </div>
                 <a href="fleet.php" class="w-full border border-cyan-600 text-cyan-600 py-3 rounded-2xl font-semibold text-sm mt-8 text-center hover:bg-cyan-50 transition-all">
-                    Manage Fleet
+                    Manage Vehicles
                 </a>
             </div>
         </div>
@@ -347,7 +347,7 @@ function filterByDate() {
 }
 
 function exportBookings() {
-    alert('Exporting bookings as CSV...');
+    exportElementAsPDF('main', 'bookings-report.pdf');
 }
 </script>
 

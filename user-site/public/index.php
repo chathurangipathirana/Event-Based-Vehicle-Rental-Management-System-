@@ -46,7 +46,7 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
     <style>
         .hero-slide {
             opacity: 0;
-            transition: opacity 2s ease-in-out, transform 8s ease-out;
+            transition: opacity 1.5s ease-in-out, transform 7s ease-out;
             transform: scale(1);
         }
         .hero-slide.active {
@@ -56,7 +56,7 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
         }
     </style>
     <!-- Hero Section -->
-    <section class="relative h-[870px] w-full flex items-center overflow-hidden">
+    <section class="relative w-full flex items-center overflow-hidden" style="min-height: calc(100vh - 4rem);">
         <div class="absolute inset-0 z-0 bg-black" id="hero-slider">
             <?php foreach ($heroImages as $index => $img): ?>
                 <img class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?> absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" 
@@ -77,19 +77,18 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
                     slides[currentSlide].classList.remove('active');
                     currentSlide = (currentSlide + 1) % slides.length;
                     slides[currentSlide].classList.add('active');
-                }, 6000); // 6 seconds per slide
+                }, 5000); // 5 seconds per slide
             });
         </script>
         <div class="relative z-10 max-w-[1440px] mx-auto w-full px-8">
             <div class="max-w-2xl">
-                <span class="text-primary font-bold tracking-widest uppercase text-label-sm mb-4 block">Precision in Motion</span>
-                <h1 class="font-h1 text-h1 text-white mb-6 leading-tight">Elite Logistics for Extraordinary Events.</h1>
+                <h1 class="font-h1 text-h1 text-white mb-6 leading-tight">Smart Transportation for Every Event</h1>
                 <p class="font-body-lg text-body-lg text-gray-200 mb-10 leading-relaxed">
-                    FleetElite delivers a premium fleet of high-performance vehicles tailored for the most demanding event schedules. From luxury weddings to corporate summits, we guarantee operational excellence and punctuality.
+                    Book vehicles, manage transportation schedules, assign drivers and event management from one platform.
                 </p>
                 <div class="flex gap-4">
                     <a href="#vehicles" class="bg-primary hover:bg-primary-container text-white px-8 py-4 font-bold rounded flex items-center gap-2 transition-all active:scale-95">
-                        Browse the Fleet
+                        Browse Vehicles
                         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
                     </a>
                     <a href="booking.php" class="border border-white/30 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 font-bold rounded transition-all">
@@ -201,7 +200,7 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
     <section id="vehicles" class="py-24 bg-gray-50">
         <div class="max-w-[1440px] mx-auto px-8">
             <div class="flex flex-col mb-16">
-                <h2 class="font-h2 text-h2 text-on-surface mb-4">Our Premium Fleet</h2>
+                <h2 class="font-h2 text-h2 text-on-surface mb-4">Our Premium Vehicles</h2>
                 <div class="h-1 w-24 bg-primary"></div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">

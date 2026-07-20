@@ -4,7 +4,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <!-- Sidebar Navigation -->
 <aside class="flex flex-col fixed left-0 top-0 h-full py-6 h-screen w-64 border-r border-[#111827] bg-[#0f172a] text-white z-50">
     <div class="px-6 mb-8">
-        <div class="text-lg font-bold text-white">Fleet Manager</div>
+        <div class="text-lg font-bold text-white">Vehicle Manager</div>
         <div class="text-xs text-slate-400 uppercase tracking-wider">Operational Excellence</div>
     </div>
     
@@ -15,7 +15,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
         <a href="fleet.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'fleet.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1">
             <span class="material-symbols-outlined mr-3">directions_car</span>
-            Fleet
+            Vehicles
         </a>
         <a href="drivers.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'drivers.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1">
             <span class="material-symbols-outlined mr-3">group</span>
@@ -23,7 +23,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
         <a href="fleet-mobile.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'fleet-mobile.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1 lg:hidden">
             <span class="material-symbols-outlined mr-3">smartphone</span>
-            Mobile Fleet
+            Mobile Vehicle
         </a>
         <a href="bookings.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'bookings.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1">
             <span class="material-symbols-outlined mr-3">event_available</span>

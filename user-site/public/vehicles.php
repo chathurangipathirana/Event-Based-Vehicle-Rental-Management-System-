@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Our Premium Fleet';
+$page_title = 'Our Premium Vehicles';
 require_once '../config/database.php';
 require_once '../includes/header.php';
 

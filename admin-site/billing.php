@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
                 <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
                     <div class="max-w-2xl">
-                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Manager</p>
+                        <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Vehicle Manager</p>
                         <h1 class="text-5xl font-semibold tracking-tight">Billing &amp; Invoices</h1>
                         <p class="mt-4 text-slate-300 text-lg leading-8">Manage client invoices and payments in Sri Lankan Rupees (LKR)</p>
                     </div>
