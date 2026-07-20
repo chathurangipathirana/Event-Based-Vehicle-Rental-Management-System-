@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/auth.php';
 require_once '../config/database.php';
+require_once '../includes/invoice-mailer.php';
 requireAdminLogin();
 
 header('Content-Type: application/json');
@@ -61,8 +62,10 @@ try {
             // Update driver to on_duty
             $pdo->prepare("UPDATE drivers SET status = 'on_duty' WHERE id = ?")->execute([$driver_id]);
             
+            $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
             $pdo->commit();
-            echo json_encode(['success' => true, 'message' => 'Booking confirmed and dispatched!']);
+            $emailSent = emailBookingInvoice($pdo, $invoice);
+            echo json_encode(['success' => true, 'message' => $emailSent ? 'Booking confirmed, dispatched, and invoice emailed!' : 'Booking confirmed and dispatched. The invoice was created, but email delivery needs mail server configuration.']);
         } else {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);
@@ -80,8 +83,16 @@ try {
         ]);
 
         if ($stmt->rowCount() > 0) {
+            $invoice = null;
+            if ($action === 'approve') {
+                $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
+            }
             $pdo->commit();
-            echo json_encode(['success' => true, 'message' => 'Booking ' . $new_status]);
+            $emailSent = $invoice ? emailBookingInvoice($pdo, $invoice) : false;
+            $message = $action === 'approve'
+                ? ($emailSent ? 'Booking approved and invoice emailed!' : 'Booking approved. The invoice was created, but email delivery needs mail server configuration.')
+                : 'Booking ' . $new_status;
+            echo json_encode(['success' => true, 'message' => $message]);
         } else {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);

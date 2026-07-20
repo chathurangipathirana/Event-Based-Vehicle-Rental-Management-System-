@@ -3,6 +3,7 @@ $page_title = 'Billing & Invoices';
 require_once 'includes/auth.php';
 requireAdminLogin();
 require_once 'config/database.php';
+require_once 'includes/invoice-mailer.php';
 
 // Get invoices from database
 $invoices = $pdo->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
@@ -38,9 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     if (isset($_POST['send_invoice'])) {
-        $stmt = $pdo->prepare("UPDATE invoices SET status = 'sent' WHERE id = ?");
+        $stmt = $pdo->prepare('SELECT * FROM invoices WHERE id = ?');
         $stmt->execute([$_POST['invoice_id']]);
-        $_SESSION['message'] = 'Invoice sent to customer!';
+        $invoice = $stmt->fetch();
+
+        if (!$invoice) {
+            $_SESSION['error'] = 'Invoice not found.';
+        } elseif (emailBookingInvoice($pdo, $invoice)) {
+            $_SESSION['message'] = 'Invoice emailed to customer!';
+        } else {
+            $_SESSION['error'] = 'Email delivery failed. Please configure the PHP mail server and try again.';
+        }
         header('Location: billing.php');
         exit();
     }

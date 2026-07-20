@@ -54,6 +54,60 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
             transform: scale(1.1); /* 3D-like zoom effect */
             z-index: 1;
         }
+        .booking-option-card {
+            background: linear-gradient(135deg, #ffffff 0%, #eef9fa 100%);
+            border: 1px solid rgba(2, 65, 74, 0.12);
+            border-radius: 24px;
+            box-shadow: 0 14px 34px rgba(2, 65, 74, 0.09);
+            transform: translateY(0);
+            transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+        }
+        .booking-option-card:hover {
+            border-color: rgba(2, 65, 74, 0.24);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, .12);
+            transform: translateY(-8px);
+        }
+        .booking-option-icon {
+            transition: transform 220ms ease, background-color 220ms ease;
+        }
+        .booking-option-card:hover .booking-option-icon {
+            transform: rotate(-8deg) scale(1.06);
+        }
+        .booking-option-gallery {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.65rem;
+        }
+        .booking-option-gallery img {
+            width: 100%;
+            height: 92px;
+            object-fit: cover;
+            border-radius: 14px;
+            box-shadow: 0 6px 14px rgba(2, 65, 74, 0.12);
+        }
+        .booking-option-button {
+            background: linear-gradient(135deg, #02414a 0%, #0d6a75 100%);
+            box-shadow: 0 8px 18px rgba(2, 65, 74, 0.24);
+            transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease;
+        }
+        .booking-option-button:hover {
+            box-shadow: 0 13px 28px rgba(2, 65, 74, 0.38);
+            filter: brightness(1.08);
+            transform: translateY(-2px);
+        }
+        .booking-option-card:hover .booking-option-button {
+            background: linear-gradient(135deg, #013840 0%, #087985 100%);
+        }
+        .booking-option-button-arrow {
+            display: inline-block;
+            font-size: 1.1rem;
+            line-height: 1;
+            transition: transform 200ms ease, letter-spacing 200ms ease;
+        }
+        .booking-option-button:hover .booking-option-button-arrow {
+            letter-spacing: 0.1em;
+            transform: translateX(5px);
+        }
     </style>
     <!-- Hero Section -->
     <section class="relative w-full flex items-center overflow-hidden" style="min-height: calc(100vh - 4rem);">
@@ -110,64 +164,74 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
                 <!-- Option 1: Customized Booking -->
-                <div class="bg-gray-50 border border-gray-200 rounded-3xl p-8 md:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                <div class="booking-option-card p-8 md:p-10 flex flex-col justify-between group">
                     <div class="space-y-6">
-                        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                            <span class="material-symbols-outlined text-3xl">tune</span>
+                        <div class="booking-option-icon w-20 h-20 rounded-full bg-red-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                            <span class="text-4xl" role="img" aria-label="Car">🚘</span>
+                        </div>
+                        <div class="booking-option-gallery" aria-label="Luxury vehicle options">
+                            <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=500&amp;h=300&amp;fit=crop" alt="Luxury Mercedes vehicle">
+                            <img src="https://images.unsplash.com/photo-1563720223185-11003d516935?w=500&amp;h=300&amp;fit=crop" alt="Premium BMW vehicle">
+                            <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&amp;h=300&amp;fit=crop" alt="Luxury SUV">
                         </div>
                         <h3 class="text-2xl font-bold text-gray-900">Customized Booking</h3>
                         <p class="text-gray-600 text-sm leading-relaxed">
-                            Have specific needs? Choose any premium vehicle from our fleet, set your exact start and end times, and customize your package with optional extras like a professional chauffeur or customized event decorations.
+                            Design your own transportation plan by selecting your preferred vehicle, rental duration, optional chauffeur, and event decorations. Perfect for unique event requirements.
                         </p>
                         <ul class="space-y-2 text-sm text-gray-600 font-medium">
                             <li class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary text-lg">check</span>
-                                Pick your preferred vehicle
+                                120+ Vehicles
                             </li>
                             <li class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary text-lg">check</span>
-                                Define custom hours/days
+                                Flexible Scheduling
                             </li>
                             <li class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary text-lg">check</span>
-                                Select optional driver & decors
+                                24/7 Support
                             </li>
                         </ul>
                     </div>
-                    <a href="vehicles.php" class="mt-8 inline-flex items-center justify-center gap-2 py-4 bg-primary hover:bg-red-700 text-white font-bold rounded-2xl transition-colors shadow-sm text-sm uppercase tracking-wider">
+                    <a href="vehicles.php" class="booking-option-button mt-8 inline-flex items-center justify-center gap-2 py-4 text-white font-bold rounded-2xl text-sm uppercase tracking-wider">
                         Customize My Booking
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        <span class="booking-option-button-arrow" aria-hidden="true">➜➜</span>
                     </a>
                 </div>
 
                 <!-- Option 2: Pre-Configured Packages -->
-                <div class="bg-gray-50 border border-gray-200 rounded-3xl p-8 md:p-10 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
+                <div class="booking-option-card p-8 md:p-10 flex flex-col justify-between group">
                     <div class="space-y-6">
-                        <div class="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
-                            <span class="material-symbols-outlined text-3xl">celebration</span>
+                        <div class="booking-option-icon w-20 h-20 rounded-full bg-red-50 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300">
+                            <span class="text-4xl" role="img" aria-label="Celebration">🎉</span>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-900">Pre-Configured Packages</h3>
+                        <div class="booking-option-gallery" aria-label="Event transport package options">
+                            <img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&amp;h=300&amp;fit=crop" alt="Wedding convoy package">
+                            <img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500&amp;h=300&amp;fit=crop" alt="Corporate transport package">
+                            <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=500&amp;h=300&amp;fit=crop" alt="Luxury bus package">
+                        </div>
+                        <h3 class="text-2xl font-bold text-gray-900">Event Packages</h3>
                         <p class="text-gray-600 text-sm leading-relaxed">
-                            Looking for a bundled solution? Choose one of our pre-configured event packages (Wedding, Business, Tours) designed by our coordinators, which combine multiple vehicles and professional services at a flat base rate.
+                            Choose from professionally designed transportation packages for weddings, corporate events, airport transfers, and tours with transparent pricing.
                         </p>
                         <ul class="space-y-2 text-sm text-gray-600 font-medium">
                             <li class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary text-lg">check</span>
-                                Flat-rate base pricing
+                                30 Ready Packages
                             </li>
                             <li class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary text-lg">check</span>
-                                Admin-configured bundles
+                                Professional Drivers
                             </li>
                             <li class="flex items-center gap-2">
                                 <span class="material-symbols-outlined text-primary text-lg">check</span>
-                                Seamless one-click scheduling
+                                Instant Confirmation
                             </li>
                         </ul>
                     </div>
-                    <a href="packages.php" class="mt-8 inline-flex items-center justify-center gap-2 py-4 bg-primary hover:bg-red-700 text-white font-bold rounded-2xl transition-colors shadow-sm text-sm uppercase tracking-wider">
+                    <a href="packages.php" class="booking-option-button mt-8 inline-flex items-center justify-center gap-2 py-4 text-white font-bold rounded-2xl text-sm uppercase tracking-wider">
                         Browse Event Packages
-                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        <span class="booking-option-button-arrow" aria-hidden="true">➜➜</span>
                     </a>
                 </div>
             </div>
@@ -243,7 +307,6 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
                 <p class="text-gray-400 font-body-lg text-body-lg mb-10">Connect with our dedicated logistics planners to architect a transport solution that meets your exact requirements.</p>
                 <div class="flex flex-col sm:flex-row gap-4">
                     <a href="booking.php" class="bg-primary text-white px-8 py-4 font-bold rounded hover:bg-primary-container transition-all">Start Planning</a>
-                    <a href="#" class="bg-transparent border border-gray-700 text-white px-8 py-4 font-bold rounded hover:bg-gray-800 transition-all">Download Brochure</a>
                 </div>
             </div>
         </div>

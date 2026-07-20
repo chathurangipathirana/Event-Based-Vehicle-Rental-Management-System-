@@ -3,6 +3,7 @@ $page_title = 'Booking Details';
 require_once 'includes/auth.php';
 requireAdminLogin();
 require_once 'config/database.php';
+require_once 'includes/invoice-mailer.php';
 
 $booking_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
@@ -159,9 +160,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $pdo->prepare("UPDATE drivers SET status = 'on_duty' WHERE id = ?")->execute([$driver_id]);
                     }
                 }
+
+                if ($new_status === 'confirmed' && $booking['status'] !== 'confirmed') {
+                    $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
+                    $emailSent = emailBookingInvoice($pdo, $invoice);
+                }
                 
-                $_SESSION['message'] = 'Booking status and assignments updated successfully!';
-            } catch(PDOException $e) {
+                $_SESSION['message'] = isset($emailSent)
+                    ? ($emailSent ? 'Booking approved and invoice emailed successfully!' : 'Booking approved and invoice created. Email delivery needs mail server configuration.')
+                    : 'Booking status and assignments updated successfully!';
+            } catch(Throwable $e) {
                 $_SESSION['error'] = 'Database error: ' . $e->getMessage();
             }
         }
