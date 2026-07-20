@@ -39,10 +39,12 @@ $event_distribution = [
 
 // Popular vehicles revenue converted to LKR
 $popular_vehicles = [
-    ['name' => 'Porsche 911 GT3', 'category' => 'Sports', 'bookings' => 142, 'revenue' => 120700 * 295],   // LKR 35,606,500
-    ['name' => 'Range Rover SV', 'category' => 'Luxury SUV', 'bookings' => 98, 'revenue' => 66640 * 295],  // LKR 19,658,800
-    ['name' => 'Mercedes S-Class', 'category' => 'Luxury', 'bookings' => 87, 'revenue' => 45240 * 295],   // LKR 13,345,800
-    ['name' => 'BMW 7 Series', 'category' => 'Executive', 'bookings' => 76, 'revenue' => 34200 * 295],     // LKR 10,089,000
+    ['name' => 'Toyota Axio', 'category' => 'Luxury', 'bookings' => 142, 'revenue' => 120700 * 295],   // LKR 35,606,500
+    ['name' => 'Toyota Premio', 'category' => 'Luxury', 'bookings' => 98, 'revenue' => 66640 * 295],  // LKR 19,658,800
+    ['name' => 'Honda Vezel', 'category' => 'Luxury SUV', 'bookings' => 87, 'revenue' => 45240 * 295],   // LKR 13,345,800
+    ['name' => 'Toyota HiAce', 'category' => 'Executive', 'bookings' => 76, 'revenue' => 34200 * 295],     // LKR 10,089,000
+    ['name' => 'Suzuki Wagon R', 'category' => 'Economy', 'bookings' => 54, 'revenue' => 28600 * 295],      // LKR 8,447,000
+    ['name' => 'Nissan Sunny', 'category' => 'Economy', 'bookings' => 48, 'revenue' => 24000 * 295],      // LKR 7,080,000
 ];
 ?>
 

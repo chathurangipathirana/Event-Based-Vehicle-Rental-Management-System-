@@ -1,0 +1,1 @@
+<?php require __DIR__ . "/config/database.php"; $rows = $pdo->query("SELECT id, name, model, image_url, status FROM vehicles ORDER BY id DESC LIMIT 20")->fetchAll(PDO::FETCH_ASSOC); echo json_encode($rows, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES); ?>

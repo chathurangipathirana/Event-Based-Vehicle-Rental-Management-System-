@@ -52,7 +52,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </nav>
     
     <div class="px-4 py-6 border-t border-white/10">
-        <a href="settings.php" class="flex items-center px-4 py-2 text-white/70 hover:bg-white/5 hover:text-white rounded-lg transition-all active:translate-x-1">
+        <a href="settings.php" class="flex items-center px-4 py-2 <?php echo $current_page == 'settings.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-white/70 hover:bg-white/5 hover:text-white'; ?> rounded-lg transition-all active:translate-x-1">
             <span class="material-symbols-outlined mr-3">settings</span>
             Settings
         </a>

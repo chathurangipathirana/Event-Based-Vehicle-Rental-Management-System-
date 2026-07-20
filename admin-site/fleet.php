@@ -80,12 +80,31 @@ try {
     // Keep list empty if tables don't exist
 }
 
+function localizeVehicleName($name) {
+    $aliases = [
+        'Tesla Model S' => 'Toyota Axio',
+        'Mercedes S-Class' => 'Toyota Premio',
+        'BMW 7 Series' => 'Honda Vezel',
+        'Range Rover SV' => 'Toyota HiAce',
+        'Porsche 911 GT3' => 'Nissan Sunny',
+        'Luxury Sedan' => 'Toyota Premio',
+    ];
+    return $aliases[$name] ?? $name;
+}
+
+foreach ($vehicles as &$vehicle) {
+    if (!empty($vehicle['name'])) {
+        $vehicle['name'] = localizeVehicleName($vehicle['name']);
+    }
+}
+unset($vehicle);
+
 if (empty($vehicles)) {
     $is_sample_fleet = true;
     $vehicles = [
         [
             'id' => 101,
-            'name' => 'Colombo Toyota Axio',
+            'name' => 'Toyota Axio',
             'model' => 'Toyota Corolla Axio',
             'plate' => 'WP CAA-2345',
             'vin' => 'LK-1001-AXIO',
@@ -96,7 +115,7 @@ if (empty($vehicles)) {
         ],
         [
             'id' => 102,
-            'name' => 'Kandy Toyota Premio',
+            'name' => 'Toyota Premio',
             'model' => 'Toyota Premio',
             'plate' => 'CP CAD-9876',
             'vin' => 'LK-1002-PREMIO',
@@ -107,7 +126,7 @@ if (empty($vehicles)) {
         ],
         [
             'id' => 103,
-            'name' => 'Galle Honda Vezel',
+            'name' => 'Honda Vezel',
             'model' => 'Honda Vezel',
             'plate' => 'SP CBA-4456',
             'vin' => 'LK-1003-VEZEL',
@@ -118,7 +137,7 @@ if (empty($vehicles)) {
         ],
         [
             'id' => 104,
-            'name' => 'Negombo Toyota HiAce',
+            'name' => 'Toyota HiAce',
             'model' => 'Toyota HiAce',
             'plate' => 'WP NB-1123',
             'vin' => 'LK-1004-HIACE',
@@ -126,6 +145,17 @@ if (empty($vehicles)) {
             'price' => 30000,
             'category' => 'Executive',
             'status' => 'maintenance'
+        ],
+        [
+            'id' => 105,
+            'name' => 'Nissan Sunny',
+            'model' => 'Nissan Sunny',
+            'plate' => 'NP JAF-5566',
+            'vin' => 'LK-1005-SUNNY',
+            'image_url' => 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80',
+            'price' => 16000,
+            'category' => 'Economy',
+            'status' => 'available'
         ],
     ];
 }

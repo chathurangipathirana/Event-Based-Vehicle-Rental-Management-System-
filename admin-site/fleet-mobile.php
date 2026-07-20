@@ -4,10 +4,10 @@ require_once 'includes/auth.php';
 requireAdminLogin();
 
 $vehicles = [
-    ['id' => 1, 'name' => 'Porsche 911 GT3', 'model' => '992', 'plate' => 'FLT-001', 'price' => 850, 'status' => 'available', 'category' => 'Sports'],
-    ['id' => 2, 'name' => 'Range Rover SV', 'model' => 'L405', 'plate' => 'FLT-002', 'price' => 680, 'status' => 'booked', 'category' => 'Luxury SUV'],
-    ['id' => 3, 'name' => 'BMW 7 Series', 'model' => 'G70', 'plate' => 'FLT-003', 'price' => 450, 'status' => 'maintenance', 'category' => 'Executive'],
-    ['id' => 4, 'name' => 'Mercedes S-Class', 'model' => 'W223', 'plate' => 'FLT-004', 'price' => 520, 'status' => 'available', 'category' => 'Luxury'],
+    ['id' => 1, 'name' => 'Colombo Toyota Axio', 'model' => 'Corolla Axio', 'plate' => 'WP CAA-2345', 'price' => 48, 'status' => 'available', 'category' => 'Luxury'],
+    ['id' => 2, 'name' => 'Kandy Toyota Premio', 'model' => 'Premio', 'plate' => 'CP CAD-9876', 'price' => 58, 'status' => 'booked', 'category' => 'Luxury'],
+    ['id' => 3, 'name' => 'Galle Honda Vezel', 'model' => 'Vezel', 'plate' => 'SP CBA-4456', 'price' => 64, 'status' => 'maintenance', 'category' => 'Luxury SUV'],
+    ['id' => 4, 'name' => 'Negombo Toyota HiAce', 'model' => 'HiAce', 'plate' => 'WP NB-1123', 'price' => 75, 'status' => 'available', 'category' => 'Executive'],
 ];
 
 $total_fleet = count($vehicles);
