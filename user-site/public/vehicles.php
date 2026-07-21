@@ -94,8 +94,8 @@ require_once '../includes/navbar.php';
                     <div class="px-2">
                         <input type="range" min="50" max="1000" step="50" class="w-full h-2 bg-gray-200 rounded-lg" style="accent-color: var(--primary);" />
                         <div class="flex justify-between mt-2 text-label-sm text-gray-400">
-                            <span>$50/hr</span>
-                            <span>$1000/hr</span>
+                            <span>LKR 5,000/hr</span>
+                            <span>LKR 100,000/hr</span>
                         </div>
                     </div>
                 </div>
@@ -134,16 +134,11 @@ require_once '../includes/navbar.php';
                     <?php foreach ($vehicles as $vehicle): ?>
                         <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col vehicle-card">
                             <div class="relative h-72 w-full overflow-hidden card-img-container flex-shrink-0">
-                                <?php if ($vehicle['image_url']): ?>
-                                    <img src="<?php echo htmlspecialchars($vehicle['image_url']); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                                <?php else: ?>
-                                    <div class="w-full h-full flex items-center justify-center bg-gray-100">
-                                        <span class="material-symbols-outlined text-6xl text-gray-400">directions_car</span>
-                                    </div>
-                                <?php endif; ?>
+                                <?php $vehicleImage = getVehicleImageUrl($vehicle['image_url'], $vehicle['name']); ?>
+                                <img src="<?php echo htmlspecialchars($vehicleImage); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" onerror="this.onerror=null;this.src='assets/vehicle-default.svg'" />
                                 <div class="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded text-xs uppercase tracking-wider shadow-lg">Premium</div>
                                 <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded text-red-600 font-bold text-sm shadow-lg">
-                                    $<?php echo number_format($vehicle['price_per_hour'], 2); ?>/hr
+                                    LKR <?php echo number_format($vehicle['price_per_hour'], 2); ?>/hr
                                 </div>
                             </div>
                             <div class="p-6 flex-1 flex flex-col justify-between">

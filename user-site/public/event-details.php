@@ -173,11 +173,8 @@ try {
                     <div class="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
                         <div>
                             <div class="h-52 bg-gray-200 relative overflow-hidden">
-                                <?php if ($vehicle['image_url']): ?>
-                                    <img src="<?php echo htmlspecialchars($vehicle['image_url']); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-                                <?php else: ?>
-                                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover">
-                                <?php endif; ?>
+                                <?php $vImg = getVehicleImageUrl($vehicle['image_url'], $vehicle['name']); ?>
+                                <img src="<?php echo htmlspecialchars($vImg); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.onerror=null;this.src='assets/vehicle-default.svg'">
                                 <span class="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full shadow-sm">Available</span>
                             </div>
 

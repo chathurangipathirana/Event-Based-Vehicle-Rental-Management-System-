@@ -13,14 +13,14 @@ $stmtEvent = $pdo->query("SELECT * FROM event_types WHERE is_active = 1 ORDER BY
 $eventTypes = $stmtEvent->fetchAll();
 
 // Fetch hero images dynamically from vehicles table
-$stmtHero = $pdo->query("SELECT image_url FROM vehicles WHERE status = 'available' AND image_url IS NOT NULL LIMIT 4");
+$stmtHero = $pdo->query("SELECT name, image_url FROM vehicles WHERE status = 'available' AND image_url IS NOT NULL LIMIT 4");
 $heroImages = $stmtHero->fetchAll();
 
 $fallbackImages = [
-    ['image_url' => 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&h=1080&fit=crop&crop=center'],
-    ['image_url' => 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=1920&h=1080&fit=crop&crop=center'],
-    ['image_url' => 'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1920&h=1080&fit=crop&crop=center'],
-    ['image_url' => 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1920&h=1080&fit=crop&crop=center']
+    ['name' => 'Colombo Toyota Axio', 'image_url' => 'assets/vehicles/toyota-axio.png'],
+    ['name' => 'Kandy Toyota Premio', 'image_url' => 'assets/vehicles/toyota-premio.png'],
+    ['name' => 'Galle Honda Vezel', 'image_url' => 'assets/vehicles/honda-vezel.png'],
+    ['name' => 'Negombo Toyota HiAce', 'image_url' => 'assets/vehicles/toyota-hiace.png']
 ];
 
 // Ensure we have at least 2 images for the transition to work
@@ -166,39 +166,41 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
     <section class="relative w-full flex items-center overflow-hidden" style="min-height: calc(100vh - 4rem);">
         <div class="absolute inset-0 z-0 bg-black" id="hero-slider">
             <?php foreach ($heroImages as $index => $img): ?>
-                <img class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?> absolute inset-0 w-full h-full object-cover grayscale-[0.2] contrast-[1.1]" 
-                     src="<?php echo htmlspecialchars(strpos($img['image_url'], 'http') === 0 ? $img['image_url'] : '../uploads/' . $img['image_url']); ?>" 
-                     alt="Premium Fleet Vehicle"/>
+                <?php $heroImgUrl = getVehicleImageUrl($img['image_url'], $img['name'] ?? ''); ?>
+                <img class="hero-slide <?php echo $index === 0 ? 'active' : ''; ?> absolute inset-0 w-full h-full object-cover grayscale-[0.1] contrast-[1.05]" 
+                     src="<?php echo htmlspecialchars($heroImgUrl); ?>" 
+                     alt="Sri Lankan Fleet Vehicle"/>
             <?php endforeach; ?>
             
             <!-- Gradient Overlay -->
-            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent z-10 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30 z-10 pointer-events-none"></div>
         </div>
 
         <script>
             document.addEventListener('DOMContentLoaded', () => {
                 const slides = document.querySelectorAll('.hero-slide');
-                let currentSlide = 0;
-
-                setInterval(() => {
-                    slides[currentSlide].classList.remove('active');
-                    currentSlide = (currentSlide + 1) % slides.length;
-                    slides[currentSlide].classList.add('active');
-                }, 5000); // 5 seconds per slide
+                if (slides.length > 1) {
+                    let currentSlide = 0;
+                    setInterval(() => {
+                        slides[currentSlide].classList.remove('active');
+                        currentSlide = (currentSlide + 1) % slides.length;
+                        slides[currentSlide].classList.add('active');
+                    }, 5000);
+                }
             });
         </script>
         <div class="relative z-10 max-w-[1440px] mx-auto w-full px-8">
             <div class="max-w-2xl">
-                <h1 class="font-h1 text-h1 text-white mb-6 leading-tight">Smart Transportation for Every Event</h1>
+                <h1 class="font-h1 text-h1 text-white mb-6 leading-tight">Smart Transportation for Every Sri Lankan Event</h1>
                 <p class="font-body-lg text-body-lg text-gray-200 mb-10 leading-relaxed">
-                    Book vehicles, manage transportation schedules, assign drivers and event management from one platform.
+                    Book premium vehicles, manage event schedules, assign professional chauffeurs and event logistics across Sri Lanka.
                 </p>
                 <div class="flex gap-4">
                     <a href="#vehicles" class="bg-primary hover:bg-primary-container text-white px-8 py-4 font-bold rounded flex items-center gap-2 transition-all active:scale-95">
                         Browse Vehicles
                         <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">arrow_forward</span>
                     </a>
-                    <a href="booking.php" class="border border-white/30 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 font-bold rounded transition-all">
+                    <a href="vehicles.php" class="border border-white/30 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white px-8 py-4 font-bold rounded transition-all">
                         View Pricing
                     </a>
                 </div>
@@ -225,10 +227,10 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
                             </div>
                             <h3 class="text-2xl font-bold text-gray-900">Customized Booking</h3>
                         </div>
-                        <div class="booking-option-gallery" aria-label="Luxury vehicle options">
-                            <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?w=500&amp;h=300&amp;fit=crop" alt="Luxury Mercedes vehicle">
-                            <img src="https://images.unsplash.com/photo-1563720223185-11003d516935?w=500&amp;h=300&amp;fit=crop" alt="Premium BMW vehicle">
-                            <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&amp;h=300&amp;fit=crop" alt="Luxury SUV">
+                        <div class="booking-option-gallery" aria-label="Sri Lankan vehicle options">
+                            <img src="assets/vehicles/toyota-axio.png" alt="Sri Lankan Toyota Axio">
+                            <img src="assets/vehicles/toyota-premio.png" alt="Sri Lankan Toyota Premio">
+                            <img src="assets/vehicles/honda-vezel.png" alt="Sri Lankan Honda Vezel">
                         </div>
                         <p class="booking-option-description text-gray-600">
                             Design your own transportation plan by selecting your preferred vehicle, rental duration, optional chauffeur, and event decorations. Perfect for unique event requirements.
@@ -264,12 +266,12 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
                             <h3 class="text-2xl font-bold text-gray-900">Event Packages</h3>
                         </div>
                         <div class="booking-option-gallery" aria-label="Event transport package options">
-                            <img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=500&amp;h=300&amp;fit=crop" alt="Wedding convoy package">
-                            <img src="https://images.unsplash.com/photo-1497366811353-6870744d04b2?w=500&amp;h=300&amp;fit=crop" alt="Corporate transport package">
-                            <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=500&amp;h=300&amp;fit=crop" alt="Luxury bus package">
+                            <img src="assets/vehicles/toyota-hiace.png" alt="Sri Lankan Toyota HiAce">
+                            <img src="assets/vehicles/nissan-sunny.png" alt="Sri Lankan Nissan Sunny">
+                            <img src="assets/vehicles/suzuki-wagonr.png" alt="Sri Lankan Suzuki Wagon R">
                         </div>
                         <p class="booking-option-description text-gray-600">
-                            Choose from professionally designed transportation packages for weddings, corporate events, airport transfers, and tours with transparent pricing.
+                            Choose from professionally designed transportation packages for Kandyan & Western weddings, corporate events, airport transfers, and island tours.
                         </p>
                         <ul class="booking-option-features space-y-2 text-sm text-gray-600 font-medium">
                             <li class="flex items-center gap-2">
@@ -278,7 +280,7 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
                             </li>
                             <li class="flex items-center gap-2">
                                 <span class="text-lg" role="img" aria-label="Driver">👨‍✈️</span>
-                                Professional Drivers
+                                Professional Chauffeurs
                             </li>
                             <li class="flex items-center gap-2">
                                 <span class="text-lg" role="img" aria-label="Instant">⚡</span>
@@ -326,44 +328,44 @@ $totalBookingsDisplay = $totalBookings > 1000 ? $totalBookings : (12000 + $total
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <?php foreach ($vehicles as $vehicle): ?>
-                <div class="premium-vehicle-card bg-white rounded-xl shadow-lg overflow-hidden">
-                    <div class="h-48 bg-gray-300 flex items-center justify-center">
-                        <?php if ($vehicle['image_url']): ?>
-                            <img src="<?php echo htmlspecialchars($vehicle['image_url']); ?>" 
-                                 alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
-                                 class="w-full h-full object-cover">
-                        <?php else: ?>
-                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop" 
-                                 alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
-                                 class="w-full h-full object-cover">
-                        <?php endif; ?>
+                <div class="premium-vehicle-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100">
+                    <div class="h-52 bg-slate-900 relative overflow-hidden flex items-center justify-center">
+                        <?php $vehicleImage = getVehicleImageUrl($vehicle['image_url'], $vehicle['name']); ?>
+                        <img src="<?php echo htmlspecialchars($vehicleImage); ?>" 
+                             alt="<?php echo htmlspecialchars($vehicle['name']); ?>"
+                             class="w-full h-full object-cover transition-transform duration-500" onerror="this.onerror=null;this.src='assets/vehicle-default.svg'">
                     </div>
                     <div class="p-6">
                         <h3 class="font-h3 text-h3 mb-2"><?php echo htmlspecialchars($vehicle['name']); ?></h3>
                         <p class="text-gray-600 mb-2"><?php echo htmlspecialchars($vehicle['model']); ?> (<?php echo $vehicle['year']; ?>)</p>
                         <p class="text-gray-600 mb-2">Capacity: <?php echo $vehicle['capacity']; ?> persons</p>
-                        <p class="text-2xl font-bold text-primary mb-4">$<?php echo number_format($vehicle['price_per_day'], 2); ?>/day</p>
-                        <a href="booking.php?vehicle=<?php echo $vehicle['id']; ?>" class="premium-vehicle-button block w-full bg-primary text-white text-center py-3 rounded">
-                            Book Now →
+                        <p class="text-2xl font-bold text-primary mb-4">LKR <?php echo number_format($vehicle['price_per_day'], 2); ?>/day</p>
+                        <a href="vehicle-details.php?id=<?php echo $vehicle['id']; ?>" class="premium-vehicle-button block w-full bg-primary text-white text-center py-3 rounded font-semibold hover:bg-primary-container transition">
+                            View Details & Book →
                         </a>
                     </div>
                 </div>
                 <?php endforeach; ?>
             </div>
         </div>
+        <?php if (empty($vehicles)): ?>
+        <div class="text-center py-8 text-gray-500">
+            No vehicles currently available.
+        </div>
+        <?php endif; ?>
     </section>
 
     <!-- CTA Section -->
     <section class="py-24 max-w-[1440px] mx-auto px-8">
         <div class="bg-gray-900 rounded-3xl p-12 md:p-20 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-1/2 h-full opacity-20 pointer-events-none">
-                <img class="w-full h-full object-cover" alt="An abstract close-up of a high-performance engine part" src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=800&h=600&fit=crop"/>
+                <img class="w-full h-full object-cover" alt="Sri Lankan Luxury Vehicle" src="assets/vehicles/toyota-axio.png"/>
             </div>
             <div class="relative z-10 max-w-xl">
                 <h2 class="text-white font-h2 text-h2 mb-6">Ready to elevate your event logistics?</h2>
                 <p class="text-gray-400 font-body-lg text-body-lg mb-10">Connect with our dedicated logistics planners to architect a transport solution that meets your exact requirements.</p>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <a href="booking.php" class="bg-primary text-white px-8 py-4 font-bold rounded hover:bg-primary-container transition-all">Start Planning</a>
+                    <a href="vehicles.php" class="bg-primary text-white px-8 py-4 font-bold rounded hover:bg-primary-container transition-all">Start Planning</a>
                 </div>
             </div>
         </div>

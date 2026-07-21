@@ -2,13 +2,52 @@
 $page_title = 'Vehicle Management';
 require_once 'includes/auth.php';
 requireAdminLogin();
+require_once 'config/database.php';
 
-$vehicles = [
-    ['id' => 1, 'name' => 'Colombo Toyota Axio', 'model' => 'Corolla Axio', 'plate' => 'WP CAA-2345', 'price' => 48, 'status' => 'available', 'category' => 'Luxury'],
-    ['id' => 2, 'name' => 'Kandy Toyota Premio', 'model' => 'Premio', 'plate' => 'CP CAD-9876', 'price' => 58, 'status' => 'booked', 'category' => 'Luxury'],
-    ['id' => 3, 'name' => 'Galle Honda Vezel', 'model' => 'Vezel', 'plate' => 'SP CBA-4456', 'price' => 64, 'status' => 'maintenance', 'category' => 'Luxury SUV'],
-    ['id' => 4, 'name' => 'Negombo Toyota HiAce', 'model' => 'HiAce', 'plate' => 'WP NB-1123', 'price' => 75, 'status' => 'available', 'category' => 'Executive'],
-];
+function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): string {
+    $name = strtolower(trim($vehicleName));
+    
+    $map = [
+        'axio' => '../user-site/public/assets/vehicles/toyota-axio.png',
+        'premio' => '../user-site/public/assets/vehicles/toyota-premio.png',
+        'vezel' => '../user-site/public/assets/vehicles/honda-vezel.png',
+        'hiace' => '../user-site/public/assets/vehicles/toyota-hiace.png',
+        'sunny' => '../user-site/public/assets/vehicles/nissan-sunny.png',
+        'wagon' => '../user-site/public/assets/vehicles/suzuki-wagonr.png',
+    ];
+    
+    foreach ($map as $key => $path) {
+        if (str_contains($name, $key)) {
+            return $path;
+        }
+    }
+    
+    if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
+        return '../user-site/public/' . ltrim($image_url, '/');
+    }
+
+    return '../user-site/public/assets/vehicles/toyota-axio.png';
+}
+
+try {
+    $vehicles = $pdo->query("
+        SELECT id, name, model, license_plate as plate, price_per_day as price, status, category, image_url 
+        FROM vehicles 
+        ORDER BY id ASC
+    ")->fetchAll();
+} catch (PDOException $e) {
+    $vehicles = [];
+}
+
+if (empty($vehicles)) {
+    $vehicles = [
+        ['id' => 1, 'name' => 'Colombo Toyota Axio', 'model' => 'Toyota Corolla Axio', 'plate' => 'WP CAA-2345', 'price' => 18500, 'status' => 'available', 'category' => 'Luxury'],
+        ['id' => 2, 'name' => 'Kandy Toyota Premio', 'model' => 'Toyota Premio FL', 'plate' => 'CP CAD-9876', 'price' => 22000, 'status' => 'booked', 'category' => 'Luxury'],
+        ['id' => 3, 'name' => 'Galle Honda Vezel', 'model' => 'Honda Vezel Z Hybrid', 'plate' => 'SP CBA-4456', 'price' => 24500, 'status' => 'available', 'category' => 'Luxury SUV'],
+        ['id' => 4, 'name' => 'Negombo Toyota HiAce KDH', 'model' => 'Toyota HiAce High Roof KDH', 'plate' => 'WP NB-1123', 'price' => 30000, 'status' => 'maintenance', 'category' => 'Executive'],
+        ['id' => 5, 'name' => 'Matara Suzuki Wagon R', 'model' => 'Suzuki Wagon R Stingray FX', 'plate' => 'SP CBA-5567', 'price' => 14000, 'status' => 'available', 'category' => 'Economy'],
+    ];
+}
 
 $total_fleet = count($vehicles);
 $total_booked = count(array_filter($vehicles, fn($v) => $v['status'] == 'booked'));
@@ -124,16 +163,17 @@ $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'ma
         <?php foreach ($vehicles as $vehicle): ?>
         <div class="bg-white rounded-xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition" data-name="<?php echo strtolower($vehicle['name'] . ' ' . $vehicle['model'] . ' ' . $vehicle['plate']); ?>">
             <div class="flex p-3 sm:p-4 gap-4">
-                <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-lg bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-4xl text-gray-400">directions_car</span>
+                <?php $mImg = getAdminVehicleImageUrl($vehicle['image_url'] ?? '', $vehicle['name']); ?>
+                <div class="w-24 h-24 sm:w-32 sm:h-32 rounded-lg bg-slate-900 flex-shrink-0 flex items-center justify-center overflow-hidden border border-gray-200">
+                    <img src="<?php echo htmlspecialchars($mImg); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='../user-site/public/assets/vehicle-default.svg'">
                 </div>
                 <div class="flex-grow flex flex-col justify-between">
                     <div>
                         <div class="flex justify-between items-start">
-                            <h3 class="text-lg font-bold text-gray-900"><?php echo $vehicle['name']; ?></h3>
-                            <span class="text-red-600 font-bold text-xl">$<?php echo $vehicle['price']; ?><span class="text-xs text-gray-500">/day</span></span>
+                            <h3 class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($vehicle['name']); ?></h3>
+                            <span class="text-red-600 font-bold text-lg">LKR <?php echo number_format($vehicle['price']); ?><span class="text-xs text-gray-500">/day</span></span>
                         </div>
-                        <p class="text-sm text-gray-500"><?php echo $vehicle['model']; ?></p>
+                        <p class="text-sm text-gray-500"><?php echo htmlspecialchars($vehicle['model']); ?></p>
                     </div>
                     <div class="flex items-center justify-between mt-2">
                         <span class="px-2.5 py-1 rounded-md text-xs font-bold 

@@ -52,8 +52,9 @@ if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
                 <?php foreach ($bookings as $booking): ?>
                 <div class="bg-white rounded-xl shadow-lg overflow-hidden">
                     <div class="md:flex">
-                        <div class="md:w-48 h-48 bg-gray-200 flex items-center justify-center">
-                            <span class="material-symbols-outlined text-6xl text-gray-500">directions_car</span>
+                        <div class="md:w-52 h-48 bg-slate-900 flex items-center justify-center overflow-hidden relative flex-shrink-0">
+                            <?php $bImg = getVehicleImageUrl($booking['image_url'], $booking['vehicle_name']); ?>
+                            <img src="<?php echo htmlspecialchars($bImg); ?>" alt="<?php echo htmlspecialchars($booking['vehicle_name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='assets/vehicle-default.svg'">
                         </div>
                         <div class="flex-1 p-6">
                             <div class="flex justify-between items-start mb-4">

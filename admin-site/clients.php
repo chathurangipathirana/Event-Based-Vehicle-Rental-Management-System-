@@ -14,7 +14,7 @@ try {
             COALESCE(SUM(b.total_amount), 0) as total_spent
         FROM users u
         LEFT JOIN bookings b ON u.id = b.user_id
-        WHERE u.role = 'customer'
+        WHERE u.role != 'admin'
         GROUP BY u.id
         ORDER BY u.created_at DESC
     ")->fetchAll();
@@ -23,16 +23,16 @@ try {
 }
 
 // Calculate statistics
-$total_clients = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer'")->fetchColumn();
-$active_corporate = $pdo->query("SELECT COUNT(*) FROM users WHERE role = 'customer' AND company_name IS NOT NULL AND company_name != ''")->fetchColumn();
+$total_clients = $pdo->query("SELECT COUNT(*) FROM users WHERE role != 'admin'")->fetchColumn();
+$active_corporate = $pdo->query("SELECT COUNT(*) FROM users WHERE role != 'admin' AND company_name IS NOT NULL AND company_name != '' AND LOWER(company_name) != 'no' AND LOWER(company_name) != 'none'")->fetchColumn();
 $vip_clients = $pdo->query("
     SELECT COUNT(*) FROM (
         SELECT u.id, COUNT(b.id) as booking_count 
         FROM users u 
         LEFT JOIN bookings b ON u.id = b.user_id 
-        WHERE u.role = 'customer' 
+        WHERE u.role != 'admin' 
         GROUP BY u.id 
-        HAVING booking_count > 5
+        HAVING booking_count >= 1
     ) as vip
 ")->fetchColumn();
 
@@ -41,7 +41,7 @@ $top10_revenue = $pdo->query("
         SELECT b.total_amount
         FROM bookings b
         JOIN users u ON b.user_id = u.id
-        WHERE u.role = 'customer'
+        WHERE u.role != 'admin'
         ORDER BY b.total_amount DESC
         LIMIT 10
     ) as top10
@@ -61,7 +61,7 @@ if ($selected_client_id) {
             SUM(CASE WHEN b.status = 'pending' THEN b.total_amount ELSE 0 END) as outstanding_balance
         FROM users u
         LEFT JOIN bookings b ON u.id = b.user_id
-        WHERE u.id = ? AND u.role = 'customer'
+        WHERE u.id = ? AND u.role != 'admin'
         GROUP BY u.id
     ");
     $stmt->execute([$selected_client_id]);
@@ -153,52 +153,49 @@ if ($selected_client_id) {
             </div>
         </div>
 
-        <!-- Client Directory Table & Sidebar -->
-        <div class="grid grid-cols-12 gap-6">
-            <!-- Client Directory Table -->
-            <div class="col-span-12 lg:col-span-8 bg-white rounded-xl shadow-sm border border-[#c0c8ca] overflow-hidden">
-                <div class="p-6 border-b border-[#c0c8ca] flex justify-between items-center">
-                    <h3 class="text-2xl font-bold">Client Directory</h3>
+        <!-- Client Directory Table (Full Width) -->
+        <div class="w-full">
+            <div class="bg-white rounded-2xl shadow-sm border border-[#c0c8ca] overflow-hidden">
+                <div class="p-6 border-b border-[#c0c8ca] flex justify-between items-center bg-slate-900 text-white">
+                    <div>
+                        <h3 class="text-2xl font-bold">Client Directory</h3>
+                        <p class="text-xs text-slate-400 mt-1">Click any client row or View Profile to see their full profile page.</p>
+                    </div>
                     <div class="flex space-x-2">
-                        <button onclick="filterClients()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors">Filter</button>
-                        <button onclick="exportClients()" class="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold hover:bg-gray-50 transition-colors">Export</button>
+                        <button onclick="filterClients()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">filter_list</span> Filter
+                        </button>
+                        <button onclick="exportClients()" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">download</span> Export
+                        </button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
                     <style>
                         .dashboard-table tbody tr {
-                            transition: all 0.3s ease;
+                            transition: all 0.2s ease;
                             border-left: 3px solid transparent;
                         }
                         .dashboard-table tbody tr:nth-child(odd) {
-                            background-color: #fafbfb;
+                            background-color: #ffffff;
                         }
                         .dashboard-table tbody tr:nth-child(even) {
-                            background-color: #f3f4f4;
+                            background-color: #f8fafc;
                         }
                         .dashboard-table tbody tr:hover {
-                            background-color: #fff3e0 !important;
+                            background-color: #f0fdfa !important;
                             border-left-color: #02414a;
-                            box-shadow: 0 4px 12px rgba(2, 65, 74, 0.15);
-                            transform: translateX(2px);
-                        }
-                        .dashboard-table tbody tr:hover td {
-                            box-shadow: inset 0 0 12px rgba(255, 193, 7, 0.2);
+                            box-shadow: 0 4px 12px rgba(2, 65, 74, 0.08);
                         }
                         .dashboard-table td {
                             transition: all 0.2s ease;
-                            border-right: 1px solid #e0e0e0;
-                        }
-                        .dashboard-table td:hover {
-                            background-color: #ffd54f !important;
-                            font-weight: 600;
-                            box-shadow: inset 0 0 10px rgba(255, 152, 0, 0.3);
+                            border-right: 1px solid #e2e8f0;
                         }
                         .dashboard-table thead th {
-                            background-color: #1e293b;
+                            background-color: #0f172a;
                             color: #ffffff;
                             font-weight: 700;
-                            border-right: 1px solid rgba(255,255,255,0.2);
+                            border-right: 1px solid rgba(255,255,255,0.15);
                         }
                         .dashboard-table thead th:last-child {
                             border-right: none;
@@ -207,20 +204,24 @@ if ($selected_client_id) {
                     <table class="w-full dashboard-table">
                         <thead>
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Client Name</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Account Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Total Bookings</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Last Event</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Actions</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold uppercase">Client Name</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold uppercase">Account Type</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold uppercase">Total Bookings</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold uppercase">Last Event</th>
+                                <th class="px-6 py-4 text-left text-xs font-semibold uppercase">Status</th>
+                                <th class="px-6 py-4 text-center text-xs font-semibold uppercase">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]" id="clientsTable">
                             <?php foreach ($clients as $client): ?>
-                            <tr class="cursor-pointer client-row" data-id="<?php echo $client['id']; ?>" data-name="<?php echo strtolower($client['full_name'] . ' ' . $client['company_name']); ?>" onclick="viewClient(<?php echo $client['id']; ?>)">
+                            <?php 
+                                $compName = trim($client['company_name'] ?? '');
+                                $isCorporate = !empty($compName) && strtolower($compName) !== 'no' && strtolower($compName) !== 'none';
+                            ?>
+                            <tr class="cursor-pointer client-row" data-id="<?php echo $client['id']; ?>" data-name="<?php echo strtolower($client['full_name'] . ' ' . $compName); ?>" onclick="viewClient(<?php echo $client['id']; ?>)">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
+                                        <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-cyan-800 font-bold flex-shrink-0">
                                             <?php echo strtoupper(substr($client['full_name'], 0, 2)); ?>
                                         </div>
                                         <div>
@@ -230,20 +231,23 @@ if ($selected_client_id) {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-black uppercase">
-                                        <?php echo $client['company_name'] ? 'Corporate' : 'Private'; ?>
+                                    <span class="px-2.5 py-1 <?php echo $isCorporate ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'; ?> rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                        <?php echo $isCorporate ? 'Corporate' : 'Private'; ?>
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 text-sm font-medium"><?php echo $client['total_bookings']; ?></td>
                                 <td class="px-6 py-4 text-sm"><?php echo $client['last_event_date'] ? date('M d, Y', strtotime($client['last_event_date'])) : 'N/A'; ?></td>
                                 <td class="px-6 py-4">
-                                    <span class="flex items-center space-x-1 text-green-600 font-bold text-xs">
-                                        <span class="w-2 h-2 rounded-full bg-green-600"></span>
+                                    <span class="inline-flex items-center space-x-1.5 text-green-600 font-bold text-xs">
+                                        <span class="w-2 h-2 rounded-full bg-green-500"></span>
                                         <span>Active</span>
                                     </span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <a href="?view=<?php echo $client['id']; ?>" class="text-red-600 font-bold text-xs hover:underline">View Profile</a>
+                                <td class="px-6 py-4 text-center">
+                                    <a href="client-details.php?id=<?php echo $client['id']; ?>" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 text-white text-xs font-semibold hover:bg-slate-800 transition-all shadow-sm">
+                                        <span>View Profile</span>
+                                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                    </a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>
@@ -258,108 +262,16 @@ if ($selected_client_id) {
                 <div class="p-4 border-t border-gray-100 flex justify-between items-center bg-gray-50">
                     <span class="text-xs text-gray-500 font-medium">Showing <?php echo count($clients); ?> clients</span>
                     <div class="flex space-x-1">
-                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 hover:bg-white transition-colors">
+                        <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 hover:bg-white transition-colors" disabled>
                             <span class="material-symbols-outlined text-sm">chevron_left</span>
                         </button>
-                        <button class="w-8 h-8 flex items-center justify-center rounded bg-red-600 text-white font-bold text-sm">1</button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded bg-slate-900 text-white font-bold text-sm">1</button>
                         <button class="w-8 h-8 flex items-center justify-center rounded border border-gray-200 hover:bg-white transition-colors">
                             <span class="material-symbols-outlined text-sm">chevron_right</span>
                         </button>
                     </div>
                 </div> 
             </div>
-
-            <!-- Sidebar Detail (Selected Client) -->
-            <aside class="col-span-12 lg:col-span-4 space-y-6">
-                <?php if ($selected_client): ?>
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden sticky top-24">
-                    <div class="h-24 bg-red-600 relative">
-                        <div class="absolute -bottom-6 left-6">
-                            <div class="w-16 h-16 rounded-xl bg-white shadow-md flex items-center justify-center text-red-600 text-2xl font-black border-2 border-white">
-                                <?php echo strtoupper(substr($selected_client['full_name'], 0, 2)); ?>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-6 pt-10 pb-6">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h3 class="text-2xl font-bold text-gray-900"><?php echo htmlspecialchars($selected_client['full_name']); ?></h3>
-                                <p class="text-sm text-gray-500"><?php echo htmlspecialchars($selected_client['company_name'] ?: 'Private Client'); ?></p>
-                            </div>
-                            <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-[10px] font-bold uppercase">VIP Client</span>
-                        </div>
-                        <div class="mt-8 space-y-6">
-                            <div class="flex items-start space-x-4">
-                                <span class="material-symbols-outlined text-gray-400">badge</span>
-                                <div>
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Account Manager</p>
-                                    <p class="text-base font-medium"><?php echo $_SESSION['admin_name'] ?? 'Admin'; ?></p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <span class="material-symbols-outlined text-gray-400">contact_mail</span>
-                                <div>
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Primary Contact</p>
-                                    <p class="text-base font-medium"><?php echo htmlspecialchars($selected_client['full_name']); ?></p>
-                                    <p class="text-xs text-gray-500"><?php echo htmlspecialchars($selected_client['phone'] ?: '+94 77 123 4567'); ?></p>
-                                </div>
-                            </div>
-                            <div class="flex items-start space-x-4">
-                                <span class="material-symbols-outlined text-gray-400">directions_car</span>
-                                <div>
-                                    <p class="text-xs text-gray-400 font-bold uppercase">Preferred Category</p>
-                                    <p class="text-base font-medium">Luxury Sedans &amp; SUVs</p>
-                                </div>
-                            </div>
-                            <div class="p-4 bg-red-50 rounded-lg border border-red-200">
-                                <div class="flex justify-between items-center">
-                                    <p class="text-xs text-red-800 font-bold uppercase">Outstanding Balance</p>
-                                    <span class="material-symbols-outlined text-red-600">warning</span>
-                                </div>
-                                <p class="text-3xl font-bold text-red-800 mt-1">LKR <?php echo number_format($selected_client['outstanding_balance'] ?? 0, 2); ?></p>
-                            </div>
-                        </div>
-                        <div class="mt-8 grid grid-cols-2 gap-3">
-                            <button onclick="sendStatement(<?php echo $selected_client['id']; ?>)" class="bg-gray-100 hover:bg-gray-200 text-gray-900 py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transition-colors">
-                                <span class="material-symbols-outlined">account_balance_wallet</span>
-                                <span>Send Statement</span>
-                            </button>
-                            <button onclick="bookNew(<?php echo $selected_client['id']; ?>)" class="bg-red-600 text-white py-3 px-4 rounded-lg font-bold text-sm flex items-center justify-center space-x-2 transition-transform active:scale-95">
-                                <span class="material-symbols-outlined">calendar_add_on</span>
-                                <span>Book New</span>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 px-6 py-4 flex justify-center border-t border-gray-100">
-                        <a href="client-details.php?id=<?php echo $selected_client['id']; ?>" class="text-red-600 font-bold text-sm flex items-center">
-                            <span>View Full Profile &amp; History</span>
-                            <span class="material-symbols-outlined ml-1 text-sm">arrow_forward</span>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Recent Activity Feed -->
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h4 class="text-sm font-bold text-gray-900 uppercase mb-4">Recent Bookings</h4>
-                    <div class="space-y-4">
-                        <?php if (!empty($recent_bookings)): ?>
-                            <?php foreach ($recent_bookings as $booking): ?>
-                            <div class="flex items-center space-x-3 text-sm">
-                                <div class="w-2 h-2 rounded-full bg-red-600"></div>
-                                <div class="flex-1">
-                                    <p class="font-bold"><?php echo htmlspecialchars($booking['event_name'] ?: 'Vehicle Rental'); ?></p>
-                                    <p class="text-gray-500 text-xs"><?php echo htmlspecialchars($booking['vehicle_name']); ?> • <?php echo ucfirst($booking['status']); ?></p>
-                                </div>
-                                <span class="text-gray-400 text-xs"><?php echo date('M d', strtotime($booking['event_date'])); ?></span>
-                            </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <p class="text-gray-500 text-sm text-center">No recent bookings</p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <?php endif; ?>
-            </aside>
         </div>
     </div>
 </main>
@@ -411,7 +323,7 @@ document.getElementById('searchClients')?.addEventListener('keyup', function(e) 
 });
 
 function viewClient(clientId) {
-    window.location.href = 'clients.php?view=' + clientId;
+    window.location.href = 'client-details.php?id=' + clientId;
 }
 
 function openAddClientModal() {

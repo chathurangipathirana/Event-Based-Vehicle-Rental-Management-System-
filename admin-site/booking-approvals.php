@@ -14,6 +14,7 @@ $stmt = $pdo->prepare("
         u.phone AS phone,
         v.name AS vehicle,
         v.category AS category,
+        v.image_url AS vehicle_image,
         et.name AS event,
         b.event_date AS date,
         b.total_amount AS amount,
@@ -31,6 +32,31 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute();
 $pending_bookings = $stmt->fetchAll();
+
+function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): string {
+    $name = strtolower(trim($vehicleName));
+    
+    $map = [
+        'axio' => '../user-site/public/assets/vehicles/toyota-axio.png',
+        'premio' => '../user-site/public/assets/vehicles/toyota-premio.png',
+        'vezel' => '../user-site/public/assets/vehicles/honda-vezel.png',
+        'hiace' => '../user-site/public/assets/vehicles/toyota-hiace.png',
+        'sunny' => '../user-site/public/assets/vehicles/nissan-sunny.png',
+        'wagon' => '../user-site/public/assets/vehicles/suzuki-wagonr.png',
+    ];
+    
+    foreach ($map as $key => $path) {
+        if (str_contains($name, $key)) {
+            return $path;
+        }
+    }
+    
+    if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
+        return '../user-site/public/' . ltrim($image_url, '/');
+    }
+
+    return '../user-site/public/assets/vehicles/toyota-axio.png';
+}
 
 // Add a 'priority' flag manually since it doesn't exist in the schema yet
 foreach ($pending_bookings as &$booking) {
@@ -197,10 +223,14 @@ $urgent_count = 2; // still static — can compute later based on event_date
             <?php foreach ($pending_bookings as $booking): ?>
             <div id="booking-card-<?php echo $booking['id']; ?>" class="bg-white border border-gray-100 rounded-xl overflow-hidden hover:shadow-md transition">
                 <div class="flex flex-col md:flex-row flex-row">
-                    <div class="md:w-64 h-48 md:h-auto overflow-hidden relative bg-gray-100 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-5xl text-gray-400">directions_car</span>
+                    <div class="md:w-64 h-48 md:h-auto overflow-hidden relative bg-slate-900 flex items-center justify-center flex-shrink-0">
+                        <?php $approvalImg = getAdminVehicleImageUrl($booking['vehicle_image'] ?? '', $booking['vehicle']); ?>
+                        <img src="<?php echo htmlspecialchars($approvalImg); ?>" 
+                             alt="<?php echo htmlspecialchars($booking['vehicle']); ?>" 
+                             class="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                             onerror="this.onerror=null;this.src='../user-site/public/assets/vehicle-default.svg'">
                         <?php if ($booking['priority'] == 'high'): ?>
-                        <div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded">High Priority</div>
+                        <div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded shadow">High Priority</div>
                         <?php endif; ?>
                     </div>
                     <div class="flex-1 p-6">

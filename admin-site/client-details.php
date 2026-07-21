@@ -14,7 +14,7 @@ try {
     $stmt = $pdo->prepare("SELECT u.*, COUNT(b.id) as total_bookings, MAX(b.event_date) as last_event_date, COALESCE(SUM(b.total_amount),0) as total_spent
         FROM users u
         LEFT JOIN bookings b ON u.id = b.user_id
-        WHERE u.id = ? AND u.role = 'customer'
+        WHERE u.id = ? AND u.role != 'admin'
         GROUP BY u.id");
     $stmt->execute([$client_id]);
     $client = $stmt->fetch();
@@ -94,22 +94,17 @@ if (!$client) {
                         <div class="text-2xl font-bold"><?php echo $client['total_bookings']; ?></div>
                     </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                     <div>
-                        <p class="text-xs text-gray-400 uppercase">Primary Contact</p>
-                        <p class="font-medium"><?php echo htmlspecialchars($client['full_name']); ?></p>
-                        <p class="text-sm text-gray-500"><?php echo htmlspecialchars($client['phone'] ?? 'N/A'); ?></p>
-                        <p class="text-sm text-gray-500"><?php echo htmlspecialchars($client['email']); ?></p>
+                        <p class="text-xs text-gray-400 uppercase font-semibold">Primary Contact</p>
+                        <p class="font-bold text-gray-900 text-base"><?php echo htmlspecialchars($client['full_name']); ?></p>
+                        <p class="text-sm text-gray-600"><?php echo htmlspecialchars($client['phone'] ?? 'N/A'); ?></p>
+                        <p class="text-sm text-gray-600"><?php echo htmlspecialchars($client['email']); ?></p>
                     </div>
                     <div>
-                        <p class="text-xs text-gray-400 uppercase">Address</p>
-                        <p class="font-medium"><?php echo nl2br(htmlspecialchars($client['address'] ?? '')); ?></p>
-                        <p class="text-sm text-gray-500"><?php echo htmlspecialchars($client['city'] . ($client['state'] ? ', '.$client['state'] : '')); ?></p>
-                    </div>
-                    <div>
-                        <p class="text-xs text-gray-400 uppercase">Financials</p>
-                        <p class="font-medium">LKR <?php echo number_format($client['total_spent'] ?? 0, 2); ?></p>
-                        <p class="text-sm text-gray-500">Last event: <?php echo $client['last_event_date'] ? date('M d, Y', strtotime($client['last_event_date'])) : 'N/A'; ?></p>
+                        <p class="text-xs text-gray-400 uppercase font-semibold">Financial Overview</p>
+                        <p class="font-bold text-cyan-600 text-xl">LKR <?php echo number_format($client['total_spent'] ?? 0, 2); ?></p>
+                        <p class="text-sm text-gray-600">Last Event: <?php echo $client['last_event_date'] ? date('M d, Y', strtotime($client['last_event_date'])) : 'N/A'; ?></p>
                     </div>
                 </div>
             </div>

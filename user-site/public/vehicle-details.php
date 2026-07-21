@@ -102,15 +102,15 @@ $similar_vehicles = $stmt->fetchAll();
             
             <!-- Booking Sidebar -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24">
+                <div class="bg-white rounded-xl shadow-lg p-6 sticky top-24 border border-gray-100">
                     <div class="text-center mb-6">
-                        <p class="text-3xl font-bold text-red-600">$<?php echo number_format($vehicle['price_per_hour'], 2); ?></p>
+                        <p class="text-3xl font-bold text-red-600">LKR <?php echo number_format($vehicle['price_per_hour'], 2); ?></p>
                         <p class="text-gray-500">per hour</p>
-                        <p class="text-sm text-gray-400 mt-2">or $<?php echo number_format($vehicle['price_per_day'], 2); ?>/day</p>
+                        <p class="text-sm text-gray-400 mt-2">or LKR <?php echo number_format($vehicle['price_per_day'], 2); ?>/day</p>
                     </div>
                     
                     <a href="booking.php?vehicle=<?php echo $vehicle['id']; ?>" 
-                       class="block w-full bg-red-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition mb-4">
+                       class="block w-full bg-red-600 text-white text-center py-3 rounded-lg font-semibold hover:bg-red-700 transition mb-4 shadow-md">
                         Book This Vehicle
                     </a>
                     
@@ -119,15 +119,15 @@ $similar_vehicles = $stmt->fetchAll();
                         <ul class="space-y-2">
                             <li class="flex items-center gap-2 text-sm">
                                 <span class="material-symbols-outlined text-green-600 text-sm">verified</span>
-                                Full Insurance Coverage
+                                Full Sri Lankan Insurance Coverage
                             </li>
                             <li class="flex items-center gap-2 text-sm">
                                 <span class="material-symbols-outlined text-green-600 text-sm">support_agent</span>
-                                24/7 Customer Support
+                                24/7 Islandwide Customer Support
                             </li>
                             <li class="flex items-center gap-2 text-sm">
                                 <span class="material-symbols-outlined text-green-600 text-sm">local_car_wash</span>
-                                Free Car Wash
+                                Complimentary Event Washing & Polishing
                             </li>
                         </ul>
                     </div>
@@ -138,18 +138,28 @@ $similar_vehicles = $stmt->fetchAll();
         <!-- Similar Vehicles -->
         <?php if (!empty($similar_vehicles)): ?>
         <div class="mt-12">
-            <h2 class="text-2xl font-bold mb-6">Similar Vehicles You Might Like</h2>
+            <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                <span class="material-symbols-outlined text-red-600">directions_car</span>
+                Similar Sri Lankan Vehicles You Might Like
+            </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <?php foreach ($similar_vehicles as $similar): ?>
-                <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition">
-                    <div class="h-48 bg-gray-200 flex items-center justify-center">
-                        <span class="material-symbols-outlined text-4xl text-gray-400">directions_car</span>
+                <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition border border-gray-100 group">
+                    <div class="h-48 bg-slate-900 relative overflow-hidden">
+                        <?php $similarImg = getVehicleImageUrl($similar['image_url'], $similar['name']); ?>
+                        <img src="<?php echo htmlspecialchars($similarImg); ?>" 
+                             alt="<?php echo htmlspecialchars($similar['name']); ?>" 
+                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                             onerror="this.onerror=null;this.src='assets/vehicle-default.svg'">
+                        <span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider shadow">
+                            Sri Lanka Fleet
+                        </span>
                     </div>
                     <div class="p-4">
                         <h3 class="font-bold text-lg mb-1"><?php echo htmlspecialchars($similar['name']); ?></h3>
                         <p class="text-gray-600 text-sm mb-3"><?php echo htmlspecialchars($similar['model']); ?></p>
                         <div class="flex justify-between items-center">
-                            <span class="text-red-600 font-bold">$<?php echo number_format($similar['price_per_hour'], 2); ?>/hr</span>
+                            <span class="text-red-600 font-bold">LKR <?php echo number_format($similar['price_per_hour'], 2); ?>/hr</span>
                             <a href="vehicle-details.php?id=<?php echo $similar['id']; ?>" class="text-red-600 hover:underline text-sm">View Details</a>
                         </div>
                     </div>
@@ -160,5 +170,26 @@ $similar_vehicles = $stmt->fetchAll();
         <?php endif; ?>
     </div>
 </main>
+
+<script>
+function changeMainImage(src, element) {
+    const mainImg = document.getElementById('mainVehicleImage');
+    if (mainImg) {
+        mainImg.style.opacity = '0.4';
+        setTimeout(() => {
+            mainImg.src = src;
+            mainImg.style.opacity = '1';
+        }, 150);
+    }
+    document.querySelectorAll('.thumb-btn').forEach(btn => {
+        btn.classList.remove('border-red-600', 'shadow-md', 'scale-105', 'ring-2', 'ring-red-400/50', 'opacity-100');
+        btn.classList.add('border-transparent', 'opacity-70');
+    });
+    if (element) {
+        element.classList.remove('border-transparent', 'opacity-70');
+        element.classList.add('border-red-600', 'shadow-md', 'scale-105', 'ring-2', 'ring-red-400/50', 'opacity-100');
+    }
+}
+</script>
 
 <?php require_once '../includes/footer.php'; ?>

@@ -138,7 +138,7 @@ if ($step == 1) {
                                 <p class="text-sm text-gray-500">Elite chauffeur service</p>
                             </div>
                             <div class="flex items-center gap-4">
-                                <span class="text-red-600 font-bold">+$120/day</span>
+                                <span class="text-red-600 font-bold">+LKR 120/day</span>
                                 <input type="checkbox" name="professional_driver" class="w-5 h-5 text-red-600">
                             </div>
                         </div>
@@ -149,7 +149,7 @@ if ($step == 1) {
                                 <p class="text-sm text-gray-500">Custom ribbons and floral arrangements</p>
                             </div>
                             <div class="flex items-center gap-4">
-                                <span class="text-red-600 font-bold">+$75</span>
+                                <span class="text-red-600 font-bold">+LKR 75</span>
                                 <input type="checkbox" name="decorations" class="w-5 h-5 text-red-600">
                             </div>
                         </div>
@@ -165,7 +165,7 @@ if ($step == 1) {
                                     <input type="number" name="extra_hours" id="extra_hours" value="0" min="0" max="10" class="w-16 text-center border-x">
                                     <button type="button" onclick="incrementHours()" class="px-3 py-1 hover:bg-gray-100">+</button>
                                 </div>
-                                <span class="text-red-600 font-bold">+$<span id="extra_cost">0</span></span>
+                                <span class="text-red-600 font-bold">+LKR <span id="extra_cost">0</span></span>
                             </div>
                         </div>
                     </div>
@@ -343,13 +343,13 @@ if ($step == 1) {
                         <div class="border-b pb-4">
                             <h3 class="font-bold text-lg mb-3">Extras</h3>
                             <?php if ($booking_data['extras']['professional_driver']): ?>
-                                <p>✓ Professional Driver (+$120)</p>
+                                <p>✓ Professional Driver (+LKR 120)</p>
                             <?php endif; ?>
                             <?php if ($booking_data['extras']['decorations']): ?>
-                                <p>✓ Event Decorations (+$75)</p>
+                                <p>✓ Event Decorations (+LKR 75)</p>
                             <?php endif; ?>
                             <?php if ($booking_data['extras']['extra_hours'] > 0): ?>
-                                <p>✓ Extra Hours (<?php echo $booking_data['extras']['extra_hours']; ?> hrs) (+$<?php echo $booking_data['extras']['extra_hours'] * $vehicle['price_per_hour']; ?>)</p>
+                                <p>✓ Extra Hours (<?php echo $booking_data['extras']['extra_hours']; ?> hrs) (+LKR <?php echo number_format($booking_data['extras']['extra_hours'] * $vehicle['price_per_hour'], 2); ?>)</p>
                             <?php endif; ?>
                             <?php if (!$booking_data['extras']['professional_driver'] && !$booking_data['extras']['decorations'] && $booking_data['extras']['extra_hours'] == 0): ?>
                                 <p class="text-gray-500">No extras selected</p>

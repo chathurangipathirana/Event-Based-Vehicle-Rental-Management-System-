@@ -131,24 +131,34 @@ $packages = array_values(array_filter($packages, function($pkg) use (&$seenPacka
 }));
 
 $active_packages = count(array_filter($packages, fn($p) => $p['status'] == 'active'));
-// Default image used when a package has no image or the image fails to load
-$default_package_image = 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=0c3ea7f5b3b7c8f0c9a9a9b1e2d6d8b6';
+$default_package_image = '../user-site/public/assets/vehicles/toyota-premio.png';
 
 function getPackageImageUrl(array $package): string {
-    global $default_package_image;
     $image_url = trim($package['image_url'] ?? '');
-    $defaultImages = [
-        'Business Pro' => 'https://images.unsplash.com/photo-1520974735194-8b3482385cf9?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3',
-        'Wedding Premium' => 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3',
-        'Gala Elite' => 'https://images.unsplash.com/photo-1528909514045-2fa4ac7a08ba?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3',
-    ];
-
-    if (!empty($image_url)) {
-        return $image_url;
+    
+    if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
+        if (file_exists(__DIR__ . '/' . $image_url)) {
+            return $image_url;
+        }
+        if (file_exists(__DIR__ . '/../user-site/public/' . ltrim($image_url, '/'))) {
+            return '../user-site/public/' . ltrim($image_url, '/');
+        }
     }
 
-    $name = trim($package['name'] ?? '');
-    return $defaultImages[$name] ?? $default_package_image;
+    $name = strtolower(trim($package['name'] ?? ''));
+    $desc = strtolower(trim($package['description'] ?? ''));
+    
+    if (str_contains($name, 'wedding') || str_contains($desc, 'wedding') || str_contains($name, 'kandyan')) {
+        return '../user-site/public/assets/vehicles/toyota-premio.png';
+    }
+    if (str_contains($name, 'business') || str_contains($name, 'corporate') || str_contains($desc, 'business') || str_contains($name, 'colombo')) {
+        return '../user-site/public/assets/vehicles/honda-vezel.png';
+    }
+    if (str_contains($name, 'gala') || str_contains($name, 'tour') || str_contains($desc, 'tour') || str_contains($name, 'galle')) {
+        return '../user-site/public/assets/vehicles/toyota-hiace.png';
+    }
+
+    return '../user-site/public/assets/vehicles/toyota-axio.png';
 }
 
 // If there are no packages in the database, provide a small set of sample packages
@@ -156,33 +166,33 @@ if (empty($packages)) {
     $packages = [
         [
             'id' => 101,
-            'name' => 'Wedding Premium',
-            'description' => 'Full event transportation for weddings including VIP cars and shuttle services.',
-            'price' => 120000,
-            'services' => 'VIP transport,Shuttle,Decoration setup',
-            'vehicles' => 'Sedan,Van,Bus',
+            'name' => 'Kandyan Wedding Premium',
+            'description' => 'Elite wedding transportation for traditional ceremonies, featuring decorated sedans and VIP guest shuttles.',
+            'price' => 737500,
+            'services' => 'Decorated wedding cars,VIP chauffeur,Guest shuttle',
+            'vehicles' => 'Toyota Premio,Toyota Axio',
             'status' => 'active',
-            'image_url' => 'https://images.unsplash.com/photo-1505577058444-a3dab4b83a6b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3'
+            'image_url' => 'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1400&q=80'
         ],
         [
             'id' => 102,
-            'name' => 'Corporate Shuttle',
-            'description' => 'Scheduled shuttles and executive transfers for corporate events and conferences.',
-            'price' => 80000,
-            'services' => 'Shuttle,On-site coordinator,Badge pickup',
-            'vehicles' => 'Minibus,Coach',
+            'name' => 'Colombo Business Pro',
+            'description' => 'Corporate transfer services for Colombo meetings and airport pickups with premium executive cars.',
+            'price' => 531000,
+            'services' => 'Airport transfer,Executive sedan,Meeting transport',
+            'vehicles' => 'Honda Vezel,Toyota Premio',
             'status' => 'active',
-            'image_url' => 'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3'
+            'image_url' => 'https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?auto=format&fit=crop&w=1400&q=80'
         ],
         [
             'id' => 103,
-            'name' => 'Airport Transfers',
-            'description' => 'Reliable airport pickup and drop with meet-and-greet options.',
-            'price' => 25000,
-            'services' => 'Meet & Greet,Luggage assistance,Real-time tracking',
-            'vehicles' => 'Sedan,SUV',
-            'status' => 'draft',
-            'image_url' => 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3'
+            'name' => 'Galle Gala Elite',
+            'description' => 'Premium gala transport for coastal events, including luxury SUVs and VIP coordination.',
+            'price' => 944000,
+            'services' => 'VIP coordination,Red carpet service,Luxury SUVs',
+            'vehicles' => 'Toyota HiAce,Honda Vezel',
+            'status' => 'active',
+            'image_url' => 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1400&q=80'
         ],
     ];
 }
@@ -409,11 +419,12 @@ if (empty($packages)) {
                             <tr data-name="<?php echo strtolower($package['name']); ?>">
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
-                                        <div class="w-10 h-10 rounded bg-red-50 flex items-center justify-center text-red-600 font-bold mr-3">
-                                            <?php echo strtoupper(substr($package['name'], 0, 2)); ?>
+                                        <div class="w-12 h-12 rounded-lg bg-slate-900 overflow-hidden flex items-center justify-center border border-gray-200 mr-3 flex-shrink-0">
+                                            <?php $tablePkgImg = getPackageImageUrl($package); ?>
+                                            <img src="<?php echo htmlspecialchars($tablePkgImg); ?>" alt="<?php echo htmlspecialchars($package['name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='../user-site/public/assets/vehicle-default.svg'">
                                         </div>
                                         <div>
-                                            <div class="font-medium text-gray-900"><?php echo $package['name']; ?></div>
+                                            <div class="font-medium text-gray-900"><?php echo htmlspecialchars($package['name']); ?></div>
                                             <div class="text-xs text-gray-500">Updated <?php echo date('M d'); ?></div>
                                         </div>
                                     </div>

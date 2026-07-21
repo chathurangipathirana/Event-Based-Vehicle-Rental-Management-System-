@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <rect x="60" y="200" width="680" height="140" rx="60" fill="#fff" opacity="0.08"/>
+  <rect x="90" y="210" width="620" height="120" rx="55" fill="#f8fafc"/>
+  <circle cx="170" cy="360" r="45" fill="#1d4ed8"/>
+  <circle cx="630" cy="360" r="45" fill="#1d4ed8"/>
+  <rect x="140" y="230" width="520" height="90" rx="30" fill="#0f172a" opacity="0.15"/>
+  <path d="M140 250 H660 L620 320 H180 Z" fill="#2563eb" opacity="0.9"/>
+  <text x="50%" y="80%" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48" font-weight="700">Toyota Axio</text>
+</svg>

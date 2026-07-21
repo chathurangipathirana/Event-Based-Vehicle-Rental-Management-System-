@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#10b981"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="500" fill="url(#g)"/>
+  <rect x="90" y="210" width="620" height="120" rx="60" fill="#f8fafc"/>
+  <circle cx="180" cy="360" r="42" fill="#047857"/>
+  <circle cx="620" cy="360" r="42" fill="#047857"/>
+  <path d="M140 230 H660 L620 310 H180 Z" fill="#047857" opacity="0.9"/>
+  <rect x="250" y="240" width="280" height="90" rx="45" fill="#111827" opacity="0.15"/>
+  <text x="50%" y="80%" text-anchor="middle" fill="#ffffff" font-family="Arial, sans-serif" font-size="48" font-weight="700">Honda Vezel</text>
+</svg>

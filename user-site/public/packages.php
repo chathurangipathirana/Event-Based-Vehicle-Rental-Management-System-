@@ -7,7 +7,18 @@ require_once '../includes/auth.php';
 // Fetch active packages
 try {
     $stmt = $pdo->query("SELECT * FROM event_packages WHERE status = 'active' ORDER BY base_price ASC");
-    $all_packages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $raw_packages = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Deduplicate by package name to ensure no duplicate cards are shown
+    $all_packages = [];
+    $seen_names = [];
+    foreach ($raw_packages as $pkg) {
+        $normalized_name = strtolower(trim($pkg['name']));
+        if (!in_array($normalized_name, $seen_names)) {
+            $seen_names[] = $normalized_name;
+            $all_packages[] = $pkg;
+        }
+    }
 } catch (PDOException $e) {
     $all_packages = [];
 }
@@ -26,9 +37,9 @@ foreach ($all_packages as $pkg) {
     
     if (strpos($name, 'wedding') !== false || strpos($desc, 'wedding') !== false) {
         $grouped_packages['wedding'][] = $pkg;
-    } elseif (strpos($name, 'business') !== false || strpos($name, 'corporate') !== false || strpos($name, 'gala') !== false || strpos($desc, 'business') !== false || strpos($desc, 'corporate') !== false || strpos($desc, 'gala') !== false) {
+    } elseif (strpos($name, 'business') !== false || strpos($name, 'corporate') !== false || strpos($desc, 'business') !== false || strpos($desc, 'corporate') !== false) {
         $grouped_packages['business'][] = $pkg;
-    } elseif (strpos($name, 'tour') !== false || strpos($name, 'travel') !== false || strpos($desc, 'tour') !== false || strpos($desc, 'travel') !== false) {
+    } elseif (strpos($name, 'tour') !== false || strpos($name, 'gala') !== false || strpos($name, 'travel') !== false || strpos($desc, 'tour') !== false || strpos($desc, 'travel') !== false) {
         $grouped_packages['tours'][] = $pkg;
     } else {
         $grouped_packages['other'][] = $pkg;
@@ -78,12 +89,12 @@ $categories = [
                                 <div class="bg-white rounded-3xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
                                     <div>
                                         <!-- Package Header Image / Icon -->
-                                        <?php $pkgImg = $pkg['image_url'] ?? ''; ?>
-                                        <div class="h-36 relative bg-slate-900 flex items-center justify-center overflow-hidden">
-                                            <?php if (!empty($pkgImg)): ?>
-                                                <img src="<?php echo htmlspecialchars($pkgImg); ?>" alt="<?php echo htmlspecialchars($pkg['name']); ?>" class="absolute inset-0 w-full h-full object-cover z-0">
-                                            <?php endif; ?>
-                                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10"></div>
+                                        <?php 
+                                        $pkgImg = getVehicleImageUrl($pkg['image_url'] ?? '', $pkg['name']); 
+                                        ?>
+                                        <div class="h-44 relative bg-slate-900 flex items-center justify-center overflow-hidden">
+                                            <img src="<?php echo htmlspecialchars($pkgImg); ?>" alt="<?php echo htmlspecialchars($pkg['name']); ?>" class="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-500 group-hover:scale-110">
+                                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-transparent z-10"></div>
                                             <span class="material-symbols-outlined text-white/20 text-[100px] absolute -right-6 -bottom-6 rotate-12"><?php echo $categories[$key]['icon']; ?></span>
                                             <div class="relative z-20 text-center px-6">
                                                 <h3 class="text-xl font-bold text-white mb-1"><?php echo htmlspecialchars($pkg['name']); ?></h3>

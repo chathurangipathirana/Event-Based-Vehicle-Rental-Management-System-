@@ -80,24 +80,30 @@ try {
     // Keep list empty if tables don't exist
 }
 
-function localizeVehicleName($name) {
-    $aliases = [
-        'Tesla Model S' => 'Toyota Axio',
-        'Mercedes S-Class' => 'Toyota Premio',
-        'BMW 7 Series' => 'Honda Vezel',
-        'Range Rover SV' => 'Toyota HiAce',
-        'Porsche 911 GT3' => 'Nissan Sunny',
-        'Luxury Sedan' => 'Toyota Premio',
+function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): string {
+    $name = strtolower(trim($vehicleName));
+    
+    $map = [
+        'axio' => '../user-site/public/assets/vehicles/toyota-axio.png',
+        'premio' => '../user-site/public/assets/vehicles/toyota-premio.png',
+        'vezel' => '../user-site/public/assets/vehicles/honda-vezel.png',
+        'hiace' => '../user-site/public/assets/vehicles/toyota-hiace.png',
+        'sunny' => '../user-site/public/assets/vehicles/nissan-sunny.png',
+        'wagon' => '../user-site/public/assets/vehicles/suzuki-wagonr.png',
     ];
-    return $aliases[$name] ?? $name;
-}
-
-foreach ($vehicles as &$vehicle) {
-    if (!empty($vehicle['name'])) {
-        $vehicle['name'] = localizeVehicleName($vehicle['name']);
+    
+    foreach ($map as $key => $path) {
+        if (str_contains($name, $key)) {
+            return $path;
+        }
     }
+    
+    if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
+        return '../user-site/public/' . ltrim($image_url, '/');
+    }
+
+    return '../user-site/public/assets/vehicles/toyota-axio.png';
 }
-unset($vehicle);
 
 if (empty($vehicles)) {
     $is_sample_fleet = true;
@@ -318,19 +324,11 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                         <tr data-name="<?php echo strtolower($vehicle['name']); ?>" data-category="<?php echo $vehicle['category']; ?>" data-status="<?php echo $vehicle['status']; ?>">
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
-                                    <div class="w-12 h-12 rounded-lg bg-gray-100 mr-4 overflow-hidden flex items-center justify-center">
+                                    <div class="w-14 h-14 rounded-lg bg-slate-900 mr-4 overflow-hidden flex items-center justify-center border border-gray-200">
                                         <?php
-                                            $imageSource = $vehicle['image_url'] ?? '';
-                                            if (!empty($imageSource)) {
-                                                // allow commas, semicolons, pipes, or newlines as separators
-                                                $imageParts = preg_split('/\s*[,;|\n\r]\s*/', $imageSource);
-                                                $imageSource = trim($imageParts[0]);
-                                            }
-                                            if (empty($imageSource) || !filter_var($imageSource, FILTER_VALIDATE_URL)) {
-                                                $imageSource = $default_vehicle_image;
-                                            }
+                                            $imageSource = getAdminVehicleImageUrl($vehicle['image_url'] ?? '', $vehicle['name']);
                                         ?>
-                                        <img src="<?php echo htmlspecialchars($imageSource); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='<?php echo $default_vehicle_image; ?>'">
+                                        <img src="<?php echo htmlspecialchars($imageSource); ?>" alt="<?php echo htmlspecialchars($vehicle['name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='../user-site/public/assets/vehicle-default.svg'">
                                     </div>
                                     <div>
                                         <div class="font-medium text-gray-900"><?php echo $vehicle['name']; ?></div>
