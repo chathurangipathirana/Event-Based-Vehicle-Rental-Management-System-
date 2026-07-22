@@ -81,4 +81,28 @@ INSERT INTO vehicles (name, model, year, capacity, transmission, fuel_type, stat
   ('Jaffna Nissan Sunny', 'Nissan Sunny', 2020, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/nissan-sunny.png', 'Popular sedan commonly used across Sri Lanka for airport transfers and city travel.', 2000.00, 16000.00),
   ('Batticaloa Honda City', 'Honda City', 2021, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-premio.png', 'Comfortable compact sedan with premium amenities for executive bookings.', 2600.00, 21000.00);
 
--- To create a first user, either register through the site or insert a hashed password manually.
+CREATE TABLE IF NOT EXISTS event_packages (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(150) NOT NULL,
+  description TEXT DEFAULT NULL,
+  base_price DECIMAL(12,2) NOT NULL DEFAULT 0.00,
+  included_services TEXT DEFAULT NULL,
+  vehicle_types VARCHAR(255) DEFAULT NULL,
+  status VARCHAR(50) NOT NULL DEFAULT 'active',
+  image_url VARCHAR(255) DEFAULT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status) VALUES
+('Kandyan Wedding Premium', 'Complete luxury transport package for Sri Lankan traditional Kandyan weddings with decorated bridal vehicle.', 737500, '3 Sedans + Decorated Wedding Car, 8-Hour Service, Professional Chauffeur, Red Carpet & Floral Setup', 'Toyota Premio, Toyota Axio', 'active'),
+('Royal Presidential Wedding', 'Ultra-luxury presidential wedding fleet service with dedicated convoy management and VIP coordination.', 1250000, 'Luxury SUV Convoy, 12-Hour Full Service, VIP Chauffeur Team, Champagne Toast Setup, Event Logistics Coordinator', 'Honda Vezel, Toyota Premio', 'active'),
+('Coastal Beach Wedding Deluxe', 'Tailored for beachside and destination weddings in Bentota, Galle, and Mirissa with guest shuttle service.', 650000, 'Decorated Convertible/Sedan, Guest Transport Van, Beach Location Logistics, Driver Accommodation', 'Toyota Axio, Toyota HiAce', 'active'),
+('Colombo Business Pro', 'Corporate logistics for Colombo conferences, trade summits, and high-profile business meetings.', 531000, '3 SUVs, Airport Transfer, 24/7 Dedicated Driver, On-board Wi-Fi', 'Honda Vezel, Toyota Premio', 'active'),
+('Executive VIP Fleet Shuttle', 'Premium corporate delegation transport with real-time GPS tracking and airport arrival handling.', 820000, '5 Executive Sedans, BIA Airport Meet & Greet, Full Day Standby, Multi-lingual Chauffeur', 'Toyota Premio, Honda Vezel', 'active'),
+('Diplomatic Summit Transport', 'State-level and diplomatic conference transport package designed for high-security international envoys.', 1450000, 'Armored/Luxury SUV Fleet, Police Escort Coordination, 24/7 Security Dispatch, Priority Fuel Pass', 'Honda Vezel, Toyota HiAce', 'active'),
+('Galle Island Tour Elite', 'Premium coastal tour package covering Southern Expressway, Galle Fort, and luxury beach resorts.', 944000, 'VIP Coordination, Group Van Service, English Speaking Guide, Fuel & Toll Charges Included', 'Toyota HiAce, Honda Vezel', 'active'),
+('Hill Country Scenic Expedition', 'Multi-day hill country travel bundle with experienced mountain terrain chauffeurs and itinerary assistance.', 680000, 'Luxury Van/SUV, Kandy & Nuwara Eliya Circuit, Tea Estate Access, All-Weather Driver', 'Toyota HiAce, Toyota Premio', 'active'),
+('Cultural Triangle Grand Tour', 'Comprehensive heritage tour transport covering Sri Lanka\'s ancient cities with round-the-clock support.', 890000, 'Group Transport Bus/Van, Sigiriya & Polonnaruwa Excursion, Hotel Transfers, Unlimited Mileage', 'Toyota HiAce, Nissan Sunny', 'active'),
+('Gala & Red Carpet Night', 'Glamorous transportation for award ceremonies, gala dinners, and high-profile red carpet events.', 480000, 'Executive Sedan Escort, Red Carpet Drop-off, Hourly Standby Service, Uniformed Driver', 'Toyota Premio, Suzuki WagonR', 'active'),
+('VIP Party Shuttle Express', 'Safe, stylish, and synchronized night event transport for private parties, concerts, and nightlife outings.', 390000, 'Luxury Passenger Van, Multi-stop Nightclub & Concert Transfer, Safe Night Chauffeur, Refreshments', 'Toyota HiAce, Honda Vezel', 'active'),
+('Milestone Celebration Package', 'Specialized transport bundle for milestone birthdays, anniversaries, graduation galas, and family reunions.', 550000, 'Decorated Luxury Vehicle, Photo Shoot Transport, Complimentary Refreshment Basket, Flexible Timings', 'Toyota Axio, Honda Vezel', 'active');

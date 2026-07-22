@@ -1,7 +1,7 @@
 <!-- Footer -->
 <footer class="ml-64 border-t border-gray-100 bg-white mt-8">
     <div class="max-w-7xl mx-auto py-6 px-8">
-        <p class="text-center text-sm text-gray-500">© <?php echo date('Y'); ?> FleetElite Vehicle Rental Management System. All rights reserved.</p>
+        <p class="text-center text-sm text-gray-500">Copyright © <?php echo date('Y'); ?> STS. All Rights Reserved.</p>
     </div>
 </footer>
 

@@ -37,9 +37,9 @@ foreach ($all_packages as $pkg) {
     
     if (strpos($name, 'wedding') !== false || strpos($desc, 'wedding') !== false) {
         $grouped_packages['wedding'][] = $pkg;
-    } elseif (strpos($name, 'business') !== false || strpos($name, 'corporate') !== false || strpos($desc, 'business') !== false || strpos($desc, 'corporate') !== false) {
+    } elseif (strpos($name, 'business') !== false || strpos($name, 'corporate') !== false || strpos($name, 'executive') !== false || strpos($name, 'diplomatic') !== false || strpos($desc, 'business') !== false || strpos($desc, 'corporate') !== false) {
         $grouped_packages['business'][] = $pkg;
-    } elseif (strpos($name, 'tour') !== false || strpos($name, 'gala') !== false || strpos($name, 'travel') !== false || strpos($desc, 'tour') !== false || strpos($desc, 'travel') !== false) {
+    } elseif (strpos($name, 'tour') !== false || strpos($name, 'expedition') !== false || strpos($name, 'travel') !== false || strpos($desc, 'tour') !== false || strpos($desc, 'travel') !== false) {
         $grouped_packages['tours'][] = $pkg;
     } else {
         $grouped_packages['other'][] = $pkg;

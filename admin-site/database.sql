@@ -226,11 +226,20 @@ INSERT INTO drivers (name, email, phone, rating, status) VALUES
 ('Kumari Silva', 'kumari@fleetelite.com', '+94 71 234 5678', 4.95, 'available'),
 ('Chaminda Bandara', 'chaminda@fleetelite.com', '+94 76 345 6789', 4.92, 'available');
 
--- Insert Event Packages
+-- Insert Event Packages (3 packages per category minimum)
 INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status) VALUES
-('Kandyan Wedding Premium', 'Premium transport for Sri Lankan weddings', 737500, '3 Sedans + Decorated Wedding Car,8-Hour Service', 'Toyota Premio,Toyota Axio', 'active'),
-('Colombo Business Pro', 'Corporate logistics for Colombo events', 531000, '3 SUVs,Airport Transfer', 'Honda Vezel,Toyota Premio', 'active'),
-('Galle Island Tour Elite', 'Premium coastal tour package',  944000, 'VIP Coordination,Group Van Service', 'Toyota HiAce,Honda Vezel', 'active');
+('Kandyan Wedding Premium', 'Complete luxury transport package for Sri Lankan traditional Kandyan weddings with decorated bridal vehicle.', 737500, '3 Sedans + Decorated Wedding Car, 8-Hour Service, Professional Chauffeur, Red Carpet & Floral Setup', 'Toyota Premio, Toyota Axio', 'active'),
+('Royal Presidential Wedding', 'Ultra-luxury presidential wedding fleet service with dedicated convoy management and VIP coordination.', 1250000, 'Luxury SUV Convoy, 12-Hour Full Service, VIP Chauffeur Team, Champagne Toast Setup, Event Logistics Coordinator', 'Honda Vezel, Toyota Premio', 'active'),
+('Coastal Beach Wedding Deluxe', 'Tailored for beachside and destination weddings in Bentota, Galle, and Mirissa with guest shuttle service.', 650000, 'Decorated Convertible/Sedan, Guest Transport Van, Beach Location Logistics, Driver Accommodation', 'Toyota Axio, Toyota HiAce', 'active'),
+('Colombo Business Pro', 'Corporate logistics for Colombo conferences, trade summits, and high-profile business meetings.', 531000, '3 SUVs, Airport Transfer, 24/7 Dedicated Driver, On-board Wi-Fi', 'Honda Vezel, Toyota Premio', 'active'),
+('Executive VIP Fleet Shuttle', 'Premium corporate delegation transport with real-time GPS tracking and airport arrival handling.', 820000, '5 Executive Sedans, BIA Airport Meet & Greet, Full Day Standby, Multi-lingual Chauffeur', 'Toyota Premio, Honda Vezel', 'active'),
+('Diplomatic Summit Transport', 'State-level and diplomatic conference transport package designed for high-security international envoys.', 1450000, 'Armored/Luxury SUV Fleet, Police Escort Coordination, 24/7 Security Dispatch, Priority Fuel Pass', 'Honda Vezel, Toyota HiAce', 'active'),
+('Galle Island Tour Elite', 'Premium coastal tour package covering Southern Expressway, Galle Fort, and luxury beach resorts.', 944000, 'VIP Coordination, Group Van Service, English Speaking Guide, Fuel & Toll Charges Included', 'Toyota HiAce, Honda Vezel', 'active'),
+('Hill Country Scenic Expedition', 'Multi-day hill country travel bundle with experienced mountain terrain chauffeurs and itinerary assistance.', 680000, 'Luxury Van/SUV, Kandy & Nuwara Eliya Circuit, Tea Estate Access, All-Weather Driver', 'Toyota HiAce, Toyota Premio', 'active'),
+('Cultural Triangle Grand Tour', 'Comprehensive heritage tour transport covering Sri Lanka\'s ancient cities with round-the-clock support.', 890000, 'Group Transport Bus/Van, Sigiriya & Polonnaruwa Excursion, Hotel Transfers, Unlimited Mileage', 'Toyota HiAce, Nissan Sunny', 'active'),
+('Gala & Red Carpet Night', 'Glamorous transportation for award ceremonies, gala dinners, and high-profile red carpet events.', 480000, 'Executive Sedan Escort, Red Carpet Drop-off, Hourly Standby Service, Uniformed Driver', 'Toyota Premio, Suzuki WagonR', 'active'),
+('VIP Party Shuttle Express', 'Safe, stylish, and synchronized night event transport for private parties, concerts, and nightlife outings.', 390000, 'Luxury Passenger Van, Multi-stop Nightclub & Concert Transfer, Safe Night Chauffeur, Refreshments', 'Toyota HiAce, Honda Vezel', 'active'),
+('Milestone Celebration Package', 'Specialized transport bundle for milestone birthdays, anniversaries, graduation galas, and family reunions.', 550000, 'Decorated Luxury Vehicle, Photo Shoot Transport, Complimentary Refreshment Basket, Flexible Timings', 'Toyota Axio, Honda Vezel', 'active');
 
 -- Insert Sample Invoices
 INSERT INTO invoices (invoice_number, client_name, client_email, amount, tax, total_amount, status, issue_date, due_date, description) VALUES
