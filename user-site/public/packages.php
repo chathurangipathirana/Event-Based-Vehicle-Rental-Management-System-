@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Our Premium Event Packages';
+$page_title = 'Event Service Packages';
 require_once '../config/database.php';
 require_once '../includes/header.php';
 require_once '../includes/auth.php';
@@ -56,11 +56,20 @@ $categories = [
 
 <?php require_once '../includes/navbar.php'; ?>
 
-<main class="pt-24 min-h-screen bg-gray-50 pb-20">
-    <div class="max-w-7xl mx-auto px-8">
-        <div class="mb-12 text-center max-w-3xl mx-auto">
-            <h1 class="font-h1 text-4xl font-extrabold tracking-tight text-gray-900 mb-4">Premium Service Packages</h1>
-            <p class="text-lg text-gray-500">Carefully curated service bundles combining luxury fleet arrangements and executive coordination for your special occasions.</p>
+<main class="flex-1 bg-surface-bright min-h-screen pt-36 pb-20">
+    <div class="max-w-[1440px] mx-auto p-gutter lg:p-margin">
+        <div class="mb-10">
+            <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-4">
+                <a href="index.php" class="hover:text-red-600">Home</a>
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                <span class="text-gray-900 font-bold">Event Packages</span>
+            </nav>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="font-h1 text-h1 text-on-surface mb-2">Service Packages</h1>
+                    <p class="text-body-lg text-gray-500 max-w-2xl">Selections curated for high-profile events, combining luxury fleet arrangements with operational reliability.</p>
+                </div>
+            </div>
         </div>
 
         <?php if (empty($all_packages)): ?>

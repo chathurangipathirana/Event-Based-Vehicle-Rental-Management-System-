@@ -95,15 +95,16 @@ try {
     // Suppress error
 }
 
-// Fetch available vehicles matching requested category (available OR currently assigned)
+// Fetch available vehicles (available OR currently assigned)
 $available_vehicles = [];
 try {
     $stmtVeh = $pdo->prepare("
         SELECT id, name, model 
         FROM vehicles 
-        WHERE (status = 'available' AND category = ?) OR id = ?
+        WHERE status = 'available' OR id = ?
+        ORDER BY name ASC
     ");
-    $stmtVeh->execute([$booking['vehicle_category'], $booking['vehicle_id']]);
+    $stmtVeh->execute([$booking['vehicle_id']]);
     $available_vehicles = $stmtVeh->fetchAll();
 } catch(PDOException $e) {
     // Suppress error
@@ -115,6 +116,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if ($action === 'update_status') {
         $new_status = $_POST['status'] ?? '';
+        if ($new_status === 'rejected') {
+            $new_status = 'cancelled';
+        }
         $admin_notes = trim($_POST['admin_notes'] ?? '');
         $driver_id = !empty($_POST['driver_id']) ? (int)$_POST['driver_id'] : null;
         $vehicle_id = !empty($_POST['vehicle_id']) ? (int)$_POST['vehicle_id'] : null;

@@ -20,7 +20,7 @@ if ($booking_id <= 0) {
 if ($action === 'approve') {
     $new_status = 'confirmed';
 } elseif ($action === 'reject') {
-    $new_status = 'rejected';
+    $new_status = 'cancelled';
     if (empty($notes)) {
         echo json_encode(['success' => false, 'message' => 'Rejection reason is required']);
         exit;

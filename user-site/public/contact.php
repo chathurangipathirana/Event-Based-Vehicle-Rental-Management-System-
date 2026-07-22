@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<main class="min-h-screen pt-24 pb-16 bg-slate-50 dark:bg-gray-900">
+<main class="min-h-screen pt-48 pb-16 bg-slate-50 dark:bg-gray-900">
     <div class="max-w-[1200px] mx-auto px-6">
         
         <!-- Hero Header -->

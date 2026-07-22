@@ -58,7 +58,7 @@ require_once '../includes/header.php';
             </div>
             <div class="max-w-lg">
                 <h1 class="text-4xl font-extrabold text-white mb-4 leading-tight">Operational Excellence, Unlocked.</h1>
-                <p class="text-lg text-white/90 font-medium">Manage your high-performance fleet with precision. Access logistics, billing, and scheduling in one centralized hub.</p>
+                <p class="text-lg text-white font-semibold">Manage your high-performance fleet with precision. Access logistics, billing, and scheduling in one centralized hub.</p>
             </div>
             <div class="flex items-center space-x-6 text-white">
                 <div class="flex items-center space-x-2">

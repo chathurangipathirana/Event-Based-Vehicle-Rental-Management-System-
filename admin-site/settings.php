@@ -14,8 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
         
         $settings = [
-            'company_name' => $_POST['company_name'] ?? 'FleetElite',
-            'company_email' => $_POST['company_email'] ?? 'info@fleetelite.com',
+            'company_name' => $_POST['company_name'] ?? 'STS',
+            'company_email' => $_POST['company_email'] ?? 'info@sts.lk',
             'company_phone' => $_POST['company_phone'] ?? '+94 11 234 5678',
             'company_address' => $_POST['company_address'] ?? '',
             'currency' => $_POST['currency'] ?? 'LKR',
@@ -52,8 +52,8 @@ while ($row = $stmt->fetch()) {
 }
 
 // Default values if not set
-$company_name = $settings['company_name'] ?? 'FleetElite';
-$company_email = $settings['company_email'] ?? 'info@fleetelite.com';
+$company_name = $settings['company_name'] ?? 'STS';
+$company_email = $settings['company_email'] ?? 'info@sts.lk';
 $company_phone = $settings['company_phone'] ?? '+94 11 234 5678';
 $company_address = $settings['company_address'] ?? '';
 $currency = $settings['currency'] ?? 'LKR';

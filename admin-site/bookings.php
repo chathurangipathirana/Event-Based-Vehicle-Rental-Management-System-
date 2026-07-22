@@ -196,13 +196,17 @@ try {
                     <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]" id="bookingsTable">
                         <?php if (!empty($bookings)): ?>
                             <?php foreach ($bookings as $booking): ?>
-                            <tr class="booking-row" data-status="<?php echo $booking['status']; ?>">
+                            <tr class="booking-row cursor-pointer hover:bg-slate-100/80 transition-all" data-status="<?php echo $booking['status']; ?>" onclick="window.location.href='booking-details.php?id=<?php echo $booking['id']; ?>'">
                                 <td class="px-6 py-4">
-                                    <span class="text-sm font-semibold text-[#191c1d]">#<?php echo substr($booking['booking_number'] ?? 'BK-' . $booking['id'], -8); ?></span>
+                                    <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="text-sm font-semibold text-cyan-700 hover:underline">
+                                        #<?php echo substr($booking['booking_number'] ?? 'BK-' . $booking['id'], -8); ?>
+                                    </a>
                                 </td>
                                 <td class="px-6 py-4">
                                     <div class="flex flex-col gap-1">
-                                        <span class="text-sm font-semibold text-[#191c1d]"><?php echo htmlspecialchars($booking['event_name'] ?: $booking['event_type_name'] ?: 'Event'); ?></span>
+                                        <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="text-sm font-semibold text-[#191c1d] hover:text-cyan-700">
+                                            <?php echo htmlspecialchars($booking['event_name'] ?: $booking['event_type_name'] ?: 'Event'); ?>
+                                        </a>
                                         <span class="text-xs text-slate-500"><?php echo htmlspecialchars($booking['client_name'] ?: 'Guest'); ?></span>
                                     </div>
                                 </td>
@@ -243,8 +247,11 @@ try {
                                         <?php echo $status_text; ?>
                                     </span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-[#191c1d] text-white text-xs font-semibold hover:bg-slate-800 transition-all">Details</a>
+                                <td class="px-6 py-4" onclick="event.stopPropagation();">
+                                    <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-[#191c1d] text-white text-xs font-semibold hover:bg-slate-800 transition-all gap-1">
+                                        <span class="material-symbols-outlined text-xs">visibility</span>
+                                        Details
+                                    </a>
                                 </td>
                             </tr>
                             <?php endforeach; ?>

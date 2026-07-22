@@ -31,8 +31,8 @@ $recent_bookings = [];
 try {
     $stmt = $pdo->query("
         SELECT 
-            b.id,
-            COALESCE(b.booking_number, CONCAT('#FE-', b.id)) as id,
+            b.id as real_id,
+            COALESCE(b.booking_number, CONCAT('#FE-', b.id)) as display_id,
             COALESCE(u.full_name, 'Guest') as customer,
             COALESCE(v.name, 'Unknown Vehicle') as vehicle,
             b.total_amount as amount,
@@ -42,7 +42,7 @@ try {
         LEFT JOIN users u ON b.user_id = u.id
         LEFT JOIN vehicles v ON b.vehicle_id = v.id
         ORDER BY b.created_at DESC
-        LIMIT 4
+        LIMIT 6
     ");
     $recent_bookings = $stmt->fetchAll();
 } catch(PDOException $e) {
@@ -184,22 +184,33 @@ try {
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Amount</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Date</th>
                             <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Action</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]">
                         <?php foreach ($recent_bookings as $booking): ?>
-                        <tr>
-                            <td class="px-6 py-4 font-semibold"><?php echo $booking['id']; ?></td>
-                            <td class="px-6 py-4"><?php echo $booking['customer']; ?></td>
-                            <td class="px-6 py-4"><?php echo $booking['vehicle']; ?></td>
+                        <tr class="cursor-pointer hover:bg-slate-100 transition-all" onclick="window.location.href='booking-details.php?id=<?php echo $booking['real_id']; ?>'">
+                            <td class="px-6 py-4 font-semibold text-cyan-700">
+                                <a href="booking-details.php?id=<?php echo $booking['real_id']; ?>" class="hover:underline">
+                                    <?php echo htmlspecialchars($booking['display_id']); ?>
+                                </a>
+                            </td>
+                            <td class="px-6 py-4"><?php echo htmlspecialchars($booking['customer']); ?></td>
+                            <td class="px-6 py-4"><?php echo htmlspecialchars($booking['vehicle']); ?></td>
                             <td class="px-6 py-4 font-medium">LKR <?php echo number_format($booking['amount'], 2); ?></td>
-                            <td class="px-6 py-4"><?php echo $booking['date']; ?></td>
+                            <td class="px-6 py-4"><?php echo htmlspecialchars($booking['date']); ?></td>
                             <td class="px-6 py-4">
                                 <span class="px-3 py-1 text-xs rounded-full font-semibold <?php 
-                                    echo $booking['status'] == 'pending' ? 'bg-yellow-100 text-yellow-700' : 
-                                        ($booking['status'] == 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'); ?>">
+                                    echo $booking['status'] == 'pending' ? 'bg-amber-100 text-amber-700' : 
+                                        ($booking['status'] == 'confirmed' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700'); ?>">
                                     <?php echo ucfirst($booking['status']); ?>
                                 </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="booking-details.php?id=<?php echo $booking['real_id']; ?>" class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-all inline-flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-xs">visibility</span>
+                                    Details
+                                </a>
                             </td>
                         </tr>
                         <?php endforeach; ?>

@@ -44,7 +44,7 @@ $eventTypes = $stmtEvent->fetchAll();
 require_once '../includes/navbar.php';
 ?>
 
-<main class="flex-1 bg-surface-bright min-h-screen pt-16">
+<main class="flex-1 bg-surface-bright min-h-screen pt-36 pb-16">
     <div class="max-w-[1440px] mx-auto p-gutter lg:p-margin">
         <div class="mb-10">
             <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-4">

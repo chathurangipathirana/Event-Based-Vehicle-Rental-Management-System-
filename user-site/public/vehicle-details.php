@@ -19,7 +19,7 @@ $similar_vehicles = $stmt->fetchAll();
 <?php require_once '../includes/header.php'; ?>
 <?php require_once '../includes/navbar.php'; ?>
 
-<main class="pt-16 min-h-screen bg-gray-50">
+<main class="pt-28 min-h-screen bg-gray-50 pb-16">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <!-- Breadcrumb -->
         <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">

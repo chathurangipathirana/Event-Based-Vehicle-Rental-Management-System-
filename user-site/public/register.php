@@ -63,7 +63,7 @@ require_once '../includes/header.php';
                 <h1 class="text-4xl lg:text-5xl font-extrabold text-white mb-4 leading-tight drop-shadow-md">
                     Join STS Vehicle Rentals
                 </h1>
-                <p class="text-base lg:text-lg text-slate-200 font-medium leading-relaxed drop-shadow">
+                <p class="text-base lg:text-lg text-white font-semibold leading-relaxed drop-shadow">
                     Create your free account today to manage vehicle rentals, book luxury event fleets, and access exclusive corporate rates.
                 </p>
             </div>

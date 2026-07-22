@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
-<main class="min-h-screen pt-24 pb-16 bg-slate-50 dark:bg-gray-900">
+<main class="min-h-screen pt-48 pb-16 bg-slate-50 dark:bg-gray-900">
     <div class="max-w-[1000px] mx-auto px-6">
         
         <!-- Header -->
