@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS bookings (
   booking_number VARCHAR(50) NOT NULL UNIQUE,
   user_id INT UNSIGNED NOT NULL,
   vehicle_id INT UNSIGNED NOT NULL,
+  driver_id INT UNSIGNED DEFAULT NULL,
   event_type_id INT UNSIGNED NOT NULL,
   event_name VARCHAR(150) DEFAULT NULL,
   event_date DATE NOT NULL,

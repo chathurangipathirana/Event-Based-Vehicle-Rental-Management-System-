@@ -4,16 +4,20 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
-<main class="min-h-screen pt-48 pb-16 bg-slate-50 dark:bg-gray-900">
-    <div class="max-w-[1200px] mx-auto px-6">
-        
-        <!-- Hero Header -->
-        <div class="text-center max-w-3xl mx-auto mb-16">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-cyan-100 text-primary text-xs font-bold uppercase tracking-wider mb-4">Event Fleet & Transport Management</span>
-            <h1 class="text-3xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4">Seamless Event Logistics & Fleet Solutions</h1>
-            <p class="text-gray-600 dark:text-gray-400 font-inter text-base md:text-lg leading-relaxed">
-                STS provides complete end-to-end event fleet logistics across Sri Lanka — supporting weddings, corporate summits, VIP delegations, and large-scale entertainment events with precision timing and luxury vehicles.
-            </p>
+<main class="flex-1 bg-surface-bright min-h-screen pt-36 pb-16">
+    <div class="max-w-[1440px] mx-auto p-gutter lg:p-margin">
+        <div class="mb-10">
+            <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-4">
+                <a href="index.php" class="hover:text-red-600">Home</a>
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                <span class="text-gray-900 font-bold">Fleet Logistics</span>
+            </nav>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="font-h1 text-h1 text-on-surface mb-2">Fleet Logistics</h1>
+                    <p class="text-body-lg text-gray-500 max-w-2xl">Seamless Event Logistics & Fleet Solutions across Sri Lanka • STS Vehicle Rental Management System</p>
+                </div>
+            </div>
         </div>
 
         <!-- Key Logistics Capabilities Grid -->

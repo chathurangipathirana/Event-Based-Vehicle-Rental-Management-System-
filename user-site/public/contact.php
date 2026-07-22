@@ -20,14 +20,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-<main class="min-h-screen pt-48 pb-16 bg-slate-50 dark:bg-gray-900">
-    <div class="max-w-[1200px] mx-auto px-6">
-        
-        <!-- Hero Header -->
-        <div class="text-center max-w-2xl mx-auto mb-12">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-cyan-100 text-primary text-xs font-bold uppercase tracking-wider mb-4">Get In Touch</span>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-4">Contact Our Logistics & Support Team</h1>
-            <p class="text-gray-600 dark:text-gray-400 font-inter text-base">Have questions about our event fleet, vehicle bookings, or custom event packages? We're available 24/7 to assist you.</p>
+<main class="flex-1 bg-surface-bright min-h-screen pt-36 pb-16">
+    <div class="max-w-[1440px] mx-auto p-gutter lg:p-margin">
+        <div class="mb-10">
+            <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-4">
+                <a href="index.php" class="hover:text-red-600">Home</a>
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                <span class="text-gray-900 font-bold">Contact Us</span>
+            </nav>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="font-h1 text-h1 text-on-surface mb-2">Contact Us</h1>
+                    <p class="text-body-lg text-gray-500 max-w-2xl">Contact Our Logistics & Support Team • We are available 24/7 to assist you.</p>
+                </div>
+            </div>
         </div>
 
         <?php if (!empty($success_msg)): ?>

@@ -4,14 +4,20 @@ require_once __DIR__ . '/../includes/header.php';
 require_once __DIR__ . '/../includes/navbar.php';
 ?>
 
-<main class="min-h-screen pt-48 pb-16 bg-slate-50 dark:bg-gray-900">
-    <div class="max-w-[1000px] mx-auto px-6">
-        
-        <!-- Header -->
-        <div class="mb-10 text-center">
-            <span class="inline-block px-4 py-1.5 rounded-full bg-cyan-100 text-primary text-xs font-bold uppercase tracking-wider mb-4">Legal Agreement</span>
-            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-3">Terms of Service</h1>
-            <p class="text-gray-500 dark:text-gray-400 font-inter text-sm">Last updated: July 22, 2026 • STS Vehicle Rental Management System</p>
+<main class="flex-1 bg-surface-bright min-h-screen pt-36 pb-16">
+    <div class="max-w-[1440px] mx-auto p-gutter lg:p-margin">
+        <div class="mb-10">
+            <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-4">
+                <a href="index.php" class="hover:text-red-600">Home</a>
+                <span class="material-symbols-outlined text-sm">chevron_right</span>
+                <span class="text-gray-900 font-bold">Terms of Service</span>
+            </nav>
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="font-h1 text-h1 text-on-surface mb-2">Terms of Service</h1>
+                    <p class="text-body-lg text-gray-500 max-w-2xl">Rental Terms & Conditions • STS Vehicle Rental Management System</p>
+                </div>
+            </div>
         </div>
 
         <div class="bg-white dark:bg-gray-800 p-8 md:p-12 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm space-y-8 font-inter text-gray-700 dark:text-gray-300">

@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     booking_number VARCHAR(20) UNIQUE NOT NULL,
     user_id INT,
     vehicle_id INT,
+    driver_id INT DEFAULT NULL,
     event_type_id INT,
     event_name VARCHAR(100),
     event_date DATE,

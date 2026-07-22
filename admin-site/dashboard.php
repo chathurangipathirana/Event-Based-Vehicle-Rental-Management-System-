@@ -206,7 +206,7 @@ try {
                                     <?php echo ucfirst($booking['status']); ?>
                                 </span>
                             </td>
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4" onclick="event.stopPropagation();">
                                 <a href="booking-details.php?id=<?php echo $booking['real_id']; ?>" class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold hover:bg-slate-800 transition-all inline-flex items-center gap-1">
                                     <span class="material-symbols-outlined text-xs">visibility</span>
                                     Details
