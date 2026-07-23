@@ -507,8 +507,9 @@ if ($step == 1) {
                         </div>
                         
                         <form method="POST">
-                            <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition">
-                                Confirm & Pay
+                            <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold transition shadow-md flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined">check_circle</span>
+                                Confirm Booking
                             </button>
                         </form>
                     </div>
