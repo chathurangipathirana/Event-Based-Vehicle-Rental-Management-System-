@@ -3,25 +3,17 @@ $page_title = 'Our Premium Vehicles';
 require_once '../config/database.php';
 require_once '../includes/header.php';
 
-// Get filter parameters
-$search = $_GET['search'] ?? '';
-$types = ['Sedan', 'SUV', 'Luxury', 'Van'];
-$type_filters = array_values(array_intersect($types, (array) ($_GET['type'] ?? [])));
+// Get search parameter
+$search = trim($_GET['search'] ?? '');
 
 // Build query
 $sql = "SELECT * FROM vehicles WHERE status = 'available'";
 $params = [];
 
-if ($search) {
+if ($search !== '') {
     $sql .= " AND (name LIKE ? OR model LIKE ? OR description LIKE ?)";
-    $params[] = "%$search%";
-    $params[] = "%$search%";
-    $params[] = "%$search%";
-}
-
-if ($type_filters) {
-    $sql .= ' AND category IN (' . implode(', ', array_fill(0, count($type_filters), '?')) . ')';
-    $params = array_merge($params, $type_filters);
+    $searchTerm = "%$search%";
+    $params = [$searchTerm, $searchTerm, $searchTerm];
 }
 
 $stmt = $pdo->prepare($sql);
@@ -44,50 +36,20 @@ require_once '../includes/navbar.php';
                     <h1 class="font-h1 text-h1 text-on-surface mb-2">Vehicle Gallery</h1>
                     <p class="text-body-lg text-gray-500 max-w-2xl">Premium selections curated for high-profile events, combining luxury with operational reliability.</p>
                 </div>
-                <div class="flex items-center gap-4 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
-                    <button id="grid-view-btn" class="px-4 py-2 bg-gray-100 text-gray-900 font-bold rounded">Grid View</button>
-                    <button id="list-view-btn" class="px-4 py-2 text-gray-500 hover:text-red-600 font-medium rounded">List View</button>
+                <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <form method="GET" action="vehicles.php">
+                        <label for="vehicle-search" class="sr-only">Search vehicles</label>
+                        <input id="vehicle-search" type="search" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search" class="w-full sm:w-52 px-4 py-2 border border-gray-200 rounded-lg focus:ring-primary focus:border-primary" />
+                    </form>
+                    <div class="flex items-center gap-1 bg-white p-1 rounded-lg border border-gray-200 shadow-sm">
+                        <button id="grid-view-btn" class="px-4 py-2 bg-gray-100 text-gray-900 font-bold rounded">Grid View</button>
+                        <button id="list-view-btn" class="px-4 py-2 text-gray-500 hover:text-red-600 font-medium rounded">List View</button>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-[20rem_minmax(0,1fr)] gap-8">
-            <aside class="hidden lg:block bg-white rounded-3xl border border-gray-200 p-6 shadow-sm sticky top-24 h-fit">
-                <div class="mb-8">
-                    <h4 class="font-h3 text-label-md text-on-surface uppercase tracking-widest mb-4">Vehicle Type</h4>
-                    <form method="GET" action="vehicles.php" class="flex flex-col gap-3">
-                        <?php if ($search): ?><input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>"><?php endif; ?>
-                        <?php foreach ($types as $type): ?>
-                            <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" name="type[]" value="<?php echo htmlspecialchars($type); ?>" onchange="this.form.submit()" class="w-4 h-4 text-red-600 rounded border-gray-300 cursor-pointer" <?php echo in_array($type, $type_filters, true) ? 'checked' : ''; ?> />
-                                <span class="text-body-md text-gray-600 group-hover:text-red-600 transition-colors"><?php echo $type; ?></span>
-                            </label>
-                        <?php endforeach; ?>
-                    </form>
-                </div>
-                <div>
-                    <h4 class="font-h3 text-label-md text-on-surface uppercase tracking-widest mb-4">Price Range</h4>
-                    <div class="px-2">
-                        <input type="range" min="50" max="1000" step="50" class="w-full h-2 bg-gray-200 rounded-lg" style="accent-color: var(--primary);" />
-                        <div class="flex justify-between mt-2 text-label-sm text-gray-400">
-                            <span>LKR 5,000/hr</span>
-                            <span>LKR 100,000/hr</span>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <section class="space-y-8">
-                <div class="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
-                    <form method="GET" action="vehicles.php" class="grid grid-cols-1 lg:grid-cols-[1fr_160px] gap-4 items-end">
-                        <div>
-                            <label class="block text-label-sm font-label-sm text-gray-500 mb-2">Search</label>
-                            <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search vehicles or models..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-primary focus:border-primary" />
-                        </div>
-                        <button type="submit" class="w-full lg:w-auto bg-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-700 transition">Search</button>
-                    </form>
-                </div>
-
+        <section class="space-y-8">
                 <div id="vehicles-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                     <?php foreach ($vehicles as $vehicle): ?>
                         <div class="bg-white border border-gray-200 rounded-3xl overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col vehicle-card">
@@ -120,8 +82,7 @@ require_once '../includes/navbar.php';
                         <p class="text-lg">No vehicles found matching your criteria.</p>
                     </div>
                 <?php endif; ?>
-            </section>
-        </div>
+        </section>
     </div>
     
     <script>

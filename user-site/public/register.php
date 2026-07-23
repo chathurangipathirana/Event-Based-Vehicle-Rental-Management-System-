@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 require_once '../includes/header.php';
 ?>
 
-<main class="min-h-screen flex flex-col md:flex-row bg-slate-100">
+<main class="min-h-screen flex flex-col md:flex-row bg-[#f3fffe]">
     <!-- Left Hero Image Banner -->
     <section class="hidden md:flex md:w-1/2 lg:w-3/5 bg-slate-900 relative overflow-hidden">
         <div class="absolute inset-0 z-0">
@@ -85,8 +85,8 @@ require_once '../includes/header.php';
     </section>
 
     <!-- Right Registration Form Section -->
-    <section class="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center bg-white py-16 px-6 md:px-12 shadow-2xl z-10">
-        <div class="w-full max-w-md space-y-6">
+    <section class="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center bg-[#f3fffe] py-16 px-6 md:px-12 shadow-2xl z-10">
+        <div class="w-full max-w-lg space-y-6 bg-white rounded-3xl border border-teal-100 p-8 md:p-10 shadow-xl">
             
             <div class="md:hidden text-center mb-6">
                 <a href="index.php" class="text-3xl font-black text-primary italic uppercase tracking-tight inline-flex items-center gap-2">
@@ -114,14 +114,9 @@ require_once '../includes/header.php';
                 </div>
             <?php endif; ?>
 
-            <!-- Tabs -->
-            <div class="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-                <a href="login.php" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-gray-700 hover:text-gray-900 text-center">
-                    Login
-                </a>
-                <a href="register.php" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-white text-primary shadow-sm text-center">
-                    Create Account
-                </a>
+            <div class="flex w-full border-b border-gray-200">
+                <a href="login.php" class="flex-1 py-3 text-sm font-bold text-gray-600 hover:text-primary text-center transition-colors">Login</a>
+                <a href="register.php" aria-current="page" class="flex-1 py-3 text-sm font-bold text-primary text-center border-b-2 border-primary -mb-px">Create Account</a>
             </div>
 
             <form method="POST" action="register.php" class="space-y-4" autocomplete="off">

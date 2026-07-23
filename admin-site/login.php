@@ -124,9 +124,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </button>
         </form>
         
-        <div class="text-center mt-6">
-            <p class="text-sm text-gray-500">Demo: admin@royallankarides.com / Admin123!</p>
-        </div>
     </div>
 </body>
 </html>

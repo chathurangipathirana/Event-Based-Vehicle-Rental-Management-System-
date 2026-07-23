@@ -18,7 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim($_POST['description'] ?? '');
         $services = trim($_POST['services'] ?? '');
         $vehicles = trim($_POST['vehicles'] ?? '');
-        $status = trim($_POST['status'] ?? 'draft');
+        $status = trim($_POST['status'] ?? 'active');
+        if (!in_array($status, ['active', 'draft', 'archived'], true)) {
+            $status = 'active';
+        }
         $image_url = null;
 
         // Handle image upload if provided
@@ -72,6 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $image_url, $id]);
                     $_SESSION['message'] = 'Package updated successfully!';
                 } else {
+                    // New admin packages are published immediately for the user package page.
+                    $status = 'active';
                     $stmt = $pdo->prepare("\
                         INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status, image_url)
                         VALUES (?, ?, ?, ?, ?, ?, ?)

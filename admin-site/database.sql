@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS event_packages (
     base_price DECIMAL(15,2) NOT NULL,
     included_services TEXT,
     vehicle_types VARCHAR(255),
-    status ENUM('active', 'draft', 'archived') DEFAULT 'draft',
+    status ENUM('active', 'draft', 'archived') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
