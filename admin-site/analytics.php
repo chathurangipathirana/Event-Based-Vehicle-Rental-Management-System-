@@ -72,249 +72,173 @@ $reportDateSql = $reportStartDate && $reportEndDate ? ' WHERE event_date BETWEEN
 $reportDateParams = $reportStartDate && $reportEndDate
     ? [$reportStartDate->format('Y-m-d'), $reportEndDate->format('Y-m-d')]
     : [];
+$nonCancelledBookingFilterSql = $reportStartDate && $reportEndDate
+    ? 'event_date BETWEEN ? AND ? AND status != \'cancelled\''
+    : "status != 'cancelled'";
+$nonCancelledAliasBookingFilterSql = $reportStartDate && $reportEndDate
+    ? "b.event_date BETWEEN ? AND ? AND b.status != 'cancelled'"
+    : "b.status != 'cancelled'";
 
-// Fetch stats from database or fallback to authentic Sri Lankan fleet metrics
+// Fetch stats and all graph datasets from the real database
+$total_bookings = 0;
+$total_revenue = 0;
+$active_bookings = 0;
+$fleet_health = 0;
+$weekly_data = [
+    ['day' => 'Monday', 'count' => 0, 'revenue' => 0],
+    ['day' => 'Tuesday', 'count' => 0, 'revenue' => 0],
+    ['day' => 'Wednesday', 'count' => 0, 'revenue' => 0],
+    ['day' => 'Thursday', 'count' => 0, 'revenue' => 0],
+    ['day' => 'Friday', 'count' => 0, 'revenue' => 0],
+    ['day' => 'Saturday', 'count' => 0, 'revenue' => 0],
+    ['day' => 'Sunday', 'count' => 0, 'revenue' => 0],
+];
+$monthly_revenue = [];
+$event_distribution = [];
+$vehicle_performance = [];
+
 try {
-    $statsStmt = $pdo->prepare("SELECT COUNT(*) AS total_bookings, COALESCE(SUM(total_amount), 0) AS total_revenue FROM bookings{$reportDateSql}");
+    $statsStmt = $pdo->prepare("SELECT COUNT(*) AS total_bookings, COALESCE(SUM(total_amount), 0) AS total_revenue FROM bookings WHERE {$nonCancelledBookingFilterSql}");
     $statsStmt->execute($reportDateParams);
-    $reportStats = $statsStmt->fetch();
-    $total_bookings = $reportStats['total_bookings'];
-    $total_revenue = $reportStats['total_revenue'];
+    $reportStats = $statsStmt->fetch() ?: [];
+    $total_bookings = (int) ($reportStats['total_bookings'] ?? 0);
+    $total_revenue = (float) ($reportStats['total_revenue'] ?? 0);
 
     $activeDateSql = $reportDateSql ? "{$reportDateSql} AND" : ' WHERE';
     $activeStmt = $pdo->prepare("SELECT COUNT(*) FROM bookings{$activeDateSql} status IN ('pending', 'confirmed', 'in_progress')");
     $activeStmt->execute($reportDateParams);
-    $active_bookings = $activeStmt->fetchColumn();
-    $fleet_health = 94;
-} catch (PDOException $e) {
-    $total_bookings = 1284;
-    $total_revenue = 18450000;
-    $active_bookings = 42;
-    $fleet_health = 94;
-}
+    $active_bookings = (int) $activeStmt->fetchColumn();
 
-// Weekly performance data in LKR
-$weekly_data = [
-    ['day' => 'Monday', 'count' => 45, 'revenue' => 1250000],
-    ['day' => 'Tuesday', 'count' => 52, 'revenue' => 1440000],
-    ['day' => 'Wednesday', 'count' => 48, 'revenue' => 1330000],
-    ['day' => 'Thursday', 'count' => 61, 'revenue' => 1700000],
-    ['day' => 'Friday', 'count' => 73, 'revenue' => 2030000],
-    ['day' => 'Saturday', 'count' => 58, 'revenue' => 1600000],
-    ['day' => 'Sunday', 'count' => 39, 'revenue' => 1080000],
-];
+    $fleetStats = $pdo->query("SELECT COUNT(*) AS total, SUM(CASE WHEN status != 'maintenance' THEN 1 ELSE 0 END) AS operational FROM vehicles")->fetch();
+    $totalVehicles = (int) ($fleetStats['total'] ?? 0);
+    $operationalVehicles = (int) ($fleetStats['operational'] ?? 0);
+    $fleet_health = $totalVehicles > 0 ? round(($operationalVehicles / $totalVehicles) * 100) : 0;
 
-// Monthly revenue data in LKR
-$monthly_revenue = [
-    ['month' => 'January', 'revenue' => 2450000],
-    ['month' => 'February', 'revenue' => 2680000],
-    ['month' => 'March', 'revenue' => 3100000],
-    ['month' => 'April', 'revenue' => 3450000],
-    ['month' => 'May', 'revenue' => 3890000],
-    ['month' => 'June', 'revenue' => 4200000],
-];
+    $weeklyStart = $reportStartDate ? $reportStartDate->modify('monday this week') : $today->modify('monday this week');
+    $weeklyEnd = $weeklyStart->modify('+6 days');
+    $weeklyStmt = $pdo->prepare("
+        SELECT DAYOFWEEK(event_date) AS weekday_index,
+               COUNT(*) AS booking_count,
+               COALESCE(SUM(total_amount), 0) AS total_revenue
+        FROM bookings
+        WHERE event_date BETWEEN ? AND ? AND status != 'cancelled'
+        GROUP BY DAYOFWEEK(event_date)
+    ");
+    $weeklyStmt->execute([$weeklyStart->format('Y-m-d'), $weeklyEnd->format('Y-m-d')]);
+    $weeklyIndexMap = [2 => 0, 3 => 1, 4 => 2, 5 => 3, 6 => 4, 7 => 5, 1 => 6];
+    foreach ($weeklyStmt->fetchAll() as $row) {
+        $sourceIndex = (int) ($row['weekday_index'] ?? 0);
+        if (isset($weeklyIndexMap[$sourceIndex])) {
+            $targetIndex = $weeklyIndexMap[$sourceIndex];
+            $weekly_data[$targetIndex]['count'] = (int) ($row['booking_count'] ?? 0);
+            $weekly_data[$targetIndex]['revenue'] = (float) ($row['total_revenue'] ?? 0);
+        }
+    }
 
-$event_distribution = [
-    ['name' => 'Wedding Transportation', 'percentage' => 45],
-    ['name' => 'Corporate & Business Trips', 'percentage' => 30],
-    ['name' => 'Island Tours & Special Events', 'percentage' => 25],
-];
+    $monthlyStart = $today->modify('first day of -5 months')->setTime(0, 0);
+    $monthlyStmt = $pdo->prepare("
+        SELECT DATE_FORMAT(event_date, '%Y-%m') AS month_key,
+               DATE_FORMAT(event_date, '%M') AS month_name,
+               COALESCE(SUM(total_amount), 0) AS total_revenue
+        FROM bookings
+        WHERE event_date >= ? AND event_date <= ? AND status != 'cancelled'
+        GROUP BY DATE_FORMAT(event_date, '%Y-%m'), DATE_FORMAT(event_date, '%M')
+        ORDER BY month_key ASC
+    ");
+    $monthlyStmt->execute([$monthlyStart->format('Y-m-d'), $today->format('Y-m-d')]);
+    $monthlyMap = [];
+    foreach ($monthlyStmt->fetchAll() as $row) {
+        $monthlyMap[$row['month_key']] = [
+            'month' => $row['month_name'],
+            'revenue' => (float) ($row['total_revenue'] ?? 0),
+        ];
+    }
+    for ($i = 5; $i >= 0; $i--) {
+        $monthDate = $today->modify('first day of -' . $i . ' months');
+        $monthKey = $monthDate->format('Y-m');
+        $monthly_revenue[] = $monthlyMap[$monthKey] ?? [
+            'month' => $monthDate->format('F'),
+            'revenue' => 0,
+        ];
+    }
 
-// Query EACH Vehicle Performance from database or fallback to detailed Sri Lankan fleet metrics
-$vehicle_performance = [];
-try {
-    $bookingJoinFilter = $reportDateSql ? ' AND b.event_date BETWEEN ? AND ?' : '';
-    $stmt = $pdo->prepare("
+    $eventStmt = $pdo->prepare("
+        SELECT COALESCE(et.name, 'Uncategorized') AS event_name,
+               COUNT(*) AS booking_count
+        FROM bookings b
+        LEFT JOIN event_types et ON et.id = b.event_type_id
+        WHERE {$nonCancelledAliasBookingFilterSql}
+        GROUP BY COALESCE(et.name, 'Uncategorized')
+        ORDER BY booking_count DESC, event_name ASC
+        LIMIT 5
+    ");
+    $eventStmt->execute($reportDateParams);
+    $eventRows = $eventStmt->fetchAll();
+    $eventTotalBookings = array_sum(array_map(static fn($row) => (int) ($row['booking_count'] ?? 0), $eventRows));
+    foreach ($eventRows as $row) {
+        $bookingCount = (int) ($row['booking_count'] ?? 0);
+        $event_distribution[] = [
+            'name' => $row['event_name'] ?: 'Uncategorized',
+            'percentage' => $eventTotalBookings > 0 ? round(($bookingCount / $eventTotalBookings) * 100) : 0,
+        ];
+    }
+
+    $bookingJoinFilter = ' AND ' . $nonCancelledAliasBookingFilterSql;
+    $vehicleStmt = $pdo->prepare("
         SELECT
             v.id,
             v.name,
             v.model,
-            COALESCE(v.category, 'Sedan') as category,
+            COALESCE(v.category, 'Uncategorized') AS category,
             v.status,
             v.price_per_day,
             v.price_per_hour,
             v.image_url,
-            COALESCE(COUNT(b.id), 0) as bookings,
-            COALESCE(SUM(b.total_hours), 0) as total_hours,
-            COALESCE(SUM(b.total_amount), v.price_per_day * 12) as revenue
+            COALESCE(COUNT(b.id), 0) AS bookings,
+            COALESCE(SUM(b.total_hours), 0) AS total_hours,
+            COALESCE(SUM(b.total_amount), 0) AS revenue
         FROM vehicles v
         LEFT JOIN bookings b ON v.id = b.vehicle_id{$bookingJoinFilter}
-        GROUP BY v.id
-        ORDER BY revenue DESC, bookings DESC
+        GROUP BY v.id, v.name, v.model, v.category, v.status, v.price_per_day, v.price_per_hour, v.image_url
+        ORDER BY revenue DESC, bookings DESC, v.name ASC
     ");
-    $popular_vehicles = $stmt->fetchAll();
+    $vehicleStmt->execute($reportDateParams);
+    $vehicle_performance = $vehicleStmt->fetchAll();
 } catch (PDOException $e) {
+    $total_bookings = 0;
+    $total_revenue = 0;
+    $active_bookings = 0;
+    $fleet_health = 0;
     $vehicle_performance = [];
 }
 
-if (empty($vehicle_performance)) {
-    $vehicle_performance = [
-        [
-            'id' => 1,
-            'name' => 'Colombo Toyota Premio F-Ex',
-            'model' => 'Toyota Premio',
-            'category' => 'Executive Sedan',
-            'status' => 'available',
-            'price_per_day' => 22000,
-            'price_per_hour' => 2800,
-            'bookings' => 142,
-            'total_hours' => 852,
-            'revenue' => 3124000,
-            'image_url' => 'assets/vehicles/toyota-premio.png'
-        ],
-        [
-            'id' => 2,
-            'name' => 'Galle Honda Vezel RS',
-            'model' => 'Honda Vezel RS',
-            'category' => 'Hybrid SUV',
-            'status' => 'available',
-            'price_per_day' => 24500,
-            'price_per_hour' => 3200,
-            'bookings' => 118,
-            'total_hours' => 708,
-            'revenue' => 2891000,
-            'image_url' => 'assets/vehicles/honda-vezel.png'
-        ],
-        [
-            'id' => 3,
-            'name' => 'Negombo Toyota HiAce KDH Super GL',
-            'model' => 'Toyota HiAce KDH 200',
-            'category' => 'High Roof Van',
-            'status' => 'booked',
-            'price_per_day' => 30000,
-            'price_per_hour' => 3800,
-            'bookings' => 96,
-            'total_hours' => 672,
-            'revenue' => 2880000,
-            'image_url' => 'assets/vehicles/toyota-hiace.png'
-        ],
-        [
-            'id' => 4,
-            'name' => 'Kandy Toyota Axio Hybrid',
-            'model' => 'Toyota Corolla Axio',
-            'category' => 'Luxury Sedan',
-            'status' => 'booked',
-            'price_per_day' => 18500,
-            'price_per_hour' => 2400,
-            'bookings' => 135,
-            'total_hours' => 675,
-            'revenue' => 2497500,
-            'image_url' => 'assets/vehicles/toyota-axio.png'
-        ],
-        [
-            'id' => 5,
-            'name' => 'Bentota Toyota Premio Luxury Bridal Edition',
-            'model' => 'Toyota Premio G Superior',
-            'category' => 'Bridal Special',
-            'status' => 'booked',
-            'price_per_day' => 26000,
-            'price_per_hour' => 3500,
-            'bookings' => 88,
-            'total_hours' => 528,
-            'revenue' => 2288000,
-            'image_url' => 'assets/vehicles/toyota-premio.png'
-        ],
-        [
-            'id' => 6,
-            'name' => 'Nuwara Eliya Honda Vezel Z Sensing',
-            'model' => 'Honda Vezel Hybrid',
-            'category' => 'Hybrid SUV',
-            'status' => 'available',
-            'price_per_day' => 25000,
-            'price_per_hour' => 3300,
-            'bookings' => 79,
-            'total_hours' => 474,
-            'revenue' => 1975000,
-            'image_url' => 'assets/vehicles/honda-vezel.png'
-        ],
-        [
-            'id' => 7,
-            'name' => 'Kurunegala Toyota HiAce VIP Commuter',
-            'model' => 'Toyota HiAce KDH 222',
-            'category' => 'Passenger Bus/Van',
-            'status' => 'available',
-            'price_per_day' => 32000,
-            'price_per_hour' => 4200,
-            'bookings' => 58,
-            'total_hours' => 464,
-            'revenue' => 1856000,
-            'image_url' => 'assets/vehicles/toyota-hiace.png'
-        ],
-        [
-            'id' => 8,
-            'name' => 'Colombo Toyota Corolla Grace Hybrid',
-            'model' => 'Honda Grace / Toyota Corolla',
-            'category' => 'Executive Hybrid',
-            'status' => 'available',
-            'price_per_day' => 20000,
-            'price_per_hour' => 2600,
-            'bookings' => 92,
-            'total_hours' => 460,
-            'revenue' => 1840000,
-            'image_url' => 'assets/vehicles/toyota-axio.png'
-        ],
-        [
-            'id' => 9,
-            'name' => 'Jaffna Toyota Axio EX',
-            'model' => 'Toyota Corolla Axio',
-            'category' => 'Sedan',
-            'status' => 'available',
-            'price_per_day' => 18000,
-            'price_per_hour' => 2350,
-            'bookings' => 85,
-            'total_hours' => 425,
-            'revenue' => 1530000,
-            'image_url' => 'assets/vehicles/toyota-axio.png'
-        ],
-        [
-            'id' => 10,
-            'name' => 'Colombo Nissan Sunny Super Saloon',
-            'model' => 'Nissan Sunny N17',
-            'category' => 'Economy Sedan',
-            'status' => 'available',
-            'price_per_day' => 16000,
-            'price_per_hour' => 2000,
-            'bookings' => 94,
-            'total_hours' => 376,
-            'revenue' => 1504000,
-            'image_url' => 'assets/vehicles/nissan-sunny.png'
-        ],
-        [
-            'id' => 11,
-            'name' => 'Matara Suzuki Wagon R Stingray',
-            'model' => 'Suzuki Wagon R Stingray',
-            'category' => 'Hybrid Hatchback',
-            'status' => 'available',
-            'price_per_day' => 14000,
-            'price_per_hour' => 1800,
-            'bookings' => 104,
-            'total_hours' => 312,
-            'revenue' => 1456000,
-            'image_url' => 'assets/vehicles/suzuki-wagonr.png'
-        ],
-        [
-            'id' => 12,
-            'name' => 'Trincomalee Suzuki Swift RS',
-            'model' => 'Suzuki Swift Turbo',
-            'category' => 'Hatchback',
-            'status' => 'maintenance',
-            'price_per_day' => 15000,
-            'price_per_hour' => 1900,
-            'bookings' => 45,
-            'total_hours' => 180,
-            'revenue' => 675000,
-            'image_url' => 'assets/vehicles/suzuki-wagonr.png'
-        ]
+if (empty($monthly_revenue)) {
+    for ($i = 5; $i >= 0; $i--) {
+        $monthDate = $today->modify('first day of -' . $i . ' months');
+        $monthly_revenue[] = [
+            'month' => $monthDate->format('F'),
+            'revenue' => 0,
+        ];
+    }
+}
+
+if (empty($event_distribution)) {
+    $event_distribution = [
+        ['name' => 'No booking data', 'percentage' => 100],
     ];
 }
 
 // Calculate summary totals across each vehicle
-$total_fleet_revenue = array_sum(array_column($vehicle_performance, 'revenue'));
-$total_fleet_bookings = array_sum(array_column($vehicle_performance, 'bookings'));
-$total_fleet_hours = array_sum(array_column($vehicle_performance, 'total_hours'));
-$max_vehicle_hours = max(array_column($vehicle_performance, 'total_hours')) ?: 1;
+$total_fleet_revenue = array_sum(array_map(static fn($vehicle) => (float) ($vehicle['revenue'] ?? 0), $vehicle_performance));
+$total_fleet_bookings = array_sum(array_map(static fn($vehicle) => (int) ($vehicle['bookings'] ?? 0), $vehicle_performance));
+$total_fleet_hours = array_sum(array_map(static fn($vehicle) => (float) ($vehicle['total_hours'] ?? 0), $vehicle_performance));
+$total_vehicle_count = count($vehicle_performance);
+$max_vehicle_hours = $total_vehicle_count > 0
+    ? max(array_map(static fn($vehicle) => (float) ($vehicle['total_hours'] ?? 0), $vehicle_performance))
+    : 1;
+$max_vehicle_hours = $max_vehicle_hours > 0 ? $max_vehicle_hours : 1;
 $top_vehicle = $vehicle_performance[0] ?? null;
-$maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle) => $vehicle['status'] === 'maintenance'));
+$maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle) => ($vehicle['status'] ?? '') === 'maintenance'));
 ?>
 
 <?php require_once 'includes/header.php'; ?>
@@ -351,7 +275,7 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
                 <div>
                     <p class="text-sm text-gray-500 uppercase">Total Fleet Revenue</p>
                     <div class="kpi-value">LKR <?php echo number_format($total_fleet_revenue, 2); ?></div>
-                    <div class="text-xs text-green-600 mt-1">Across all 12 Sri Lankan Vehicles</div>
+                    <div class="text-xs text-green-600 mt-1">Across all <?php echo number_format($total_vehicle_count); ?> vehicles in your system</div>
                 </div>
                 <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
             </div>
@@ -381,35 +305,120 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
             </div>
         </div>
 
-        <!-- Interactive Bar Charts Section -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <div class="flex justify-between items-center mb-6">
+        <!-- Analytics Graphs Section -->
+        <section class="mb-8">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+                <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h2 class="text-xl font-bold text-gray-900">Vehicle Revenue Comparison (LKR)</h2>
-                        <p class="text-xs text-gray-500">Comparing individual total LKR revenue generated per vehicle</p>
+                        <p class="text-xs uppercase tracking-[0.25em] text-cyan-600 font-bold mb-2">Analytics Graphs</p>
+                        <h2 class="text-2xl font-bold text-gray-900">Visual Fleet Performance Overview</h2>
+                        <p class="text-sm text-gray-500 mt-1">Track revenue by vehicle, monthly growth trends, and booking mix in one place.</p>
                     </div>
-                    <span class="material-symbols-outlined text-cyan-600">bar_chart</span>
-                </div>
-                <div class="h-64 relative">
-                    <canvas id="vehicleBarChart"></canvas>
+                    <span class="material-symbols-outlined text-cyan-600 text-3xl">monitoring</span>
                 </div>
             </div>
 
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
-                <div class="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 class="text-xl font-bold text-gray-900">Monthly Revenue Trend (LKR)</h2>
-                        <p class="text-xs text-gray-500">Month-over-month revenue growth across all event rentals</p>
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Vehicle Revenue Comparison (LKR)</h2>
+                            <p class="text-xs text-gray-500">Top-performing physical vehicles by total generated revenue</p>
+                        </div>
+                        <span class="material-symbols-outlined text-cyan-600">bar_chart</span>
                     </div>
-                    <span class="material-symbols-outlined text-cyan-600">stacked_bar_chart</span>
+                    <div class="h-72 relative mb-4">
+                        <canvas id="vehicleBarChart"></canvas>
+                    </div>
+                    <div id="vehicleBarFallback" class="space-y-3">
+                        <?php $vehicleChartFallback = array_slice($vehicle_performance, 0, 8); ?>
+                        <?php $vehicleChartFallbackMax = max(array_map(static fn($vehicle) => (float) ($vehicle['revenue'] ?? 0), $vehicleChartFallback ?: [['revenue' => 1]])) ?: 1; ?>
+                        <?php foreach ($vehicleChartFallback as $vehicle): ?>
+                            <div>
+                                <div class="flex items-center justify-between gap-3 text-xs mb-1">
+                                    <span class="font-semibold text-gray-700 truncate pr-3"><?php echo htmlspecialchars($vehicle['name']); ?></span>
+                                    <span class="font-bold text-cyan-700 whitespace-nowrap">LKR <?php echo number_format((float) ($vehicle['revenue'] ?? 0), 0); ?></span>
+                                </div>
+                                <div class="h-3 rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full rounded-full bg-blue-500" style="width: <?php echo max(8, round((((float) ($vehicle['revenue'] ?? 0)) / $vehicleChartFallbackMax) * 100)); ?>%"></div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-                <div class="h-64 relative">
-                    <canvas id="monthlyBarChart"></canvas>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Monthly Revenue Trend (LKR)</h2>
+                            <p class="text-xs text-gray-500">Month-over-month revenue movement across all event rentals</p>
+                        </div>
+                        <span class="material-symbols-outlined text-cyan-600">show_chart</span>
+                    </div>
+                    <div class="h-72 relative mb-4">
+                        <canvas id="monthlyBarChart"></canvas>
+                    </div>
+                    <div id="monthlyBarFallback" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        <?php foreach ($monthly_revenue as $monthData): ?>
+                            <div class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+                                <p class="text-xs font-bold uppercase tracking-wider text-slate-500"><?php echo htmlspecialchars($monthData['month']); ?></p>
+                                <p class="mt-2 text-sm font-semibold text-cyan-700">LKR <?php echo number_format((float) ($monthData['revenue'] ?? 0), 0); ?></p>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
             </div>
 
-        </div>
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 lg:col-span-1">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">Event Booking Mix</h2>
+                            <p class="text-xs text-gray-500">Distribution of major booking categories</p>
+                        </div>
+                        <span class="material-symbols-outlined text-cyan-600">pie_chart</span>
+                    </div>
+                    <div class="h-72 relative mb-4">
+                        <canvas id="eventMixChart"></canvas>
+                    </div>
+                    <div id="eventMixFallback" class="space-y-3">
+                        <?php foreach ($event_distribution as $distribution): ?>
+                            <div>
+                                <div class="flex items-center justify-between text-xs mb-1">
+                                    <span class="font-semibold text-gray-700"><?php echo htmlspecialchars($distribution['name']); ?></span>
+                                    <span class="font-bold text-cyan-700"><?php echo (int) ($distribution['percentage'] ?? 0); ?>%</span>
+                                </div>
+                                <div class="h-3 rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full rounded-full bg-blue-500" style="width: <?php echo max(5, min(100, (int) ($distribution['percentage'] ?? 0))); ?>%"></div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 text-white p-6 rounded-2xl shadow-sm border border-slate-800 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <p class="text-xs uppercase tracking-[0.25em] text-cyan-400 font-bold mb-2">Graph Insight</p>
+                        <h3 class="text-2xl font-bold mb-2">Performance Snapshot</h3>
+                        <p class="text-sm text-slate-300 leading-7">The charts above give you the visual analytics view that was previously shown in Analytics. Use them to compare physical vehicle earnings, understand revenue trends, and quickly spot where demand is strongest.</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
+                        <div class="rounded-xl bg-slate-800/80 border border-slate-700 p-4">
+                            <p class="text-xs uppercase text-slate-400 font-bold mb-1">Top Vehicle</p>
+                            <p class="font-semibold text-white"><?php echo htmlspecialchars($top_vehicle['name'] ?? 'N/A'); ?></p>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 border border-slate-700 p-4">
+                            <p class="text-xs uppercase text-slate-400 font-bold mb-1">Fleet Revenue</p>
+                            <p class="font-semibold text-white">LKR <?php echo number_format($total_fleet_revenue, 2); ?></p>
+                        </div>
+                        <div class="rounded-xl bg-slate-800/80 border border-slate-700 p-4">
+                            <p class="text-xs uppercase text-slate-400 font-bold mb-1">Total Rentals</p>
+                            <p class="font-semibold text-white"><?php echo number_format($total_fleet_bookings); ?></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
         <!-- EACH VEHICLE PERFORMANCE REPORT TABLE -->
         <section id="vehicle-performance-report-container" class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mb-8">
@@ -646,108 +655,170 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
 
 <script>
 const vehiclePerformanceData = <?php echo json_encode($vehicle_performance, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+const eventDistributionData = <?php echo json_encode($event_distribution, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
+const monthlyRevenueData = <?php echo json_encode($monthly_revenue, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const customDateRange = document.getElementById('custom-date-range');
+    const hideFallback = function (id) {
+        const element = document.getElementById(id);
+        if (element) {
+            element.style.display = 'none';
+        }
+    };
     document.querySelectorAll('input[name="period"]').forEach((input) => {
         input.addEventListener('change', () => {
-            customDateRange.classList.toggle('is-visible', input.value === 'custom' && input.checked);
+            if (customDateRange) {
+                customDateRange.classList.toggle('is-visible', input.value === 'custom' && input.checked);
+            }
         });
     });
 
-    // 1. Vehicle Revenue Bar Chart
-    const vehicleCtx = document.getElementById('vehicleBarChart').getContext('2d');
-    const vehicleNames = <?php echo json_encode(array_column($vehicle_performance, 'name')); ?>;
-    const vehicleRevenues = <?php echo json_encode(array_column($vehicle_performance, 'revenue')); ?>;
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js failed to load on analytics.php');
+        return;
+    }
 
-    new Chart(vehicleCtx, {
-        type: 'bar',
-        data: {
-            labels: vehicleLabels,
-            datasets: [{
-                label: 'Revenue (LKR)',
-                data: vehicleRevenues,
-                backgroundColor: ['#06b6d4','#0f766e','#0891b2','#f59e0b','#ef4444','#8b5cf6','#10b981','#f97316','#e11d48','#22c55e','#14b8a6','#3b82f6'],
-                borderRadius: 10,
-                borderSkipped: false
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Revenue: LKR ' + Number(context.raw || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        }
-                    }
-                }
+    const topVehicleData = vehiclePerformanceData.slice(0, 8);
+    const vehicleNames = topVehicleData.map((vehicle) => vehicle.name || 'Vehicle');
+    const vehicleShortLabels = vehicleNames.map((name) => name.length > 18 ? name.slice(0, 18) + '…' : name);
+    const vehicleRevenues = topVehicleData.map((vehicle) => Number(vehicle.revenue || 0));
+
+    const vehicleCanvas = document.getElementById('vehicleBarChart');
+    if (vehicleCanvas && vehicleRevenues.length > 0) {
+        new Chart(vehicleCanvas.getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: vehicleShortLabels,
+                datasets: [{
+                    label: 'Revenue (LKR)',
+                    data: vehicleRevenues,
+                    backgroundColor: ['#0ea5e9', '#0ea5e9', '#0ea5e9', '#0ea5e9', '#0ea5e9', '#0ea5e9', '#0ea5e9', '#0ea5e9'],
+                    borderRadius: 10,
+                    borderSkipped: false
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'LKR ' + (value / 1000000).toFixed(1) + 'M';
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            title: function (items) {
+                                const index = items[0] && typeof items[0].dataIndex !== 'undefined' ? items[0].dataIndex : 0;
+                                return vehicleNames[index] || 'Vehicle';
+                            },
+                            label: function (context) {
+                                return 'Revenue: LKR ' + Number(context.raw || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            }
                         }
                     }
                 },
-                x: {
-                    ticks: {
-                        font: { size: 9 },
-                        maxRotation: 45,
-                        minRotation: 45
-                    }
-                }
-            }
-        }
-    });
-
-    // 2. Monthly Revenue Bar Chart
-    const monthlyCtx = document.getElementById('monthlyBarChart').getContext('2d');
-    const monthlyLabels = <?php echo json_encode(array_column($monthly_revenue, 'month')); ?>;
-    const monthlyRevenues = <?php echo json_encode(array_column($monthly_revenue, 'revenue')); ?>;
-
-    new Chart(monthlyCtx, {
-        type: 'bar',
-        data: {
-            labels: monthlyLabels,
-            datasets: [{
-                label: 'Monthly Revenue (LKR)',
-                data: monthlyRevenues,
-                backgroundColor: 'rgba(14, 116, 144, 0.85)',
-                borderColor: '#0e7490',
-                borderWidth: 1.5,
-                borderRadius: 8
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return 'Revenue: LKR ' + Number(context.raw || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return 'LKR ' + (value / 1000000).toFixed(1) + 'M';
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: { size: 10 },
+                            maxRotation: 35,
+                            minRotation: 35
                         }
                     }
                 }
+            }
+        });
+        hideFallback('vehicleBarFallback');
+    }
+
+    const monthlyCanvas = document.getElementById('monthlyBarChart');
+    const monthlyLabels = monthlyRevenueData.map((item) => item.month || '');
+    const monthlyRevenues = monthlyRevenueData.map((item) => Number(item.revenue || 0));
+    if (monthlyCanvas && monthlyRevenues.length > 0) {
+        new Chart(monthlyCanvas.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Monthly Revenue (LKR)',
+                    data: monthlyRevenues,
+                    fill: true,
+                    backgroundColor: 'rgba(14, 116, 144, 0.14)',
+                    borderColor: '#0e7490',
+                    borderWidth: 3,
+                    tension: 0.35,
+                    pointRadius: 4,
+                    pointHoverRadius: 5,
+                    pointBackgroundColor: '#0891b2'
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return 'LKR ' + (value / 1000000).toFixed(1) + 'M';
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return 'Revenue: LKR ' + Number(context.raw || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return 'LKR ' + (value / 1000000).toFixed(1) + 'M';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
+        hideFallback('monthlyBarFallback');
+    }
+
+    const eventMixCanvas = document.getElementById('eventMixChart');
+    if (eventMixCanvas && eventDistributionData.length > 0) {
+        new Chart(eventMixCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: eventDistributionData.map((item) => item.name || 'Category'),
+                datasets: [{
+                    data: eventDistributionData.map((item) => Number(item.percentage || 0)),
+                    backgroundColor: ['#0ea5e9', '#38bdf8', '#7dd3fc'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                return (context.label || '') + ': ' + Number(context.raw || 0) + '%';
+                            }
+                        }
+                    }
+                },
+                cutout: '62%'
+            }
+        });
+        hideFallback('eventMixFallback');
+    }
 });
 
 // Function to export EACH Vehicle Performance Report as PDF
