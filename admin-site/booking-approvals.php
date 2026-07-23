@@ -22,9 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmtV->execute([$booking_id]);
 
                 $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
-                $emailSent = emailBookingInvoice($pdo, $invoice);
-
-                $action_message = "Booking approved successfully!";
+                $emailResults = sendBookingApprovalNotifications($pdo, $booking_id, $invoice);
+                $action_message = formatApprovalNotificationMessage($emailResults);
             } catch (Exception $e) {
                 $action_error = "Error approving booking: " . $e->getMessage();
             }
