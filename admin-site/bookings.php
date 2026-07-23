@@ -77,11 +77,11 @@ try {
                         <p class="mt-4 text-slate-300 text-lg leading-8">Oversee and coordinate all upcoming event logistics and vehicle assignments with operational precision.</p>
                     </div>
                     <div class="flex flex-wrap justify-end gap-3">
-                        <button onclick="filterByStatus()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-800/80 border border-slate-700 text-sm font-semibold hover:bg-slate-700 transition-all">
+                        <button type="button" onclick="filterByStatus()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-800/80 border border-slate-700 text-sm font-semibold hover:bg-slate-700 transition-all">
                             <span class="material-symbols-outlined text-sm">filter_list</span>
                             Status
                         </button>
-                        <button onclick="filterByDate()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-slate-900 text-sm font-semibold hover:bg-slate-100 transition-all">
+                        <button type="button" onclick="filterByDate()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-white text-slate-900 text-sm font-semibold hover:bg-slate-100 transition-all">
                             <span class="material-symbols-outlined text-sm">calendar_month</span>
                             Date Range
                         </button>
@@ -93,6 +93,7 @@ try {
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-10">
             <div class="relative max-w-3xl mx-auto">
+                <label for="searchBookings" class="sr-only">Search bookings</label>
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
                 <input type="text" id="searchBookings" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 text-sm text-slate-700" placeholder="Search bookings, clients, or vehicles...">
             </div>
@@ -193,7 +194,7 @@ try {
                     <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]" id="bookingsTable">
                         <?php if (!empty($bookings)): ?>
                             <?php foreach ($bookings as $booking): ?>
-                            <tr class="booking-row cursor-pointer hover:bg-slate-100/80 transition-all" data-status="<?php echo $booking['status']; ?>" onclick="window.location.href='booking-details.php?id=<?php echo $booking['id']; ?>'">
+                            <tr class="booking-row cursor-pointer hover:bg-slate-100/80 transition-all" data-status="<?php echo htmlspecialchars($booking['status'] ?? ''); ?>" data-event-date="<?php echo htmlspecialchars($booking['event_date'] ?? ''); ?>" data-client="<?php echo htmlspecialchars($booking['client_name'] ?? 'Guest'); ?>" onclick="window.location.href='booking-details.php?id=<?php echo $booking['id']; ?>'">
                                 <td class="px-6 py-4">
                                     <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="text-sm font-semibold text-cyan-700 hover:underline">
                                         #<?php echo substr($booking['booking_number'] ?? 'BK-' . $booking['id'], -8); ?>
@@ -325,29 +326,65 @@ try {
 </main>
 
 <script>
-// Search functionality
-document.getElementById('searchBookings')?.addEventListener('keyup', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const rows = document.querySelectorAll('.booking-row');
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
+const bookingSearch = document.getElementById('searchBookings');
+let selectedStatus = '';
+let selectedStartDate = '';
+let selectedEndDate = '';
+let selectedClient = '';
+
+function applyBookingFilters() {
+    const searchTerm = bookingSearch.value.trim().toLowerCase();
+    const status = selectedStatus;
+    const startDate = selectedStartDate;
+    const endDate = selectedEndDate;
+    const client = selectedClient.toLowerCase();
+
+    document.querySelectorAll('.booking-row').forEach((row) => {
+        const matchesSearch = !searchTerm || row.textContent.toLowerCase().includes(searchTerm);
+        const matchesStatus = !status || row.dataset.status === status;
+        const bookingDate = row.dataset.eventDate || '';
+        const matchesStartDate = !startDate || (bookingDate && bookingDate >= startDate);
+        const matchesEndDate = !endDate || (bookingDate && bookingDate <= endDate);
+        const matchesClient = !client || (row.dataset.client || '').toLowerCase().includes(client);
+        row.style.display = matchesSearch && matchesStatus && matchesStartDate && matchesEndDate && matchesClient ? '' : 'none';
     });
-});
+}
+
+bookingSearch?.addEventListener('input', applyBookingFilters);
 
 function filterByStatus() {
-    const status = prompt('Filter by status: pending, confirmed, in_progress, completed, cancelled', '');
-    if (status) {
-        const rows = document.querySelectorAll('.booking-row');
-        rows.forEach(row => {
-            const rowStatus = row.getAttribute('data-status');
-            row.style.display = rowStatus === status ? '' : 'none';
-        });
+    const allowedStatuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
+    const status = window.prompt('Enter a status: pending, confirmed, in_progress, completed, or cancelled. Leave blank to clear the filter.', selectedStatus);
+    if (status === null) return;
+    const normalizedStatus = status.trim().toLowerCase();
+    if (normalizedStatus && !allowedStatuses.includes(normalizedStatus)) {
+        window.alert('Please enter a valid booking status.');
+        return;
     }
+    selectedStatus = normalizedStatus;
+    applyBookingFilters();
+}
+
+function filterByClient() {
+    const client = window.prompt('Enter a client name. Leave blank to clear the client filter.', selectedClient);
+    if (client === null) return;
+    selectedClient = client.trim();
+    applyBookingFilters();
 }
 
 function filterByDate() {
-    alert('Date range filter would open a date picker');
+    const startDate = window.prompt('Enter the start date (YYYY-MM-DD). Leave blank to clear.', selectedStartDate);
+    if (startDate === null) return;
+    const endDate = window.prompt('Enter the end date (YYYY-MM-DD). Leave blank to clear.', selectedEndDate);
+    if (endDate === null) return;
+    const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+    if ((startDate && !datePattern.test(startDate)) || (endDate && !datePattern.test(endDate))) {
+        window.alert('Use the YYYY-MM-DD date format.');
+        return;
+    }
+    selectedStartDate = startDate;
+    selectedEndDate = endDate;
+    applyBookingFilters();
 }
 
 </script>

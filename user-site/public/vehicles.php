@@ -4,9 +4,9 @@ require_once '../config/database.php';
 require_once '../includes/header.php';
 
 // Get filter parameters
-$event_filter = $_GET['event'] ?? '';
-$type_filter = $_GET['type'] ?? '';
 $search = $_GET['search'] ?? '';
+$types = ['Sedan', 'SUV', 'Luxury', 'Van'];
+$type_filters = array_values(array_intersect($types, (array) ($_GET['type'] ?? [])));
 
 // Build query
 $sql = "SELECT * FROM vehicles WHERE status = 'available'";
@@ -19,27 +19,14 @@ if ($search) {
     $params[] = "%$search%";
 }
 
-if ($type_filter) {
-    $sql .= " AND (name LIKE ? OR description LIKE ?)";
-    $typeSearch = "%$type_filter%";
-    $params[] = $typeSearch;
-    $params[] = $typeSearch;
-}
-
-if ($event_filter) {
-    $eventSearch = "%$event_filter%";
-    $sql .= " AND (name LIKE ? OR description LIKE ?)";
-    $params[] = $eventSearch;
-    $params[] = $eventSearch;
+if ($type_filters) {
+    $sql .= ' AND category IN (' . implode(', ', array_fill(0, count($type_filters), '?')) . ')';
+    $params = array_merge($params, $type_filters);
 }
 
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $vehicles = $stmt->fetchAll();
-
-// Get event types for filter
-$stmtEvent = $pdo->query("SELECT * FROM event_types WHERE is_active = 1");
-$eventTypes = $stmtEvent->fetchAll();
 
 require_once '../includes/navbar.php';
 ?>
@@ -67,27 +54,16 @@ require_once '../includes/navbar.php';
         <div class="grid grid-cols-1 lg:grid-cols-[20rem_minmax(0,1fr)] gap-8">
             <aside class="hidden lg:block bg-white rounded-3xl border border-gray-200 p-6 shadow-sm sticky top-24 h-fit">
                 <div class="mb-8">
-                    <h4 class="font-h3 text-label-md text-on-surface uppercase tracking-widest mb-4">Filter by Event</h4>
-                    <div class="flex flex-col gap-2">
-                        <?php foreach ($eventTypes as $event): ?>
-                            <a href="vehicles.php?event=<?php echo $event['slug']; ?>" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm <?php echo $event_filter == $event['slug'] ? 'bg-red-50 text-red-600 font-semibold border-r-4 border-red-600' : 'text-gray-600 hover:bg-gray-100'; ?> transition-all">
-                                <span class="material-symbols-outlined text-[18px]">celebration</span>
-                                <?php echo htmlspecialchars($event['name']); ?>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-                <div class="mb-8">
                     <h4 class="font-h3 text-label-md text-on-surface uppercase tracking-widest mb-4">Vehicle Type</h4>
-                    <div class="flex flex-col gap-3">
-                        <?php $types = ['Sedan', 'SUV', 'Luxury', 'Van']; ?>
+                    <form method="GET" action="vehicles.php" class="flex flex-col gap-3">
+                        <?php if ($search): ?><input type="hidden" name="search" value="<?php echo htmlspecialchars($search); ?>"><?php endif; ?>
                         <?php foreach ($types as $type): ?>
                             <label class="flex items-center gap-3 cursor-pointer group">
-                                <input type="checkbox" disabled class="w-4 h-4 text-red-600 rounded border-gray-300" <?php echo $type_filter === $type ? 'checked' : ''; ?> />
+                                <input type="checkbox" name="type[]" value="<?php echo htmlspecialchars($type); ?>" onchange="this.form.submit()" class="w-4 h-4 text-red-600 rounded border-gray-300 cursor-pointer" <?php echo in_array($type, $type_filters, true) ? 'checked' : ''; ?> />
                                 <span class="text-body-md text-gray-600 group-hover:text-red-600 transition-colors"><?php echo $type; ?></span>
                             </label>
                         <?php endforeach; ?>
-                    </div>
+                    </form>
                 </div>
                 <div>
                     <h4 class="font-h3 text-label-md text-on-surface uppercase tracking-widest mb-4">Price Range</h4>
@@ -103,28 +79,10 @@ require_once '../includes/navbar.php';
 
             <section class="space-y-8">
                 <div class="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm">
-                    <form method="GET" action="vehicles.php" class="grid grid-cols-1 lg:grid-cols-[1fr_220px_220px_160px] gap-4 items-end">
+                    <form method="GET" action="vehicles.php" class="grid grid-cols-1 lg:grid-cols-[1fr_160px] gap-4 items-end">
                         <div>
                             <label class="block text-label-sm font-label-sm text-gray-500 mb-2">Search</label>
                             <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search vehicles or models..." class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-primary focus:border-primary" />
-                        </div>
-                        <div>
-                            <label class="block text-label-sm font-label-sm text-gray-500 mb-2">Vehicle Type</label>
-                            <select name="type" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-primary focus:border-primary">
-                                <option value="">All Types</option>
-                                <?php foreach ($types as $type): ?>
-                                    <option value="<?php echo $type; ?>" <?php echo $type_filter == $type ? 'selected' : ''; ?>><?php echo $type; ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-label-sm font-label-sm text-gray-500 mb-2">Event</label>
-                            <select name="event" class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-primary focus:border-primary">
-                                <option value="">All Events</option>
-                                <?php foreach ($eventTypes as $event): ?>
-                                    <option value="<?php echo $event['slug']; ?>" <?php echo $event_filter == $event['slug'] ? 'selected' : ''; ?>><?php echo htmlspecialchars($event['name']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
                         </div>
                         <button type="submit" class="w-full lg:w-auto bg-red-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-red-700 transition">Search</button>
                     </form>

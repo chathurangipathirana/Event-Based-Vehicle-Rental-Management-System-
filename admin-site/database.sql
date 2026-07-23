@@ -72,6 +72,17 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS password_reset_codes (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(150) NOT NULL,
+    code_hash VARCHAR(255) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    attempts TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_password_reset_email (email),
+    INDEX idx_password_reset_expiry (expires_at)
+);
+
 -- ======================================================
 -- 5. BOOKINGS TABLE
 -- ======================================================
@@ -271,8 +282,8 @@ SELECT 'Database setup completed successfully! (Prices in Sri Lankan Rupees - LK
 
 -- Insert default settings (Sri Lankan Rupees)
 INSERT INTO settings (setting_key, setting_value) VALUES
-('company_name', 'FleetElite Logistics (Pvt) Ltd'),
-('company_email', 'info@fleetelite.com'),
+('company_name', 'Royal Lanka Rides'),
+('company_email', 'info@royallankarides.com'),
 ('company_phone', '+94 11 234 5678'),
 ('company_address', 'No. 123, Galle Road, Colombo 03, Sri Lanka'),
 ('currency', 'LKR'),

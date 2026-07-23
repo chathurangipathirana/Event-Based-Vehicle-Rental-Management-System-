@@ -93,24 +93,26 @@ if (!$can_view) {
                     </div>
                 <?php endif; ?>
 
-                <!-- 2. View Booking Button -->
-                <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="my-bookings.php" class="w-full bg-primary hover:bg-primary/90 text-white py-3.5 px-6 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-md active:scale-[0.99]">
-                        <span class="material-symbols-outlined">visibility</span>
-                        View Booking
-                    </a>
-                <?php else: ?>
-                    <a href="invoice-print.php?booking_id=<?php echo $booking_id; ?>" target="_blank" class="w-full bg-primary hover:bg-primary/90 text-white py-3.5 px-6 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-md active:scale-[0.99]">
-                        <span class="material-symbols-outlined">visibility</span>
-                        View Booking Receipt
-                    </a>
-                <?php endif; ?>
+                <div class="grid grid-cols-2 gap-6" style="column-gap: 1.5rem;">
+                    <!-- 2. View Booking Button -->
+                    <?php if (isset($_SESSION['user_id'])): ?>
+                        <a href="my-bookings.php" class="w-full bg-primary hover:bg-primary/90 text-white py-3.5 px-4 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-md active:scale-[0.99]">
+                            <span class="material-symbols-outlined">visibility</span>
+                            View Booking
+                        </a>
+                    <?php else: ?>
+                        <a href="invoice-print.php?booking_id=<?php echo $booking_id; ?>" target="_blank" class="w-full bg-primary hover:bg-primary/90 text-white py-3.5 px-4 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-md active:scale-[0.99]">
+                            <span class="material-symbols-outlined">visibility</span>
+                            View Receipt
+                        </a>
+                    <?php endif; ?>
 
-                <!-- 3. Back Button -->
-                <a href="vehicles.php" class="w-full border border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 py-3.5 px-6 rounded-xl font-bold transition flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                    Back to Vehicles
-                </a>
+                    <!-- 3. Back Button -->
+                    <a href="vehicles.php" class="w-full bg-primary hover:bg-primary/90 text-white py-3.5 px-4 rounded-xl font-bold transition flex items-center justify-center gap-2 shadow-md active:scale-[0.99]">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        Back to Vehicles
+                    </a>
+                </div>
             </div>
         </div>
     </div>

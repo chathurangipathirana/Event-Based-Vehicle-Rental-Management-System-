@@ -101,17 +101,16 @@ if ($selected_client_id) {
         </section>
 
         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-5 mb-10">
-            <div class="relative max-w-3xl mx-auto">
-                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
-                <input type="text" id="searchClients" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 text-sm text-slate-700" placeholder="Search clients...">
+            <div class="flex flex-col sm:flex-row gap-3 max-w-5xl mx-auto">
+                <div class="relative flex-1">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                    <input type="text" id="searchClients" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-cyan-300 focus:border-cyan-300 text-sm text-slate-700" placeholder="Search clients...">
+                </div>
+                <button type="button" onclick="openAddClientModal()" class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-red-600 text-white rounded-2xl shadow-lg hover:bg-red-700 transition-transform active:scale-95">
+                    <span class="material-symbols-outlined">person_add</span>
+                    <span class="text-sm">Add New Client</span>
+                </button>
             </div>
-        </div>
-
-        <div class="flex justify-end mb-8">
-            <button onclick="openAddClientModal()" class="inline-flex items-center gap-2 px-5 py-3 bg-red-600 text-white rounded-2xl shadow-lg hover:bg-red-700 transition-transform active:scale-95">
-                <span class="material-symbols-outlined">person_add</span>
-                <span class="text-sm">Add New Client</span>
-            </button>
         </div>
 
         <!-- KPI Cards -->
@@ -159,9 +158,6 @@ if ($selected_client_id) {
                         <p class="text-xs text-slate-400 mt-1">Click any client row or View Profile to see their full profile page.</p>
                     </div>
                     <div class="flex space-x-2">
-                        <button onclick="filterClients()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">filter_list</span> Filter
-                        </button>
                         <button onclick="exportClients()" class="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-white rounded-xl text-sm font-semibold transition-colors flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">download</span> Export
                         </button>

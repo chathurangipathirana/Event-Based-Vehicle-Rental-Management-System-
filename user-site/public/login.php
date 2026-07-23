@@ -6,6 +6,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $error = '';
+$success = isset($_GET['reset']) && $_GET['reset'] === 'success' ? 'Your password has been reset. You can now sign in.' : '';
 $redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '';
 if (!preg_match('/^booking\.php\?(?:package_id=\d+(?:&vehicle=\d+)?|vehicle=\d+)$/', $redirect)) {
     $redirect = '';
@@ -95,39 +96,42 @@ require_once '../includes/header.php';
         </div>
     </section>
 
-    <section class="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center bg-white py-16 px-6 md:px-12 border-l border-gray-200">
-        <div class="w-full max-w-md space-y-8">
-            <div class="md:hidden text-center">
+    <section class="w-full md:w-1/2 lg:w-2/5 flex items-center justify-center bg-white py-16 px-6 md:px-12 shadow-2xl z-10">
+        <div class="w-full max-w-md space-y-6">
+            <div class="md:hidden text-center mb-6">
                 <a href="index.php" class="text-3xl font-black text-primary italic uppercase tracking-tight inline-flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary text-3xl">directions_car</span>
                     Royal Lanka Rides
                 </a>
             </div>
 
-            <div class="space-y-2">
-                <h2 class="text-3xl font-extrabold text-gray-900">Welcome Back</h2>
-                <p class="text-base text-gray-700 font-medium">Sign in to your professional dashboard.</p>
+            <div class="space-y-1">
+                <h2 class="text-3xl font-black text-gray-900 tracking-tight">Welcome Back</h2>
+                <p class="text-sm font-medium text-gray-700">Sign in to manage your Royal Lanka Rides bookings.</p>
             </div>
 
             <?php if ($error): ?>
                 <div class="alert alert-error bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl font-medium text-sm"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
+            <?php if ($success): ?>
+                <div class="bg-emerald-50 border border-emerald-200 text-emerald-700 p-4 rounded-xl font-medium text-sm"><?php echo htmlspecialchars($success); ?></div>
+            <?php endif; ?>
 
-            <div class="flex gap-1.5 p-1.5 bg-gray-100 rounded-xl mb-8 border border-gray-200 shadow-inner">
-                <a href="login.php" aria-current="page" class="flex-1 py-3 px-4 rounded-lg text-sm font-bold bg-primary text-white shadow-md text-center transition-all duration-300 ease-out hover:bg-primary/90 hover:-translate-y-0.5">Login</a>
-                <a href="register.php" class="flex-1 py-3 px-4 rounded-lg text-sm font-bold text-gray-700 text-center transition-all duration-300 ease-out hover:bg-white hover:text-primary hover:shadow-sm hover:-translate-y-0.5">Create Account</a>
+            <div class="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
+                <a href="login.php" aria-current="page" class="flex-1 py-2.5 rounded-lg text-xs font-bold bg-white text-primary shadow-sm text-center">Login</a>
+                <a href="register.php" class="flex-1 py-2.5 rounded-lg text-xs font-bold text-gray-700 hover:text-gray-900 text-center">Create Account</a>
             </div>
 
-            <form method="POST" action="login.php" class="space-y-8" autocomplete="on">
+            <form method="POST" action="login.php" class="space-y-4" autocomplete="on">
                 <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
-                <div class="space-y-3">
-                    <label class="block text-sm uppercase font-bold text-gray-900 tracking-wider" for="email">Email Address</label>
-                    <input id="email" name="login_identifier" type="email" inputmode="email" required value="" autocomplete="username" autocapitalize="none" spellcheck="false" class="w-full px-5 py-4 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-base shadow-sm" placeholder="Enter your email"/>
+                <div>
+                    <label class="block text-xs uppercase font-bold text-gray-900 tracking-wider mb-1" for="email">Email Address</label>
+                    <input id="email" name="login_identifier" type="email" inputmode="email" required value="" autocomplete="username" autocapitalize="none" spellcheck="false" class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm" placeholder="john@example.com"/>
                 </div>
-                <div class="space-y-3">
+                <div>
                     <div class="flex justify-between items-center">
-                        <label class="block text-sm uppercase font-bold text-gray-900 tracking-wider" for="password">Password</label>
-                        <a href="contact.php" class="text-primary hover:underline text-xs font-bold">Forgot password?</a>
+                        <label class="block text-xs uppercase font-bold text-gray-900 tracking-wider mb-1" for="password">Password</label>
+                        <a href="forgot-password.php" class="text-primary hover:underline text-xs font-bold">Forgot password?</a>
                     </div>
                     <div class="relative">
                         <input id="password" name="password" type="password" required autocomplete="current-password" class="w-full px-5 py-4 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-base pr-14 shadow-sm" placeholder="••••••••"/>
@@ -140,7 +144,7 @@ require_once '../includes/header.php';
                     <input id="stay_signed_in" name="stay_signed_in" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" <?php echo isset($_POST['stay_signed_in']) ? 'checked' : ''; ?> />
                     <label for="stay_signed_in" class="text-xs font-bold text-gray-800 cursor-pointer">Stay signed in for 30 days</label>
                 </div>
-                <button type="submit" class="w-full py-3 px-4 bg-primary text-white rounded-lg text-sm font-bold shadow-md transition-all duration-300 ease-out hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]">Sign In</button>
+                <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl text-sm transition-all duration-200 shadow-lg hover:shadow-xl active:scale-[0.99] mt-2">Sign In</button>
             </form>
 
             <p class="text-center text-xs font-medium text-gray-700">By continuing, you agree to Royal Lanka Rides's <a class="text-gray-900 font-bold underline hover:text-primary" href="terms.php">Terms of Service</a> and <a class="text-gray-900 font-bold underline hover:text-primary" href="privacy.php">Privacy Policy</a>.</p>
