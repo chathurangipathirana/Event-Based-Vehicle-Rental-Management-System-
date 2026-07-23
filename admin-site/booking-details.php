@@ -167,11 +167,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($new_status === 'confirmed' && $booking['status'] !== 'confirmed') {
                     $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
-                    $emailSent = emailBookingInvoice($pdo, $invoice);
+                    $emailResults = sendBookingApprovalNotifications($pdo, $booking_id, $invoice);
                 }
                 
-                $_SESSION['message'] = isset($emailSent)
-                    ? ($emailSent ? 'Booking approved and invoice emailed successfully!' : 'Booking approved and invoice created. Email delivery needs mail server configuration.')
+                $_SESSION['message'] = isset($emailResults)
+                    ? formatApprovalNotificationMessage($emailResults)
                     : 'Booking status and assignments updated successfully!';
             } catch(Throwable $e) {
                 $_SESSION['error'] = 'Database error: ' . $e->getMessage();
