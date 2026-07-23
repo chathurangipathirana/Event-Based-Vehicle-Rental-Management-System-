@@ -147,8 +147,8 @@ try {
                             </div>
 
                             <div class="p-6 border-t bg-gray-50/50">
-                                <a href="booking.php?package_id=<?php echo $pkg['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors shadow-sm">
-                                    Book This Package
+                                <a href="package-details.php?id=<?php echo $pkg['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors shadow-sm">
+                                    View Package Details
                                     <span class="material-symbols-outlined text-xs">arrow_forward</span>
                                 </a>
                             </div>
@@ -210,8 +210,8 @@ try {
                         </div>
 
                         <div class="p-6 border-t bg-gray-50/50">
-                            <a href="booking.php?vehicle=<?php echo $vehicle['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors shadow-sm">
-                                Book This Vehicle
+                            <a href="vehicle-details.php?id=<?php echo $vehicle['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl font-bold text-xs uppercase tracking-wider transition-colors shadow-sm">
+                                View Vehicle Details
                                 <span class="material-symbols-outlined text-xs">arrow_forward</span>
                             </a>
                         </div>

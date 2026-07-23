@@ -1,19 +1,22 @@
 <?php
 $page_title = 'Booking Confirmed';
 require_once '../config/database.php';
-require_once '../includes/auth.php';
-requireLogin();
 
-$booking_id = $_GET['id'] ?? 0;
+$booking_id = (int)($_GET['id'] ?? 0);
 $stmt = $pdo->prepare("SELECT b.*, v.name as vehicle_name, v.model 
                        FROM bookings b 
                        JOIN vehicles v ON b.vehicle_id = v.id 
-                       WHERE b.id = ? AND b.user_id = ?");
-$stmt->execute([$booking_id, $_SESSION['user_id']]);
+                       WHERE b.id = ?");
+$stmt->execute([$booking_id]);
 $booking = $stmt->fetch();
 
-if (!$booking) {
-    header('Location: dashboard.php');
+$can_view = $booking && (
+    (isset($_SESSION['user_id']) && (int)$booking['user_id'] === (int)$_SESSION['user_id']) ||
+    (!isset($_SESSION['user_id']) && isset($_SESSION['guest_booking_id']) && (int)$_SESSION['guest_booking_id'] === $booking_id)
+);
+
+if (!$can_view) {
+    header('Location: index.php');
     exit();
 }
 ?>
@@ -35,14 +38,16 @@ if (!$booking) {
                 <p><strong>Booking Number:</strong> <?php echo $booking['booking_number']; ?></p>
                 <p><strong>Vehicle:</strong> <?php echo htmlspecialchars($booking['vehicle_name']); ?></p>
                 <p><strong>Date:</strong> <?php echo date('F d, Y', strtotime($booking['event_date'])); ?></p>
-                <p><strong>Total Amount:</strong> <span class="text-red-600 font-bold">$<?php echo number_format($booking['total_amount'], 2); ?></span></p>
+                <p><strong>Total Amount:</strong> <span class="text-red-600 font-bold">LKR <?php echo number_format($booking['total_amount'], 2); ?></span></p>
                 <p><strong>Status:</strong> <span class="text-yellow-600"><?php echo ucfirst($booking['status']); ?></span></p>
             </div>
             
             <div class="space-y-3">
-                <a href="my-bookings.php" class="block w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition">
-                    View My Bookings
-                </a>
+                <?php if (isset($_SESSION['user_id'])): ?>
+                    <a href="my-bookings.php" class="block w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition">View My Bookings</a>
+                <?php else: ?>
+                    <a href="vehicles.php" class="block w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition">Make Another Booking</a>
+                <?php endif; ?>
                 <a href="index.php" class="block w-full border border-red-600 text-red-600 py-3 rounded-lg font-semibold hover:bg-red-50 transition">
                     Return to Home
                 </a>

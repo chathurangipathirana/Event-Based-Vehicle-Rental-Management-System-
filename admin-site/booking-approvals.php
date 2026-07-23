@@ -5,41 +5,6 @@ require_once 'config/database.php';
 require_once 'includes/invoice-mailer.php';
 requireAdminLogin();
 
-$action_message = '';
-$action_error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $booking_id = (int)($_POST['booking_id'] ?? 0);
-    $action = $_POST['action'] ?? '';
-
-    if ($booking_id > 0) {
-        if ($action === 'quick_approve') {
-            try {
-                $stmt = $pdo->prepare("UPDATE bookings SET status = 'confirmed' WHERE id = ?");
-                $stmt->execute([$booking_id]);
-
-                $stmtV = $pdo->prepare("UPDATE vehicles SET status = 'booked' WHERE id = (SELECT vehicle_id FROM bookings WHERE id = ?)");
-                $stmtV->execute([$booking_id]);
-
-                $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
-                $emailSent = emailBookingInvoice($pdo, $invoice);
-
-                $action_message = "Booking approved successfully!";
-            } catch (Exception $e) {
-                $action_error = "Error approving booking: " . $e->getMessage();
-            }
-        } elseif ($action === 'quick_reject') {
-            try {
-                $stmt = $pdo->prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?");
-                $stmt->execute([$booking_id]);
-                $action_message = "Booking rejected.";
-            } catch (Exception $e) {
-                $action_error = "Error rejecting booking: " . $e->getMessage();
-            }
-        }
-    }
-}
-
 // Fetch pending bookings from the database, joined with related tables
 $stmt = $pdo->prepare("
     SELECT 
@@ -209,21 +174,6 @@ $urgent_count = 2; // still static — can compute later based on event_date
             </div>
         </div>
 
-
-
-        <?php if (!empty($action_message)): ?>
-            <div class="mb-6 p-4 bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-xl flex items-center gap-2 text-sm font-semibold">
-                <span class="material-symbols-outlined text-emerald-600">check_circle</span>
-                <span><?php echo htmlspecialchars($action_message); ?></span>
-            </div>
-        <?php endif; ?>
-        <?php if (!empty($action_error)): ?>
-            <div class="mb-6 p-4 bg-rose-50 border border-rose-300 text-rose-800 rounded-xl flex items-center gap-2 text-sm font-semibold">
-                <span class="material-symbols-outlined text-rose-600">error</span>
-                <span><?php echo htmlspecialchars($action_error); ?></span>
-            </div>
-        <?php endif; ?>
-
         <!-- Stats Bar - UI 7 Style -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div class="card-3d p-6 bg-white" style="--card-accent: #b36b2a;">
@@ -321,24 +271,6 @@ $urgent_count = 2; // still static — can compute later based on event_date
                             </div>
                         </div>
                         <div class="flex flex-wrap md:flex-nowrap gap-3 pt-4 border-t border-gray-100">
-                            <form method="POST" class="inline-block">
-                                <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">
-                                <input type="hidden" name="action" value="quick_approve">
-                                <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg flex items-center justify-center gap-1.5 transition text-sm shadow-sm">
-                                    <span class="material-symbols-outlined text-sm">check_circle</span>
-                                    Approve
-                                </button>
-                            </form>
-
-                            <form method="POST" class="inline-block" onsubmit="return confirm('Are you sure you want to reject this booking?');">
-                                <input type="hidden" name="booking_id" value="<?php echo $booking['id']; ?>">
-                                <input type="hidden" name="action" value="quick_reject">
-                                <button type="submit" class="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-lg flex items-center justify-center gap-1.5 transition text-sm shadow-sm">
-                                    <span class="material-symbols-outlined text-sm">cancel</span>
-                                    Reject
-                                </button>
-                            </form>
-
                             <a href="booking-details.php?id=<?php echo $booking['id']; ?>" class="flex-1 bg-cyan-700 hover:bg-cyan-800 text-white font-medium py-2.5 rounded-lg flex items-center justify-center gap-2 transition text-center text-sm">
                                 <span class="material-symbols-outlined text-sm">visibility</span>
                                 View Details & Process

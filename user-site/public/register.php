@@ -4,10 +4,14 @@ require_once '../config/database.php';
 
 $error = '';
 $success = '';
+$redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '';
+if (!preg_match('/^booking\.php\?(?:package_id=\d+(?:&vehicle=\d+)?|vehicle=\d+)$/', $redirect)) {
+    $redirect = '';
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $full_name = trim($_POST['full_name'] ?? '');
-    $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
+    $email = filter_var($_POST['registration_email'] ?? '', FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
     $phone = trim($_POST['phone'] ?? '');
@@ -31,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($stmt->execute([$full_name, $email, $hashed_password, $phone, $company_name])) {
                     $success = 'Registration successful! Redirecting to login...';
-                    header('refresh:2;url=login.php');
+                    header('refresh:2;url=login.php' . ($redirect ? '?redirect=' . rawurlencode($redirect) : ''));
                 } else {
                     $error = 'Registration failed. Please try again.';
                 }
@@ -120,7 +124,8 @@ require_once '../includes/header.php';
                 </a>
             </div>
 
-            <form method="POST" action="register.php" class="space-y-4">
+            <form method="POST" action="register.php" class="space-y-4" autocomplete="off">
+                <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
                 <div>
                     <label class="block text-xs uppercase font-bold text-gray-900 tracking-wider mb-1" for="full_name">
                         Full Name <span class="text-rose-600">*</span>
@@ -135,8 +140,8 @@ require_once '../includes/header.php';
                     <label class="block text-xs uppercase font-bold text-gray-900 tracking-wider mb-1" for="email">
                         Email Address <span class="text-rose-600">*</span>
                     </label>
-                    <input id="email" name="email" type="email" required 
-                           value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" 
+                    <input id="email" name="registration_email" type="text" inputmode="email" required autocomplete="one-time-code" autocapitalize="none" spellcheck="false"
+                           value="" 
                            class="w-full px-4 py-3 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm" 
                            placeholder="john@example.com"/>
                 </div>
@@ -193,5 +198,19 @@ require_once '../includes/header.php';
         </div>
     </section>
 </main>
+
+<script>
+    // Prevent browser-saved login details from appearing in the registration form.
+    window.addEventListener('DOMContentLoaded', () => {
+        const email = document.getElementById('email');
+        email.value = '';
+        email.readOnly = true;
+        email.addEventListener('focus', () => {
+            email.readOnly = false;
+            email.value = '';
+        }, { once: true });
+        window.setTimeout(() => { email.value = ''; }, 500);
+    });
+</script>
 
 <?php require_once '../includes/footer.php'; ?>

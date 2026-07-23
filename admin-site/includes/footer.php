@@ -94,7 +94,7 @@
             pagebreak: { mode: ['css', 'legacy'] }
         };
 
-        html2pdf().set(options).from(element).save();
+        return html2pdf().set(options).from(element).save();
     }
 </script>
 </body>

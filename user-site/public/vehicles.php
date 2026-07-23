@@ -150,7 +150,7 @@ require_once '../includes/navbar.php';
                                         <div class="flex items-center gap-2"><span class="material-symbols-outlined">settings</span><span class="text-sm"><?php echo $vehicle['transmission']; ?></span></div>
                                     </div>
                                 </div>
-                                <a href="booking.php?vehicle=<?php echo $vehicle['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-red-600 text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-red-700 transition">View Details <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
+                                <a href="vehicle-details.php?id=<?php echo $vehicle['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-red-600 text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-red-700 transition">View Details <span class="material-symbols-outlined text-sm">arrow_forward</span></a>
                             </div>
                         </div>
                     <?php endforeach; ?>

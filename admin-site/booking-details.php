@@ -122,6 +122,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin_notes = trim($_POST['admin_notes'] ?? '');
         $driver_id = !empty($_POST['driver_id']) ? (int)$_POST['driver_id'] : null;
         $vehicle_id = !empty($_POST['vehicle_id']) ? (int)$_POST['vehicle_id'] : null;
+        $notify_driver_email = isset($_POST['notify_driver_email']);
+        $notify_driver_sms = isset($_POST['notify_driver_sms']);
         
         $valid_statuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
         if (in_array($new_status, $valid_statuses)) {
@@ -136,6 +138,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     WHERE id = ?
                 ");
                 $stmt->execute([$new_status, $admin_notes, $driver_id, $vehicle_id, $booking_id]);
+
+                $driverAssignmentChanged = $driver_id && (int) $old_driver_id !== $driver_id;
                 
                 // Update vehicle availability status
                 if ($new_status === 'completed' || $new_status === 'cancelled') {
@@ -169,10 +173,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
                     $emailSent = emailBookingInvoice($pdo, $invoice);
                 }
+
+                if ($driverAssignmentChanged && !in_array($new_status, ['completed', 'cancelled'], true)) {
+                    if ($notify_driver_email) {
+                        $driverEmailSent = emailDriverAssignment($pdo, $booking_id);
+                    }
+                    if ($notify_driver_sms) {
+                        $driverSmsSent = smsDriverAssignment($pdo, $booking_id);
+                    }
+                }
                 
-                $_SESSION['message'] = isset($emailSent)
+                $message = isset($emailSent)
                     ? ($emailSent ? 'Booking approved and invoice emailed successfully!' : 'Booking approved and invoice created. Email delivery needs mail server configuration.')
                     : 'Booking status and assignments updated successfully!';
+                if (isset($driverEmailSent) || isset($driverSmsSent)) {
+                    if (isset($driverEmailSent)) {
+                        $message .= $driverEmailSent
+                            ? ' The assigned driver was notified by email.'
+                            : ' The driver was assigned, but email delivery needs mail server configuration or a valid driver email.';
+                    }
+                    if (isset($driverSmsSent)) {
+                        $message .= $driverSmsSent
+                            ? ' An SMS assignment alert was also sent.'
+                            : ' SMS was not sent; add a valid driver phone number and Twilio configuration to enable it.';
+                    }
+                }
+                $_SESSION['message'] = $message;
             } catch(Throwable $e) {
                 $_SESSION['error'] = 'Database error: ' . $e->getMessage();
             }
@@ -464,6 +490,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </p>
                         </div>
                     </div>
+
+                    <fieldset class="rounded-2xl border border-cyan-100 bg-cyan-50/60 p-4">
+                        <legend class="px-1 text-xs uppercase tracking-wider font-semibold text-cyan-800">Driver Assignment Notification</legend>
+                        <p class="mt-1 text-xs text-gray-600">Choose how to notify the selected driver when this assignment is approved or changed.</p>
+                        <div class="mt-3 flex flex-wrap gap-5">
+                            <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer">
+                                <input type="checkbox" name="notify_driver_email" value="1" checked class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
+                                <span class="material-symbols-outlined text-base text-cyan-700">mail</span>
+                                Send Email
+                            </label>
+                            <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer">
+                                <input type="checkbox" name="notify_driver_sms" value="1" checked class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
+                                <span class="material-symbols-outlined text-base text-cyan-700">sms</span>
+                                Send SMS
+                            </label>
+                        </div>
+                    </fieldset>
 
                     <div>
                         <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Internal Admin Notes / Remarks</label>

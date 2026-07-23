@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS vehicles (
   transmission VARCHAR(50) DEFAULT 'Automatic',
   fuel_type VARCHAR(50) DEFAULT 'Gasoline',
   status VARCHAR(50) NOT NULL DEFAULT 'available',
+  category VARCHAR(50) DEFAULT 'Uncategorized',
   image_url VARCHAR(255) DEFAULT NULL,
   description TEXT DEFAULT NULL,
   price_per_hour DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -42,7 +43,7 @@ CREATE TABLE IF NOT EXISTS event_types (
 CREATE TABLE IF NOT EXISTS bookings (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   booking_number VARCHAR(50) NOT NULL UNIQUE,
-  user_id INT UNSIGNED NOT NULL,
+  user_id INT UNSIGNED DEFAULT NULL,
   vehicle_id INT UNSIGNED NOT NULL,
   driver_id INT UNSIGNED DEFAULT NULL,
   event_type_id INT UNSIGNED NOT NULL,
@@ -70,17 +71,18 @@ INSERT INTO event_types (name, slug, description, icon_class, is_active, sort_or
   ('Island Tour', 'island-tour', 'Comfortable vehicles for coastal trips, hill-country travel, and special celebrations.', 'celebration', 1, 3);
 
 INSERT INTO vehicles (name, model, year, capacity, transmission, fuel_type, status, image_url, description, price_per_hour, price_per_day) VALUES
-  ('Colombo Toyota Axio', 'Toyota Corolla Axio', 2020, 4, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-axio.png', 'Popular Sri Lankan sedan for weddings, business transfers, and city events.', 2400.00, 18500.00),
-  ('Kandy Toyota Premio', 'Toyota Premio', 2019, 4, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-premio.png', 'Comfortable executive sedan commonly used for Sri Lankan wedding hires.', 2800.00, 22000.00),
-  ('Galle Honda Vezel', 'Honda Vezel', 2021, 5, 'Automatic', 'Hybrid', 'available', 'assets/vehicles/honda-vezel.png', 'Compact hybrid SUV suited for coastal trips and event guest transport.', 3200.00, 24500.00),
-  ('Negombo Toyota HiAce', 'Toyota HiAce', 2018, 10, 'Automatic', 'Diesel', 'available', 'assets/vehicles/toyota-hiace.png', 'Reliable van for airport pickups, group travel, and family events.', 3800.00, 30000.00),
-  ('Colombo Nissan Sunny', 'Nissan Sunny', 2020, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/nissan-sunny.png', 'Compact city sedan ideal for Colombo airport transfers and corporate bookings.', 2000.00, 16000.00),
-  ('Matara Suzuki Wagon R', 'Suzuki Wagon R', 2022, 4, 'Automatic', 'Hybrid', 'available', 'assets/vehicles/suzuki-wagonr.png', 'Efficient city car for compact event errands and short hires.', 1800.00, 14000.00),
-  ('Nuwara Eliya Toyota Corolla', 'Toyota Corolla', 2019, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-axio.png', 'Reliable sedan for hill country tours and wedding guest transfers.', 2100.00, 16500.00),
-  ('Jaffna Toyota Axio', 'Toyota Corolla Axio', 2021, 4, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-axio.png', 'Comfortable sedan perfect for northern Sri Lankan events and guest transport.', 2350.00, 18000.00),
-  ('Trincomalee Suzuki Swift', 'Suzuki Swift', 2021, 4, 'Automatic', 'Petrol', 'available', 'assets/vehicles/suzuki-wagonr.png', 'Compact hatchback ideal for coastal city routes and short event hires.', 1700.00, 13500.00),
-  ('Jaffna Nissan Sunny', 'Nissan Sunny', 2020, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/nissan-sunny.png', 'Popular sedan commonly used across Sri Lanka for airport transfers and city travel.', 2000.00, 16000.00),
-  ('Batticaloa Honda City', 'Honda City', 2021, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-premio.png', 'Comfortable compact sedan with premium amenities for executive bookings.', 2600.00, 21000.00);
+  ('Colombo Toyota Premio F-Ex', 'Toyota Premio', 2021, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-premio.png', 'Luxury Sri Lankan executive sedan for weddings, VIP arrivals, and corporate transport in Colombo.', 2800.00, 22000.00),
+  ('Kandy Toyota Axio Hybrid', 'Toyota Corolla Axio', 2020, 5, 'Automatic', 'Hybrid', 'available', 'assets/vehicles/toyota-axio.png', 'Popular, comfortable Sri Lankan sedan for city events, wedding escorts, and airport transfers.', 2400.00, 18500.00),
+  ('Galle Honda Vezel RS', 'Honda Vezel RS', 2021, 5, 'Automatic', 'Hybrid', 'available', 'assets/vehicles/honda-vezel.png', 'Stylish hybrid SUV ideal for southern beach weddings, luxury island tours, and corporate delegations.', 3200.00, 24500.00),
+  ('Negombo Toyota HiAce KDH Super GL', 'Toyota HiAce KDH 200', 2019, 10, 'Automatic', 'Diesel', 'available', 'assets/vehicles/toyota-hiace.png', 'Premium high-roof Sri Lankan passenger van for airport pickups, group tours, and wedding guest shuttles.', 3800.00, 30000.00),
+  ('Colombo Nissan Sunny Super Saloon', 'Nissan Sunny N17', 2020, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/nissan-sunny.png', 'Reliable Sri Lankan sedan for Colombo city business meetings, airport runs, and daily hires.', 2000.00, 16000.00),
+  ('Matara Suzuki Wagon R Stingray', 'Suzuki Wagon R Stingray', 2022, 4, 'Automatic', 'Hybrid', 'available', 'assets/vehicles/suzuki-wagonr.png', 'Highly fuel-efficient Sri Lankan city hatchback for short event hires and coastal errands.', 1800.00, 14000.00),
+  ('Bentota Toyota Premio Luxury Bridal Edition', 'Toyota Premio G Superior', 2022, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-premio.png', 'Decorated luxury Sri Lankan wedding car with professional uniformed chauffeur service.', 3500.00, 26000.00),
+  ('Nuwara Eliya Honda Vezel Z Sensing', 'Honda Vezel Hybrid', 2021, 5, 'Automatic', 'Hybrid', 'available', 'assets/vehicles/honda-vezel.png', 'Smooth, powerful hybrid SUV for Sri Lankan hill-country expeditions and Nuwara Eliya tours.', 3300.00, 25000.00),
+  ('Jaffna Toyota Axio EX', 'Toyota Corolla Axio', 2021, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/toyota-axio.png', 'Spacious, reliable Sri Lankan sedan for northern peninsula travel and event guest transport.', 2350.00, 18000.00),
+  ('Trincomalee Suzuki Swift RS', 'Suzuki Swift Turbo', 2021, 5, 'Automatic', 'Petrol', 'available', 'assets/vehicles/suzuki-wagonr.png', 'Agile hatchback ideal for eastern coast trips, city tours, and fast event errands.', 1900.00, 15000.00),
+  ('Kurunegala Toyota HiAce VIP Commuter', 'Toyota HiAce KDH 222', 2020, 12, 'Automatic', 'Diesel', 'available', 'assets/vehicles/toyota-hiace.png', 'Large luxury van for Sri Lankan wedding entourages, corporate delegates, and family trips.', 4200.00, 32000.00),
+  ('Colombo Toyota Corolla Grace Hybrid', 'Honda Grace / Toyota Corolla', 2021, 5, 'Automatic', 'Hybrid', 'available', 'assets/vehicles/toyota-axio.png', 'Premium hybrid sedan with leather interior for diplomatic and corporate transfers.', 2600.00, 20000.00);
 
 CREATE TABLE IF NOT EXISTS event_packages (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

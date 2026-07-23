@@ -1,8 +1,6 @@
 <?php
 $page_title = 'Complete Your Booking';
 require_once '../config/database.php';
-require_once '../includes/auth.php';
-requireLogin();
 
 $step = $_GET['step'] ?? 1;
 $booking_data = $_SESSION['booking_data'] ?? [];
@@ -11,16 +9,40 @@ $booking_data = $_SESSION['booking_data'] ?? [];
 if ($step == 1) {
     $package_id = isset($_GET['package_id']) ? (int)$_GET['package_id'] : 0;
     $selected_package = null;
+    $package_vehicles = [];
     if ($package_id > 0) {
         $stmtPkg = $pdo->prepare("SELECT * FROM event_packages WHERE id = ?");
         $stmtPkg->execute([$package_id]);
         $selected_package = $stmtPkg->fetch();
+
+        // Match the vehicle names stored on the package to real, available fleet records.
+        if ($selected_package && !empty($selected_package['vehicle_types'])) {
+            $vehicle_types = array_filter(array_map('trim', explode(',', $selected_package['vehicle_types'])));
+            $where = [];
+            $params = [];
+            foreach ($vehicle_types as $vehicle_type) {
+                $where[] = '(name LIKE ? OR model LIKE ?)';
+                $params[] = '%' . $vehicle_type . '%';
+                $params[] = '%' . $vehicle_type . '%';
+            }
+            if ($where) {
+                $stmtVehicles = $pdo->prepare('SELECT * FROM vehicles WHERE status = \'available\' AND (' . implode(' OR ', $where) . ')');
+                $stmtVehicles->execute($params);
+                $package_vehicles = $stmtVehicles->fetchAll();
+            }
+        }
     }
 
-    $vehicle_id = $_GET['vehicle'] ?? 0;
+    $requested_vehicle_id = isset($_POST['vehicle_id']) ? (int)$_POST['vehicle_id'] : (int)($_GET['vehicle'] ?? 0);
+    $hasExplicitVehicleSelection = $requested_vehicle_id > 0;
+    $vehicle_id = $requested_vehicle_id;
     if ($selected_package) {
-        // Find a fallback vehicle to fulfill foreign key constraint
-        $vehicle_id = $pdo->query("SELECT id FROM vehicles LIMIT 1")->fetchColumn();
+        // A booking stores one vehicle ID as its fleet reference. Use an included
+        // vehicle, or the first available vehicle only if the package has no match.
+        $package_vehicle_ids = array_map('intval', array_column($package_vehicles, 'id'));
+        if (!$vehicle_id || !in_array($vehicle_id, $package_vehicle_ids, true)) {
+            $vehicle_id = $package_vehicle_ids[0] ?? $pdo->query("SELECT id FROM vehicles WHERE status = 'available' LIMIT 1")->fetchColumn();
+        }
     }
     
     $selected_vehicle = getVehicleById($vehicle_id);
@@ -29,24 +51,41 @@ if ($step == 1) {
         header('Location: vehicles.php');
         exit();
     }
+
+    $eventTypes = $pdo->query("SELECT * FROM event_types WHERE is_active = 1")->fetchAll();
+    $default_event_type_id = $eventTypes[0]['id'] ?? 0;
     
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        $_SESSION['booking_data'] = [
-            'vehicle_id' => $vehicle_id,
-            'package_id' => $package_id,
-            'event_type_id' => $_POST['event_type_id'],
-            'event_name' => $_POST['event_name'] ?: ($selected_package ? $selected_package['name'] : ''),
-            'event_date' => $_POST['event_date'],
-            'start_time' => $_POST['start_time'],
-            'end_time' => $_POST['end_time'],
-            'pickup_location' => $_POST['pickup_location'],
-            'dropoff_location' => $_POST['dropoff_location']
-        ];
-        header('Location: booking-process.php?step=2');
-        exit();
+        $guest_name = trim($_POST['guest_name'] ?? '');
+        $guest_email = trim($_POST['guest_email'] ?? '');
+        $guest_phone = trim($_POST['guest_phone'] ?? '');
+        $is_guest = !isset($_SESSION['user_id']);
+
+        if ($is_guest && (!$guest_name || !filter_var($guest_email, FILTER_VALIDATE_EMAIL) || !$guest_phone)) {
+            $booking_error = 'Please enter your name, a valid email address, and phone number to continue as a guest.';
+        } else {
+            $_SESSION['booking_data'] = [
+                'vehicle_id' => $vehicle_id,
+                'package_id' => $package_id,
+                'event_type_id' => $selected_package ? $default_event_type_id : (int)$_POST['event_type_id'],
+                'event_name' => $selected_package ? $selected_package['name'] : ($_POST['event_name'] ?? ''),
+                'event_date' => $_POST['event_date'],
+                'start_time' => $_POST['start_time'],
+                'end_time' => $_POST['end_time'],
+                'pickup_location' => $_POST['pickup_location'],
+                'dropoff_location' => $_POST['dropoff_location'],
+                'special_requests' => trim($_POST['special_requests'] ?? ''),
+                'guest_contact' => [
+                    'name' => $guest_name,
+                    'email' => $guest_email,
+                    'phone' => $guest_phone
+                ]
+            ];
+            header('Location: booking-process.php?step=2');
+            exit();
+        }
     }
     
-    $eventTypes = $pdo->query("SELECT * FROM event_types WHERE is_active = 1")->fetchAll();
     ?>
     
     <?php require_once '../includes/header.php'; ?>
@@ -59,20 +98,49 @@ if ($step == 1) {
                 </div>
                 
                 <form method="POST" class="p-8 space-y-6">
+                    <?php if (!empty($booking_error)): ?>
+                        <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><?php echo htmlspecialchars($booking_error); ?></div>
+                    <?php endif; ?>
+                    <?php if ($selected_package): ?>
+                        <section class="rounded-xl border border-cyan-100 bg-cyan-50/60 p-5 text-center">
+                            <div class="mb-5">
+                                <div>
+                                    <p class="text-xs font-bold uppercase tracking-wider text-cyan-700">Selected package</p>
+                                    <h2 class="text-xl font-bold text-gray-900"><?php echo htmlspecialchars($selected_package['name']); ?></h2>
+                                    <p class="mt-1 text-sm text-gray-600">LKR <?php echo number_format($selected_package['base_price'], 2); ?> package price</p>
+                                </div>
+                            </div>
+
+                            <h3 class="mb-3 text-sm font-bold text-gray-800">Selected Vehicle: <span id="selected-booking-vehicle-name" class="text-cyan-700"><?php echo $hasExplicitVehicleSelection ? htmlspecialchars($selected_vehicle['name']) : 'No vehicle selected'; ?></span></h3>
+                            <?php if ($package_vehicles): ?>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <?php foreach ($package_vehicles as $package_vehicle): ?>
+                                        <label class="cursor-pointer rounded-lg border bg-white p-3 transition hover:border-cyan-500 <?php echo $hasExplicitVehicleSelection && $package_vehicle['id'] == $vehicle_id ? 'border-cyan-600 ring-1 ring-cyan-600' : 'border-gray-200'; ?>">
+                                            <input type="radio" name="vehicle_id" value="<?php echo $package_vehicle['id']; ?>" data-vehicle-name="<?php echo htmlspecialchars($package_vehicle['name'], ENT_QUOTES); ?>" <?php echo $hasExplicitVehicleSelection && $package_vehicle['id'] == $vehicle_id ? 'checked' : ''; ?> required class="sr-only">
+                                            <div class="flex gap-3">
+                                                <img src="<?php echo htmlspecialchars(getVehicleImageUrl($package_vehicle['image_url'], $package_vehicle['name'])); ?>" alt="<?php echo htmlspecialchars($package_vehicle['name']); ?>" class="h-20 w-28 rounded-md object-cover">
+                                                <div class="min-w-0">
+                                                    <p class="font-bold text-gray-900"><?php echo htmlspecialchars($package_vehicle['name']); ?></p>
+                                                    <p class="text-xs text-gray-500"><?php echo htmlspecialchars($package_vehicle['model']); ?> · <?php echo $package_vehicle['year']; ?></p>
+                                                    <p class="mt-2 text-xs text-gray-600"><?php echo $package_vehicle['capacity']; ?> seats · <?php echo htmlspecialchars($package_vehicle['transmission']); ?></p>
+                                                    <a href="vehicle-details.php?id=<?php echo $package_vehicle['id']; ?>" class="mt-1 inline-block text-xs font-semibold text-cyan-700 hover:underline">Vehicle details</a>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    <?php endforeach; ?>
+                                </div>
+                            <?php else: ?>
+                                <p class="text-sm text-gray-600">The fleet for this package will be confirmed by our team. A vehicle has been reserved as the booking reference.</p>
+                            <?php endif; ?>
+                        </section>
+                    <?php endif; ?>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Event Type *</label>
-                            <select name="event_type_id" required class="w-full px-4 py-2 border rounded-lg focus:ring-red-500">
-                                <option value="">Select Event Type</option>
-                                <?php foreach ($eventTypes as $event): ?>
-                                    <option value="<?php echo $event['id']; ?>"><?php echo htmlspecialchars($event['name']); ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Event Name</label>
-                            <input type="text" name="event_name" placeholder="e.g., Smith Wedding" class="w-full px-4 py-2 border rounded-lg">
-                        </div>
+                        <!-- Event fields are set automatically for customized bookings. -->
+                        <?php if (!$selected_package): ?>
+                        <input type="hidden" name="event_type_id" value="<?php echo $default_event_type_id; ?>">
+                        <input type="hidden" name="event_name" value="Customized Booking">
+                        <?php endif; ?>
                         <div>
                             <label class="block text-sm font-medium mb-2">Event Date *</label>
                             <input type="date" name="event_date" required min="<?php echo date('Y-m-d'); ?>" class="w-full px-4 py-2 border rounded-lg">
@@ -86,6 +154,30 @@ if ($step == 1) {
                             <input type="time" name="end_time" required class="w-full px-4 py-2 border rounded-lg">
                         </div>
                     </div>
+
+                    <?php if (!isset($_SESSION['user_id'])): ?>
+                        <div class="rounded-xl border border-gray-200 bg-gray-50 p-5">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <h3 class="font-bold text-gray-900">Guest contact details</h3>
+                                <a href="register.php" class="text-sm font-bold text-primary hover:underline">Create an account</a>
+                            </div>
+                            <p class="mt-1 text-sm text-gray-500">No account is required. You can also create an account to manage your bookings later.</p>
+                            <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Full Name *</label>
+                                    <input type="text" name="guest_name" required value="<?php echo htmlspecialchars($_POST['guest_name'] ?? ''); ?>" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Email *</label>
+                                    <input type="email" name="guest_email" required value="<?php echo htmlspecialchars($_POST['guest_email'] ?? ''); ?>" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Phone *</label>
+                                    <input type="tel" name="guest_phone" required value="<?php echo htmlspecialchars($_POST['guest_phone'] ?? ''); ?>" class="w-full px-4 py-2 border rounded-lg">
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
                     
                     <div>
                         <label class="block text-sm font-medium mb-2">Pickup Location *</label>
@@ -96,7 +188,14 @@ if ($step == 1) {
                         <label class="block text-sm font-medium mb-2">Dropoff Location *</label>
                         <input type="text" name="dropoff_location" required placeholder="Full address" class="w-full px-4 py-2 border rounded-lg">
                     </div>
-                    
+
+                    <?php if ($selected_package): ?>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Package Details</label>
+                        <textarea name="special_requests" rows="4" placeholder="Add package preferences, decoration needs, passenger requirements, or other details." class="w-full px-4 py-2 border rounded-lg"></textarea>
+                    </div>
+                    <?php endif; ?>
+
                     <button type="submit" class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition">
                         Continue to Extras
                     </button>
@@ -104,6 +203,15 @@ if ($step == 1) {
             </div>
         </div>
     </main>
+    <script>
+        document.querySelectorAll('input[name="vehicle_id"]').forEach((input) => {
+            input.addEventListener('change', () => {
+                if (input.checked) {
+                    document.getElementById('selected-booking-vehicle-name').textContent = input.dataset.vehicleName;
+                }
+            });
+        });
+    </script>
     <?php require_once '../includes/footer.php'; ?>
     
 <?php } elseif ($step == 2) {
@@ -246,7 +354,7 @@ if ($step == 1) {
         
         $stmt->execute([
             $booking_number,
-            $_SESSION['user_id'],
+            $_SESSION['user_id'] ?? null,
             $booking_data['vehicle_id'],
             $booking_data['event_type_id'],
             $booking_data['event_name'],
@@ -259,13 +367,22 @@ if ($step == 1) {
             $subtotal + $extras_total,
             $tax,
             $total_amount,
-            json_encode($booking_data['extras'])
+            json_encode([
+                'extras' => $booking_data['extras'],
+                'guest_contact' => $booking_data['guest_contact'] ?? null,
+                'special_requests' => $booking_data['special_requests'] ?? ''
+            ])
         ]);
+
+        $new_booking_id = $pdo->lastInsertId();
+        if (!isset($_SESSION['user_id'])) {
+            $_SESSION['guest_booking_id'] = $new_booking_id;
+        }
         
         // Clear session data
         unset($_SESSION['booking_data']);
         
-        header('Location: booking-success.php?id=' . $pdo->lastInsertId());
+        header('Location: booking-success.php?id=' . $new_booking_id);
         exit();
     }
     
@@ -318,6 +435,7 @@ if ($step == 1) {
                                 <h3 class="font-bold text-lg mb-3">Package Details</h3>
                                 <p><strong>Package:</strong> <?php echo htmlspecialchars($selected_package['name']); ?></p>
                                 <p><strong>Vehicles Included:</strong> <?php echo htmlspecialchars($selected_package['vehicle_types']); ?></p>
+                                <p><strong>Booking Reference Vehicle:</strong> <?php echo htmlspecialchars($vehicle['name']); ?> — <?php echo htmlspecialchars($vehicle['model']); ?> (<?php echo $vehicle['capacity']; ?> seats, <?php echo htmlspecialchars($vehicle['transmission']); ?>)</p>
                             <?php else: ?>
                                 <h3 class="font-bold text-lg mb-3">Vehicle Details</h3>
                                 <p><strong>Vehicle:</strong> <?php echo htmlspecialchars($vehicle['name']); ?></p>
@@ -338,7 +456,7 @@ if ($step == 1) {
                             <p><strong>Pickup:</strong> <?php echo htmlspecialchars($booking_data['pickup_location']); ?></p>
                             <p><strong>Dropoff:</strong> <?php echo htmlspecialchars($booking_data['dropoff_location']); ?></p>
                         </div>
-                        
+
                         <?php if (!$selected_package): ?>
                         <div class="border-b pb-4">
                             <h3 class="font-bold text-lg mb-3">Extras</h3>
@@ -368,12 +486,12 @@ if ($step == 1) {
                                 <?php else: ?>
                                     <div class="flex justify-between">
                                         <span>Base Rental (<?php echo $total_hours; ?> hours)</span>
-                                        <span>$<?php echo number_format($subtotal, 2); ?></span>
+                                        <span>LKR <?php echo number_format($subtotal, 2); ?></span>
                                     </div>
                                     <?php if ($extras_total > 0): ?>
                                         <div class="flex justify-between">
                                             <span>Extras</span>
-                                            <span>$<?php echo number_format($extras_total, 2); ?></span>
+                                            <span>LKR <?php echo number_format($extras_total, 2); ?></span>
                                         </div>
                                     <?php endif; ?>
                                 <?php endif; ?>

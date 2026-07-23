@@ -56,17 +56,24 @@ $categories = [
 
 <?php require_once '../includes/navbar.php'; ?>
 
+<style>
+    /* The compiled stylesheet does not include every Tailwind spacing utility. */
+    .package-category-list > .package-category + .package-category {
+        margin-top: 5rem;
+    }
+</style>
+
 <main class="flex-1 bg-surface-bright min-h-screen pt-36 pb-20">
     <div class="max-w-[1440px] mx-auto p-gutter lg:p-margin">
-        <div class="mb-10">
-            <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-4">
+        <div class="mb-8">
+            <nav class="flex items-center gap-2 text-label-sm text-gray-400 mb-3">
                 <a href="index.php" class="hover:text-red-600">Home</a>
                 <span class="material-symbols-outlined text-sm">chevron_right</span>
                 <span class="text-gray-900 font-bold">Event Packages</span>
             </nav>
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 class="font-h1 text-h1 text-on-surface mb-2">Service Packages</h1>
+                    <h1 class="font-h1 text-h1 text-on-surface mb-1">Service Packages</h1>
                     <p class="text-body-lg text-gray-500 max-w-2xl">Selections curated for high-profile events, combining luxury fleet arrangements with operational reliability.</p>
                 </div>
             </div>
@@ -78,13 +85,14 @@ $categories = [
                 <p class="text-gray-500 text-lg">No service packages are currently available. Check back soon!</p>
             </div>
         <?php else: ?>
-            <div class="space-y-16">
+            <!-- Clearly separate one package category from the next. -->
+            <div class="package-category-list">
                 <?php foreach ($grouped_packages as $key => $packages): ?>
                     <?php if (empty($packages)) continue; ?>
                     
-                    <div class="space-y-6">
+                    <div class="package-category space-y-8">
                         <!-- Category Header -->
-                        <div class="flex items-center gap-3 border-b pb-4">
+                        <div class="flex items-center gap-3 border-b pb-3">
                             <span class="material-symbols-outlined text-2xl text-cyan-600"><?php echo $categories[$key]['icon']; ?></span>
                             <h2 class="text-2xl font-bold text-gray-900"><?php echo $categories[$key]['title']; ?></h2>
                             <span class="ml-2 text-xs font-semibold px-2.5 py-0.5 rounded-full <?php echo $categories[$key]['color']; ?> border">
@@ -93,55 +101,89 @@ $categories = [
                         </div>
 
                         <!-- Packages Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <?php foreach ($packages as $pkg): ?>
-                                <div class="bg-white rounded-3xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden flex flex-col justify-between group">
+                                <div class="bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col justify-between group">
                                     <div>
-                                        <!-- Package Header Image / Icon -->
-                                        <?php 
-                                        $pkgImg = getVehicleImageUrl($pkg['image_url'] ?? '', $pkg['name']); 
+                                        <!-- Package name is displayed prominently before its vehicle image. -->
+                                        <?php
+                                        $packageDiscounts = [
+                                            'Coastal Beach Wedding Deluxe' => 20,
+                                            'Kandyan Wedding Premium' => 15,
+                                            'Royal Presidential Wedding' => 10,
+                                            'Colombo Business Pro' => 20,
+                                            'Executive VIP Fleet Shuttle' => 15,
+                                            'Diplomatic Summit Transport' => 12,
+                                            'Hill Country Scenic Expedition' => 18,
+                                            'Cultural Triangle Grand Tour' => 15,
+                                            'Galle Island Tour Elite' => 20,
+                                            'VIP Party Shuttle Express' => 25,
+                                            'Gala & Red Carpet Night' => 15,
+                                            'Milestone Celebration Package' => 10,
+                                        ];
+                                        $discountPercent = $packageDiscounts[trim($pkg['name'])] ?? null;
+                                        $isDiscountPackage = $discountPercent !== null;
                                         ?>
-                                        <div class="h-44 relative bg-slate-900 flex items-center justify-center overflow-hidden">
-                                            <img src="<?php echo htmlspecialchars($pkgImg); ?>" alt="<?php echo htmlspecialchars($pkg['name']); ?>" class="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-500 group-hover:scale-110">
-                                            <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/40 to-transparent z-10"></div>
-                                            <span class="material-symbols-outlined text-white/20 text-[100px] absolute -right-6 -bottom-6 rotate-12"><?php echo $categories[$key]['icon']; ?></span>
-                                            <div class="relative z-20 text-center px-6">
-                                                <h3 class="text-xl font-bold text-white mb-1"><?php echo htmlspecialchars($pkg['name']); ?></h3>
-                                                <span class="inline-block px-2.5 py-0.5 bg-white/20 text-white rounded-full text-[10px] font-semibold uppercase tracking-wider">Bundle Package</span>
+                                        <div class="px-5 pt-5 text-center">
+                                            <h3 class="inline-block rounded-xl px-4 py-2 text-xl font-extrabold leading-snug transition-colors <?php echo $isDiscountPackage ? 'text-primary underline' : 'bg-cyan-50 text-cyan-800 ring-1 ring-cyan-200 group-hover:bg-cyan-100'; ?>">
+                                                <?php echo htmlspecialchars($pkg['name']); ?>
+                                            </h3>
+                                        </div>
+                                        <!-- Sharp, Clear Vehicle Image Showcase -->
+                                        <?php 
+                                        $firstVType = !empty($pkg['vehicle_types']) ? explode(',', $pkg['vehicle_types'])[0] : '';
+                                        $vehicleLookup = !empty($pkg['image_url']) ? $pkg['name'] : (!empty($firstVType) ? trim($firstVType) : $pkg['name']);
+                                        $pkgImg = getVehicleImageUrl($pkg['image_url'] ?? '', $vehicleLookup);
+                                        ?>
+                                        <div class="relative w-full h-56 bg-slate-100 flex items-center justify-center p-3 overflow-hidden border-b border-gray-200">
+                                            <img src="<?php echo htmlspecialchars($pkgImg); ?>" alt="<?php echo htmlspecialchars($pkg['name']); ?>" class="w-full h-full object-contain filter drop-shadow-md transition-transform duration-500 group-hover:scale-105">
+                                            <div class="absolute top-3 left-3">
+                                                <span class="inline-flex items-center gap-1 px-3 py-1 bg-white/95 text-cyan-900 rounded-full text-xs font-extrabold shadow-sm border border-cyan-100">
+                                                    <span class="material-symbols-outlined text-xs text-cyan-600">verified</span>
+                                                    Bundle Package
+                                                </span>
                                             </div>
                                         </div>
 
-                                        <div class="p-6 space-y-6">
-                                            <!-- Price -->
-                                            <div>
-                                                <span class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Base Price</span>
-                                                <p class="text-2xl font-extrabold text-cyan-600 mt-0.5">LKR <?php echo number_format($pkg['base_price'], 2); ?></p>
+                                        <div class="p-5">
+                                            <!-- Centered package price -->
+                                            <div class="mb-4 text-center">
+                                                <p class="inline-block rounded-full bg-cyan-50 px-5 py-2 text-2xl font-black text-cyan-600 ring-1 ring-cyan-100">LKR <?php echo number_format($pkg['base_price'], 2); ?></p>
+                                                <?php if ($discountPercent !== null): ?>
+                                                    <p class="mt-2 text-sm font-extrabold" style="color: #b1000d;"><?php echo $discountPercent; ?>% OFF</p>
+                                                <?php endif; ?>
                                             </div>
 
-                                            <!-- Description -->
-                                            <p class="text-gray-600 text-sm leading-relaxed h-12 overflow-hidden line-clamp-2"><?php echo htmlspecialchars($pkg['description']); ?></p>
-
-                                            <!-- Included Vehicles -->
+                                            <!-- Included Vehicles with clear spacing between Toyota Premio & Suzuki WagonR -->
                                             <?php if ($pkg['vehicle_types']): ?>
-                                                <div class="border-t pt-4">
-                                                    <h4 class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Vehicles Included</h4>
-                                                    <div class="flex flex-wrap gap-1.5">
+                                                <div class="bg-slate-50 rounded-xl p-4 border border-slate-200 mb-3">
+                                                    <div class="flex items-center gap-2 text-slate-800 font-bold text-sm uppercase tracking-wider mb-3">
+                                                        <span class="material-symbols-outlined text-cyan-600 text-xl">directions_car</span>
+                                                        <span>Included Vehicles</span>
+                                                    </div>
+                                                    <div class="flex flex-wrap gap-3">
                                                         <?php foreach (explode(',', $pkg['vehicle_types']) as $vType): ?>
-                                                            <span class="bg-cyan-50 text-cyan-700 text-[10px] px-2.5 py-0.5 rounded-full border border-cyan-100 font-medium"><?php echo htmlspecialchars(trim($vType)); ?></span>
+                                                            <div class="inline-flex items-center gap-2 px-4 py-2 text-slate-900 text-sm font-bold rounded-full border" style="background-color: #eef9fa; border-color: #b8e1e5;">
+                                                                <span class="w-2 h-2 rounded-full shrink-0" style="background-color: #0d6a75;"></span>
+                                                                <span><?php echo htmlspecialchars(trim($vType)); ?></span>
+                                                            </div>
                                                         <?php endforeach; ?>
                                                     </div>
                                                 </div>
                                             <?php endif; ?>
 
-                                            <!-- Included Services -->
+                                            <!-- Included Services immediately under Included Vehicles -->
                                             <?php if ($pkg['included_services']): ?>
-                                                <div class="border-t pt-4">
-                                                    <h4 class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Included Services</h4>
-                                                    <ul class="space-y-1.5 text-xs text-gray-700">
+                                                <div class="bg-emerald-50/70 rounded-xl p-4 border border-emerald-100">
+                                                    <div class="flex items-center gap-2 text-emerald-900 font-bold text-sm uppercase tracking-wider mb-3">
+                                                        <span class="material-symbols-outlined text-emerald-600 text-xl">task_alt</span>
+                                                        <span>Included Services</span>
+                                                    </div>
+                                                    <ul class="space-y-2 text-sm text-emerald-950 font-semibold leading-relaxed">
                                                         <?php foreach (explode(',', $pkg['included_services']) as $service): ?>
-                                                            <li class="flex items-center gap-2">
-                                                                <span class="material-symbols-outlined text-green-500 text-base">check_circle</span>
-                                                                <?php echo htmlspecialchars(trim($service)); ?>
+                                                            <li class="flex items-center gap-2.5">
+                                                                <span class="material-symbols-outlined text-emerald-600 text-lg shrink-0">check_circle</span>
+                                                                <span><?php echo htmlspecialchars(trim($service)); ?></span>
                                                             </li>
                                                         <?php endforeach; ?>
                                                     </ul>
@@ -150,10 +192,10 @@ $categories = [
                                         </div>
                                     </div>
 
-                                    <!-- Booking Button -->
-                                    <div class="p-6 border-t bg-gray-50/50">
-                                        <a href="booking.php?package_id=<?php echo $pkg['id']; ?>" class="w-full inline-flex items-center justify-center gap-2 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary-hover transition-colors shadow-sm">
-                                            Book Package
+                                    <!-- View Details Action Button -->
+                                    <div class="mt-4 px-2 py-4 border-t bg-gray-50/50">
+                                        <a href="package-details.php?id=<?php echo $pkg['id']; ?>" class="inline-flex items-center justify-center gap-2 py-2 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary-hover transition-colors shadow-sm" style="width: calc(100% + 16px); margin-left: -8px;">
+                                            View Vehicle Details
                                             <span class="material-symbols-outlined text-sm">arrow_forward</span>
                                         </a>
                                     </div>

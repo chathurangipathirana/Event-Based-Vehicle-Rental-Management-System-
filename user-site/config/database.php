@@ -12,7 +12,9 @@ try {
     die("Connection failed: " . $e->getMessage());
 }
 
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Helper functions
 function getVehicleById($id) {

@@ -4,6 +4,25 @@ require_once 'includes/auth.php';
 requireAdminLogin();
 require_once 'config/database.php';
 
+// Keep the admin fleet schema compatible with the shared user-site database.
+try {
+    $hasCategoryColumn = $pdo->query("SHOW COLUMNS FROM vehicles LIKE 'category'")->fetch();
+    if (!$hasCategoryColumn) {
+        $pdo->exec("ALTER TABLE vehicles ADD COLUMN category VARCHAR(50) NULL DEFAULT 'Uncategorized' AFTER status");
+    }
+    $pdo->exec("UPDATE vehicles
+        SET category = CASE
+            WHEN LOWER(CONCAT(name, ' ', model)) LIKE '%vezel%' OR LOWER(CONCAT(name, ' ', model)) LIKE '%suv%' THEN 'Luxury SUV'
+            WHEN LOWER(CONCAT(name, ' ', model)) LIKE '%hiace%' OR LOWER(CONCAT(name, ' ', model)) LIKE '%van%' THEN 'Executive'
+            WHEN LOWER(CONCAT(name, ' ', model)) LIKE '%wagon%' OR LOWER(CONCAT(name, ' ', model)) LIKE '%sunny%' THEN 'Economy'
+            WHEN LOWER(CONCAT(name, ' ', model)) LIKE '%premio%' OR LOWER(CONCAT(name, ' ', model)) LIKE '%axio%' THEN 'Luxury'
+            ELSE 'Uncategorized'
+        END
+        WHERE category IS NULL OR TRIM(category) = '' OR category = 'Uncategorized'");
+} catch (PDOException $e) {
+    // The table read below will still use the safe display fallback.
+}
+
 $message = '';
 $error = '';
 
@@ -243,7 +262,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
             <div class="flex flex-col lg:flex-row gap-4">
                 <div class="flex-1 relative">
                     <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
-                    <input type="text" id="searchInput" class="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500" placeholder="Search by name, model, or VIN...">
+                    <input type="text" id="searchInput" class="w-full pl-12 pr-4 py-3 rounded-xl border-gray-200 focus:border-red-500 focus:ring-1 focus:ring-red-500" placeholder="Search by name or model...">
                 </div>
                 <div class="flex gap-4">
                     <select id="categoryFilter" class="rounded-xl border-gray-200 px-6 py-3 min-w-[160px]">
@@ -312,7 +331,6 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                     <thead>
                         <tr>
                             <th class="px-6 py-4 text-sm uppercase tracking-wider">Vehicle Name</th>
-                            <th class="px-6 py-4 text-sm uppercase tracking-wider">Type</th>
                             <th class="px-6 py-4 text-sm uppercase tracking-wider">Category</th>
                             <th class="px-6 py-4 text-sm uppercase tracking-wider">Status</th>
                             <th class="px-6 py-4 text-sm uppercase tracking-wider text-right">Daily Rate</th>
@@ -321,7 +339,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                     </thead>
                     <tbody>
                         <?php foreach ($vehicles as $vehicle): ?>
-                        <tr data-name="<?php echo strtolower($vehicle['name']); ?>" data-category="<?php echo $vehicle['category']; ?>" data-status="<?php echo $vehicle['status']; ?>">
+                        <tr data-name="<?php echo strtolower($vehicle['name']); ?>" data-category="<?php echo htmlspecialchars($vehicle['category'] ?? 'Uncategorized'); ?>" data-status="<?php echo $vehicle['status']; ?>">
                             <td class="px-6 py-4">
                                 <div class="flex items-center">
                                     <div class="w-14 h-14 rounded-lg bg-slate-900 mr-4 overflow-hidden flex items-center justify-center border border-gray-200">
@@ -332,12 +350,10 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                                     </div>
                                     <div>
                                         <div class="font-medium text-gray-900"><?php echo $vehicle['name']; ?></div>
-                                        <div class="text-xs text-gray-500">VIN: <?php echo $vehicle['vin']; ?></div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4"><?php echo $vehicle['model']; ?></td>
-                            <td class="px-6 py-4"><?php echo $vehicle['category']; ?></td>
+                            <td class="px-6 py-4"><?php echo htmlspecialchars($vehicle['category'] ?? 'Uncategorized'); ?></td>
                             <td class="px-6 py-4">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold <?php echo $vehicle['status'] == 'available' ? 'bg-green-100 text-green-700' : ($vehicle['status'] == 'booked' ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'); ?>">
                                     <span class="w-1.5 h-1.5 rounded-full mr-2 <?php echo $vehicle['status'] == 'available' ? 'bg-green-500' : ($vehicle['status'] == 'booked' ? 'bg-blue-500' : 'bg-amber-500'); ?>"></span>
@@ -386,7 +402,6 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                 <div><input type="text" name="name" id="vehicleName" placeholder="Vehicle Name" required class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="text" name="model" id="vehicleModel" placeholder="Model" required class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="text" name="plate" id="vehiclePlate" placeholder="License Plate" class="w-full px-3 py-2 border rounded-lg"></div>
-                <div><input type="text" name="vin" id="vehicleVin" placeholder="VIN Number" class="w-full px-3 py-2 border rounded-lg"></div>
                 <div class="col-span-2"><input type="url" name="image_url" id="vehicleImageUrl" placeholder="Vehicle Photo URL" class="w-full px-3 py-2 border rounded-lg"></div>
                 <div><input type="number" name="price" id="vehiclePrice" placeholder="Daily Rate (LKR)" required class="w-full px-3 py-2 border rounded-lg"></div>
                 <div>
@@ -427,7 +442,6 @@ function editVehicle(vehicle) {
     document.getElementById('vehicleName').value = vehicle.name;
     document.getElementById('vehicleModel').value = vehicle.model;
     document.getElementById('vehiclePlate').value = vehicle.plate || '';
-    document.getElementById('vehicleVin').value = vehicle.vin || '';
     document.getElementById('vehicleImageUrl').value = vehicle.image_url || '';
     document.getElementById('vehiclePrice').value = vehicle.price;
     document.getElementById('vehicleCategory').value = vehicle.category;

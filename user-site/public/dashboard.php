@@ -52,7 +52,7 @@ $upcoming = $stmt->fetch();
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-gray-600 text-sm">Total Spent</p>
-                        <p class="text-3xl font-bold text-primary">$<?php echo number_format($stats['total_spent'] ?? 0, 2); ?></p>
+                        <p class="text-3xl font-bold text-primary">LKR <?php echo number_format($stats['total_spent'] ?? 0, 2); ?></p>
                     </div>
                     <span class="material-symbols-outlined text-4xl text-gray-400">payments</span>
                 </div>
@@ -107,7 +107,7 @@ $upcoming = $stmt->fetch();
                                 <td class="py-3"><?php echo htmlspecialchars($booking['vehicle_name']); ?></td>
                                 <td class="py-3"><?php echo htmlspecialchars($booking['event_type_name']); ?></td>
                                 <td class="py-3"><?php echo date('M d, Y', strtotime($booking['event_date'])); ?></td>
-                                <td class="py-3">$<?php echo number_format($booking['total_amount'], 2); ?></td>
+                                <td class="py-3">LKR <?php echo number_format($booking['total_amount'], 2); ?></td>
                                 <td class="py-3">
                                     <span class="px-2 py-1 rounded text-xs 
                                         <?php echo $booking['status'] == 'confirmed' ? 'bg-green-100 text-green-800' : 

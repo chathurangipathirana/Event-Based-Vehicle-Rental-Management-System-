@@ -16,12 +16,17 @@ $bookings = $stmt->fetchAll();
 
 // Handle cancellation
 if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
-    $booking_id = $_GET['cancel'];
+    $booking_id = (int)$_GET['cancel'];
     $stmt = $pdo->prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ? AND user_id = ? AND status = 'pending'");
-    if ($stmt->execute([$booking_id, $_SESSION['user_id']])) {
+    $stmt->execute([$booking_id, $_SESSION['user_id']]);
+
+    if ($stmt->rowCount() > 0) {
         header('Location: my-bookings.php?msg=cancelled');
         exit();
     }
+
+    header('Location: my-bookings.php?msg=cancel-error');
+    exit();
 }
 ?>
 <?php require_once '../includes/header.php'; ?>
@@ -35,7 +40,13 @@ if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
         </div>
 
         <?php if (isset($_GET['msg']) && $_GET['msg'] == 'cancelled'): ?>
-            <div class="alert alert-success">Booking cancelled successfully!</div>
+            <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-green-700">
+                Booking cancelled successfully. Your booking is now marked as cancelled.
+            </div>
+        <?php elseif (isset($_GET['msg']) && $_GET['msg'] == 'cancel-error'): ?>
+            <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700">
+                Only pending bookings can be cancelled.
+            </div>
         <?php endif; ?>
 
         <?php if (empty($bookings)): ?>
@@ -89,7 +100,7 @@ if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
                             <div class="flex justify-between items-center">
                                 <div>
                                     <p class="text-sm text-gray-600">Total Amount</p>
-                                    <p class="text-2xl font-bold text-primary">$<?php echo number_format($booking['total_amount'], 2); ?></p>
+                                    <p class="text-2xl font-bold text-primary">LKR <?php echo number_format($booking['total_amount'], 2); ?></p>
                                 </div>
                                 <div class="space-x-3">
                                     <?php if ($booking['invoice_generated']): ?>
@@ -98,9 +109,13 @@ if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
                                         </a>
                                     <?php endif; ?>
                                     <?php if ($booking['status'] == 'pending'): ?>
-                                        <a href="?cancel=<?php echo $booking['id']; ?>" onclick="return confirm('Are you sure you want to cancel this booking?')" class="inline-block px-4 py-2 border border-red-500 text-red-500 rounded hover:bg-red-500 hover:text-white transition">
-                                            Cancel
+                                        <a href="?cancel=<?php echo $booking['id']; ?>" onclick="return confirm('Are you sure you want to cancel this booking?')" class="inline-block px-4 py-2 border border-red-500 bg-red-500 text-white rounded hover:bg-red-700 hover:border-red-700 transition">
+                                            Cancel Booking
                                         </a>
+                                    <?php elseif ($booking['status'] == 'cancelled'): ?>
+                                        <span class="inline-block px-4 py-2 border border-red-300 bg-red-50 text-red-600 rounded cursor-not-allowed">
+                                            Cancelled
+                                        </span>
                                     <?php endif; ?>
                                 </div>
                             </div>

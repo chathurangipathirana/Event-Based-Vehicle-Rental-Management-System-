@@ -58,17 +58,11 @@ try {
         <section class="rounded-[2rem] overflow-hidden mb-10">
             <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
                 <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
-                <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                <div class="relative">
                     <div class="max-w-2xl">
                         <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Welcome back</p>
                         <h1 class="text-5xl font-semibold tracking-tight">Dashboard Overview</h1>
                         <p class="mt-4 text-slate-300 text-lg leading-8"><?php echo $_SESSION['admin_name']; ?>, here's your fleet management summary.</p>
-                    </div>
-                    <div class="flex flex-wrap justify-end gap-3">
-                        <button onclick="exportDashboard()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
-                            <span class="material-symbols-outlined text-sm">download</span>
-                            Export Report
-                        </button>
                     </div>
                 </div>
             </div>

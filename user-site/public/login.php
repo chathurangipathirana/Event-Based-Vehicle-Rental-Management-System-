@@ -6,11 +6,20 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 $error = '';
+$redirect = $_POST['redirect'] ?? $_GET['redirect'] ?? '';
+if (!preg_match('/^booking\.php\?(?:package_id=\d+(?:&vehicle=\d+)?|vehicle=\d+)$/', $redirect)) {
+    $redirect = '';
+}
+
+// Remove credentials saved by the previous "Stay signed in" option.
+if (isset($_COOKIE['user_email'])) {
+    setcookie('user_email', '', time() - 3600, '/');
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = filter_var($_POST['email'] ?? '', FILTER_SANITIZE_EMAIL);
+    $email = filter_var($_POST['login_identifier'] ?? '', FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'] ?? '';
-    $remember = isset($_POST['remember']);
+    $staySignedIn = isset($_POST['stay_signed_in']);
 
     if (empty($email) || empty($password)) {
         $error = 'Please fill in all fields';
@@ -26,11 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_email'] = $user['email'];
                 $_SESSION['user_role'] = $user['role'];
 
-                if ($remember) {
-                    setcookie('user_email', $email, time() + (86400 * 30), "/");
+                if ($staySignedIn) {
+                    $cookie = session_get_cookie_params();
+                    setcookie(session_name(), session_id(), [
+                        'expires' => time() + (86400 * 30),
+                        'path' => $cookie['path'] ?: '/',
+                        'domain' => $cookie['domain'],
+                        'secure' => $cookie['secure'],
+                        'httponly' => $cookie['httponly'],
+                        'samesite' => 'Lax'
+                    ]);
                 }
 
-                header('Location: dashboard.php');
+                header('Location: ' . ($redirect ?: 'dashboard.php'));
                 exit();
             } else {
                 $error = 'Invalid email or password';
@@ -96,10 +113,11 @@ require_once '../includes/header.php';
                 <a href="register.php" class="flex-1 py-2.5 rounded-md text-xs font-bold text-gray-700 hover:text-gray-900 text-center">Create Account</a>
             </div>
 
-            <form method="POST" action="login.php" class="space-y-6">
+            <form method="POST" action="login.php" class="space-y-6" autocomplete="off">
+                <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
                 <div class="space-y-2">
                     <label class="block text-xs uppercase font-bold text-gray-900 tracking-wider" for="email">Work Email</label>
-                    <input id="email" name="email" type="email" required value="<?php echo htmlspecialchars($_POST['email'] ?? $_COOKIE['user_email'] ?? ''); ?>" class="w-full px-4 py-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm" placeholder="name@company.com"/>
+                    <input id="email" name="login_identifier" type="text" inputmode="email" required value="" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" class="w-full px-4 py-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm" placeholder="name@company.com"/>
                 </div>
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
@@ -114,8 +132,8 @@ require_once '../includes/header.php';
                     </div>
                 </div>
                 <div class="flex items-center gap-3">
-                    <input id="remember" name="remember" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" <?php echo isset($_POST['remember']) ? 'checked' : ''; ?> />
-                    <label for="remember" class="text-xs font-bold text-gray-800 cursor-pointer">Stay signed in for 30 days</label>
+                    <input id="stay_signed_in" name="stay_signed_in" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" <?php echo isset($_POST['stay_signed_in']) ? 'checked' : ''; ?> />
+                    <label for="stay_signed_in" class="text-xs font-bold text-gray-800 cursor-pointer">Stay signed in for 30 days</label>
                 </div>
                 <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl text-sm font-bold transition-all shadow-md active:scale-[0.99]">Sign In</button>
             </form>
@@ -126,6 +144,31 @@ require_once '../includes/header.php';
 </main>
 
 <script>
+    // Do not display credentials saved by the browser on this shared login screen.
+    window.addEventListener('DOMContentLoaded', () => {
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const clearCredentials = () => {
+            email.value = '';
+            password.value = '';
+        };
+
+        password.setAttribute('autocomplete', 'new-password');
+        clearCredentials();
+        email.readOnly = true;
+        password.readOnly = true;
+
+        [email, password].forEach((field) => {
+            field.addEventListener('focus', () => {
+                field.readOnly = false;
+                field.value = '';
+            }, { once: true });
+        });
+
+        // Some browsers fill saved credentials just after the page has loaded.
+        window.setTimeout(clearCredentials, 500);
+    });
+
     function togglePassword() {
         const pwd = document.getElementById('password');
         const icon = document.getElementById('pwd-icon');
