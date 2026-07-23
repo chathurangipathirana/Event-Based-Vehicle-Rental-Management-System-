@@ -15,7 +15,7 @@ if ($booking_id <= 0) {
 // Fetch booking details
 try {
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             b.*,
             v.name as vehicle_name,
             v.model as vehicle_model,
@@ -58,7 +58,7 @@ if (!empty($booking['special_requests'])) {
     if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
         $extras = $decoded;
         $driver_requested = isset($extras['professional_driver']) && $extras['professional_driver'] === true;
-        
+
         $special_requests_text = "Extras Selected:\n";
         $special_requests_text .= "• Professional Driver: " . ($driver_requested ? "Yes" : "No") . "\n";
         $special_requests_text .= "• Decorations: " . ((isset($extras['decorations']) && $extras['decorations']) ? "Yes" : "No") . "\n";
@@ -84,9 +84,9 @@ try {
 $drivers = [];
 try {
     $stmtDrv = $pdo->prepare("
-        SELECT id, name, status 
-        FROM drivers 
-        WHERE status = 'available' OR id = ? 
+        SELECT id, name, status
+        FROM drivers
+        WHERE status = 'available' OR id = ?
         ORDER BY name
     ");
     $stmtDrv->execute([$booking['driver_id']]);
@@ -99,8 +99,8 @@ try {
 $available_vehicles = [];
 try {
     $stmtVeh = $pdo->prepare("
-        SELECT id, name, model 
-        FROM vehicles 
+        SELECT id, name, model
+        FROM vehicles
         WHERE status = 'available' OR id = ?
         ORDER BY name ASC
     ");
@@ -113,7 +113,7 @@ try {
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     if ($action === 'update_status') {
         $new_status = $_POST['status'] ?? '';
         if ($new_status === 'rejected') {
@@ -122,9 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $admin_notes = trim($_POST['admin_notes'] ?? '');
         $driver_id = !empty($_POST['driver_id']) ? (int)$_POST['driver_id'] : null;
         $vehicle_id = !empty($_POST['vehicle_id']) ? (int)$_POST['vehicle_id'] : null;
-        $notify_driver_email = isset($_POST['notify_driver_email']);
-        $notify_driver_sms = isset($_POST['notify_driver_sms']);
-        
+
         $valid_statuses = ['pending', 'confirmed', 'in_progress', 'completed', 'cancelled'];
         if (in_array($new_status, $valid_statuses)) {
             try {
@@ -133,14 +131,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $old_driver_id = $booking['driver_id'];
 
                 $stmt = $pdo->prepare("
-                    UPDATE bookings 
-                    SET status = ?, admin_notes = ?, driver_id = ?, vehicle_id = ? 
+                    UPDATE bookings
+                    SET status = ?, admin_notes = ?, driver_id = ?, vehicle_id = ?
                     WHERE id = ?
                 ");
                 $stmt->execute([$new_status, $admin_notes, $driver_id, $vehicle_id, $booking_id]);
 
                 $driverAssignmentChanged = $driver_id && (int) $old_driver_id !== $driver_id;
-                
+
                 // Update vehicle availability status
                 if ($new_status === 'completed' || $new_status === 'cancelled') {
                     if ($old_vehicle_id) {
@@ -173,22 +171,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
                     $emailResults = sendBookingApprovalNotifications($pdo, $booking_id, $invoice);
                 }
-                
-                $_SESSION['message'] = isset($emailSent)
-                    ? ($emailSent ? 'Booking approved and invoice emailed successfully!' : 'Booking approved and invoice created. Email delivery needs mail server configuration.')
+
+                $message = isset($emailResults)
+                    ? formatApprovalNotificationMessage($emailResults)
                     : 'Booking status and assignments updated successfully!';
-                if (isset($driverEmailSent) || isset($driverSmsSent)) {
-                    if (isset($driverEmailSent)) {
-                        $message .= $driverEmailSent
-                            ? ' The assigned driver was notified by email.'
-                            : ' The driver was assigned, but email delivery needs mail server configuration or a valid driver email.';
-                    }
-                    if (isset($driverSmsSent)) {
-                        $message .= $driverSmsSent
-                            ? ' An SMS assignment alert was also sent.'
-                            : ' SMS was not sent; add a valid driver phone number and Twilio configuration to enable it.';
-                    }
-                }
                 $_SESSION['message'] = $message;
             } catch(Throwable $e) {
                 $_SESSION['error'] = 'Database error: ' . $e->getMessage();
@@ -199,25 +185,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif ($action === 'generate_invoice') {
         try {
             $pdo->beginTransaction();
-            
+
             // Check again to prevent double generation
             $stmtCheck = $pdo->prepare("SELECT id FROM invoices WHERE booking_id = ?");
             $stmtCheck->execute([$booking_id]);
             if ($stmtCheck->fetch()) {
                 throw new Exception('An invoice has already been generated for this booking.');
             }
-            
+
             $inv_number = 'INV-' . mt_rand(1000, 9999);
-            
+
             // Insert into invoices
             $stmtInv = $pdo->prepare("
                 INSERT INTO invoices (invoice_number, booking_id, client_name, client_email, amount, tax, total_amount, status, issue_date, due_date, description)
                 VALUES (?, ?, ?, ?, ?, ?, ?, 'pending', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), ?)
             ");
-            
+
             $subtotal = $booking['subtotal'] > 0 ? $booking['subtotal'] : $booking['total_amount'];
             $tax = $booking['tax'] > 0 ? $booking['tax'] : 0;
-            
+
             $stmtInv->execute([
                 $inv_number,
                 $booking_id,
@@ -228,9 +214,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $booking['total_amount'],
                 'Invoice for booking ' . $booking['booking_number']
             ]);
-            
+
             $invoice_id = $pdo->lastInsertId();
-            
+
             // Insert invoice items
             $stmtItem = $pdo->prepare("
                 INSERT INTO invoice_items (invoice_id, description, quantity, unit_price, total)
@@ -242,11 +228,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $booking['total_amount'],
                 $booking['total_amount']
             ]);
-            
+
             // Update booking
             $stmtUp = $pdo->prepare("UPDATE bookings SET invoice_generated = 1 WHERE id = ?");
             $stmtUp->execute([$booking_id]);
-            
+
             $pdo->commit();
             $_SESSION['message'] = "Invoice $inv_number generated successfully!";
         } catch (Exception $e) {
@@ -300,7 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <p class="text-xs text-gray-400 mt-1">Submitted on <?php echo date('F d, Y \a\t g:i a', strtotime($booking['created_at'])); ?></p>
             </div>
-            
+
             <div class="flex flex-wrap gap-3">
                 <?php if (!$booking['invoice_generated'] && !$invoice): ?>
                     <form method="POST" action="">
@@ -349,7 +335,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="md:col-span-2">
                         <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Billing Address</p>
                         <p class="text-gray-900 font-medium text-base">
-                            <?php 
+                            <?php
                             $address_parts = array_filter([$booking['client_address'], $booking['client_city']]);
                             echo htmlspecialchars(implode(', ', $address_parts) ?: 'N/A');
                             ?>
@@ -380,7 +366,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div>
                         <p class="text-xs text-gray-400 font-semibold mb-1 uppercase tracking-wider">Service Timing</p>
                         <p class="text-gray-900 font-medium text-base">
-                            <?php 
+                            <?php
                             $start = date('g:i a', strtotime($booking['start_time']));
                             $end = date('g:i a', strtotime($booking['end_time']));
                             echo "$start to $end";
@@ -417,7 +403,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="flex justify-between">
                         <span class="text-gray-500">Rental Duration</span>
                         <span class="font-medium text-gray-900">
-                            <?php 
+                            <?php
                             if ($booking['total_days'] > 0) {
                                 echo $booking['total_days'] . ' Day(s)';
                             } else {
@@ -449,7 +435,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </h3>
                 <form method="POST" action="" class="space-y-6">
                     <input type="hidden" name="action" value="update_status">
-                    
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Assign Vehicle *</label>
@@ -482,22 +468,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                     </div>
 
-                    <fieldset class="rounded-2xl border border-cyan-100 bg-cyan-50/60 p-4">
-                        <legend class="px-1 text-xs uppercase tracking-wider font-semibold text-cyan-800">Driver Assignment Notification</legend>
-                        <p class="mt-1 text-xs text-gray-600">Choose how to notify the selected driver when this assignment is approved or changed.</p>
-                        <div class="mt-3 flex flex-wrap gap-5">
-                            <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer">
-                                <input type="checkbox" name="notify_driver_email" value="1" checked class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
-                                <span class="material-symbols-outlined text-base text-cyan-700">mail</span>
-                                Send Email
-                            </label>
-                            <label class="inline-flex items-center gap-2 text-sm font-medium text-gray-800 cursor-pointer">
-                                <input type="checkbox" name="notify_driver_sms" value="1" checked class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
-                                <span class="material-symbols-outlined text-base text-cyan-700">sms</span>
-                                Send SMS
-                            </label>
-                        </div>
-                    </fieldset>
 
                     <div>
                         <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-2">Internal Admin Notes / Remarks</label>
@@ -539,14 +509,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             function validateForm() {
                 const approveBtn = document.getElementById('approveBtn');
                 if (!approveBtn) return;
-                
+
                 const vehicleSelect = document.getElementById('assignVehicleSelect');
                 const driverSelect = document.getElementById('assignDriverSelect');
                 const driverRequired = <?php echo $driver_requested ? 'true' : 'false'; ?>;
-                
+
                 const vehicleAssigned = vehicleSelect && vehicleSelect.value;
                 const driverAssigned = driverSelect && driverSelect.value;
-                
+
                 if (vehicleAssigned && (!driverRequired || driverAssigned)) {
                     approveBtn.removeAttribute('disabled');
                 } else {

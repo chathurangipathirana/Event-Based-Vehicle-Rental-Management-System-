@@ -55,13 +55,13 @@ try {
             'd_id' => $driver_id,
             'id' => $booking_id
         ]);
-        
+
         if ($stmt->rowCount() > 0) {
             // Update vehicle to booked
             $pdo->prepare("UPDATE vehicles SET status = 'booked' WHERE id = ?")->execute([$vehicle_id]);
             // Update driver to on_duty
             $pdo->prepare("UPDATE drivers SET status = 'on_duty' WHERE id = ?")->execute([$driver_id]);
-            
+
             $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
             $pdo->commit();
             $emailSent = emailBookingInvoice($pdo, $invoice);
@@ -98,7 +98,9 @@ try {
             echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);
         }
     }
-} catch (PDOException $e) {
-    $pdo->rollBack();
+} catch (Throwable $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }

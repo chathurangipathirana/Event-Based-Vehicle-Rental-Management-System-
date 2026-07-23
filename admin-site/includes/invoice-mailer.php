@@ -250,3 +250,64 @@ function emailBookingInvoice(PDO $pdo, array $invoice): bool
 
     return $sent;
 }
+
+function emailAssignedDriver(PDO $pdo, int $bookingId): ?bool
+{
+    $booking = fetchBookingNotificationContext($pdo, $bookingId);
+    if (!$booking || empty($booking['driver_id'])) {
+        return null;
+    }
+
+    $driverEmail = $booking['driver_email'] ?? '';
+    if (!filter_var($driverEmail, FILTER_VALIDATE_EMAIL)) {
+        return false;
+    }
+
+    $driverName = htmlspecialchars($booking['driver_name'] ?? 'Driver', ENT_QUOTES, 'UTF-8');
+    $subject = 'New FleetElite driver assignment - Booking ' . ($booking['booking_number'] ?? $bookingId);
+    $details = buildDriverAssignmentDetailsHtml($booking);
+
+    $message = "<html><body style=\"font-family: Arial, sans-serif; color: #1e293b; line-height: 1.6;\">"
+        . "<p>Dear {$driverName},</p>"
+        . "<p>You have been assigned to an upcoming FleetElite booking.</p>"
+        . $details
+        . "<p>Please review the assignment details and contact the operations team if you need clarification.</p>"
+        . "<p>Thank you.</p>"
+        . "</body></html>";
+
+    return sendHtmlEmail($driverEmail, $subject, $message, $booking['driver_name'] ?? null);
+}
+
+function sendBookingApprovalNotifications(PDO $pdo, int $bookingId, array $invoice): array
+{
+    return [
+        'customer' => emailBookingInvoice($pdo, $invoice),
+        'driver' => emailAssignedDriver($pdo, $bookingId),
+    ];
+}
+
+function formatApprovalNotificationMessage(array $results): string
+{
+    $customerSent = !empty($results['customer']);
+    $driverResult = $results['driver'] ?? null;
+
+    if ($customerSent) {
+        if ($driverResult === true) {
+            return 'Booking approved, invoice emailed, and driver notified successfully!';
+        }
+        if ($driverResult === false) {
+            return 'Booking approved and invoice emailed. Driver email delivery needs a valid address or mail server configuration.';
+        }
+
+        return 'Booking approved and invoice emailed successfully!';
+    }
+
+    if ($driverResult === true) {
+        return 'Booking approved. Invoice was created, but customer email delivery failed. The assigned driver was notified by email.';
+    }
+    if ($driverResult === false) {
+        return 'Booking approved. Invoice was created, but customer and driver email delivery failed.';
+    }
+
+    return 'Booking approved and invoice created. Email delivery needs mail server configuration.';
+}
