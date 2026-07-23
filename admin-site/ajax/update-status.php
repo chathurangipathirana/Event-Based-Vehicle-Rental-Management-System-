@@ -64,8 +64,8 @@ try {
             
             $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
             $pdo->commit();
-            $emailSent = emailBookingInvoice($pdo, $invoice);
-            echo json_encode(['success' => true, 'message' => $emailSent ? 'Booking confirmed, dispatched, and invoice emailed!' : 'Booking confirmed and dispatched. The invoice was created, but email delivery needs mail server configuration.']);
+            $emailResults = sendBookingApprovalNotifications($pdo, $booking_id, $invoice);
+            echo json_encode(['success' => true, 'message' => formatApprovalNotificationMessage($emailResults)]);
         } else {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);
@@ -88,9 +88,9 @@ try {
                 $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
             }
             $pdo->commit();
-            $emailSent = $invoice ? emailBookingInvoice($pdo, $invoice) : false;
+            $emailResults = $invoice ? sendBookingApprovalNotifications($pdo, $booking_id, $invoice) : ['customer' => false, 'driver' => null];
             $message = $action === 'approve'
-                ? ($emailSent ? 'Booking approved and invoice emailed!' : 'Booking approved. The invoice was created, but email delivery needs mail server configuration.')
+                ? formatApprovalNotificationMessage($emailResults)
                 : 'Booking ' . $new_status;
             echo json_encode(['success' => true, 'message' => $message]);
         } else {
