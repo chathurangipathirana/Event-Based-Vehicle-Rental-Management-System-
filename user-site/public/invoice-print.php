@@ -117,7 +117,7 @@ try {
         <!-- Logo and Invoice Meta -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-8 mb-8 gap-6">
             <div>
-                <h1 class="text-3xl font-extrabold tracking-tight text-cyan-600">FleetElite</h1>
+                <h1 class="text-3xl font-extrabold tracking-tight text-cyan-600">Royal Lanka Rides</h1>
                 <p class="text-sm text-gray-500 mt-1">Premium Vehicle Logistics (Pvt) Ltd</p>
                 <p class="text-xs text-gray-400">No. 123, Galle Road, Colombo 03, Sri Lanka</p>
             </div>
@@ -198,7 +198,7 @@ try {
 
         <!-- Note / Payment status -->
         <div class="mt-12 border-t pt-8 text-center text-xs text-gray-400">
-            <p>Thank you for choosing FleetElite. For inquiries, email info@fleetelite.com</p>
+            <p>Thank you for choosing Royal Lanka Rides. For inquiries, email info@royallankarides.com</p>
             <p class="mt-1 font-semibold text-cyan-600 uppercase tracking-widest">Status: <?php echo htmlspecialchars($invoice['status']); ?></p>
         </div>
     </div>

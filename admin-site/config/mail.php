@@ -6,5 +6,5 @@ return [
     'smtp_username' => 'vehicle.rms@gmail.com',
     'smtp_password' => 'fsrljtnlulzqboxu',
     'from_email' => 'vehicle.rms@gmail.com',
-    'from_name' => 'FleetElite Vehicle Rental',
+    'from_name' => 'Royal Lanka Rides Vehicle Rental',
 ];

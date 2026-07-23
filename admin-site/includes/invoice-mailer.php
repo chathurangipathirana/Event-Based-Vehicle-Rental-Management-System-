@@ -230,7 +230,7 @@ function emailBookingInvoice(PDO $pdo, array $invoice): bool
     $customer = htmlspecialchars($invoice['client_name'] ?? 'Customer', ENT_QUOTES, 'UTF-8');
     $number = htmlspecialchars($invoice['invoice_number'], ENT_QUOTES, 'UTF-8');
     $amount = number_format((float) $invoice['total_amount'], 2);
-    $subject = 'Your FleetElite booking has been approved - Invoice ' . $invoice['invoice_number'];
+    $subject = 'Your Royal Lanka Rides booking has been approved - Invoice ' . $invoice['invoice_number'];
     $bookingInfo = $bookingDetails ? buildCustomerBookingDetailsHtml($bookingDetails) : '';
 
     $message = "<html><body style=\"font-family: Arial, sans-serif; color: #1e293b; line-height: 1.6;\">"
@@ -240,7 +240,7 @@ function emailBookingInvoice(PDO $pdo, array $invoice): bool
         . "<p>Your invoice <strong>{$number}</strong> for <strong>LKR {$amount}</strong> is ready.</p>"
         . "<p><a href=\"" . htmlspecialchars($invoiceUrl, ENT_QUOTES, 'UTF-8') . "\" style=\"display:inline-block;padding:12px 20px;background:#0891b2;color:#ffffff;text-decoration:none;border-radius:8px;\">View or download your invoice</a></p>"
         . "<p>If you have any questions, reply to this email and our team will assist you.</p>"
-        . "<p>Thank you for choosing FleetElite.</p>"
+        . "<p>Thank you for choosing Royal Lanka Rides.</p>"
         . "</body></html>";
 
     $sent = sendHtmlEmail($email, $subject, $message, $invoice['client_name'] ?? null);
@@ -264,12 +264,12 @@ function emailAssignedDriver(PDO $pdo, int $bookingId): ?bool
     }
 
     $driverName = htmlspecialchars($booking['driver_name'] ?? 'Driver', ENT_QUOTES, 'UTF-8');
-    $subject = 'New FleetElite driver assignment - Booking ' . ($booking['booking_number'] ?? $bookingId);
+    $subject = 'New Royal Lanka Rides driver assignment - Booking ' . ($booking['booking_number'] ?? $bookingId);
     $details = buildDriverAssignmentDetailsHtml($booking);
 
     $message = "<html><body style=\"font-family: Arial, sans-serif; color: #1e293b; line-height: 1.6;\">"
         . "<p>Dear {$driverName},</p>"
-        . "<p>You have been assigned to an upcoming FleetElite booking.</p>"
+        . "<p>You have been assigned to an upcoming Royal Lanka Rides booking.</p>"
         . $details
         . "<p>Please review the assignment details and contact the operations team if you need clarification.</p>"
         . "<p>Thank you.</p>"

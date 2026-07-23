@@ -59,7 +59,7 @@ $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'ma
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
-<title>FleetElite Admin Portal</title>
+<title>Royal Lanka Rides Admin Portal</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -104,7 +104,7 @@ $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'ma
 <header class="fixed top-0 w-full z-50 bg-white border-b border-gray-100 shadow-sm flex justify-between items-center h-16 px-4">
     <div class="flex items-center gap-3">
         <span class="material-symbols-outlined text-red-600" onclick="history.back()">arrow_back</span>
-        <span class="text-xl font-black tracking-tight text-red-600">FleetElite</span>
+        <span class="text-xl font-black tracking-tight text-red-600">Royal Lanka Rides</span>
     </div>
     <div class="flex items-center gap-4">
         <span class="text-sm text-gray-500 uppercase hidden sm:block">Admin Portal</span>

@@ -34,9 +34,15 @@ if (isset($_GET['cancel']) && is_numeric($_GET['cancel'])) {
 
 <main class="min-h-screen py-20 bg-gray-50">
     <div class="max-w-7xl mx-auto px-8">
-        <div class="mb-8">
-            <h1 class="font-h2 text-h2">My Bookings</h1>
-            <p class="text-gray-600">View and manage all your vehicle bookings</p>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div>
+                <h1 class="font-h2 text-h2">My Bookings</h1>
+                <p class="text-gray-600">View and manage all your vehicle bookings</p>
+            </div>
+            <a href="vehicles.php" class="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold px-6 py-3 rounded-xl shadow-md transition-all active:scale-[0.99]">
+                <span class="material-symbols-outlined text-xl">add_circle</span>
+                <span>New Booking</span>
+            </a>
         </div>
 
         <?php if (isset($_GET['msg']) && $_GET['msg'] == 'cancelled'): ?>
