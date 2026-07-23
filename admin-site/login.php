@@ -86,7 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     .alert-error { background: #ffdad6; color: #93000a; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffb4ab; }
     .brand-icon { background-color: var(--primary); color: var(--on-primary); }
-    .login-input { background: rgba(255, 255, 255, 0.92); }
+    .login-input { background: rgba(255, 255, 255, 0.92); color: #111827; }
+    .login-input::placeholder { color: #6b7280; opacity: 1; }
     .login-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(36,84,98,0.08); outline: none; }
     .btn-primary { background-color: var(--primary); color: var(--on-primary); }
     .btn-primary:hover { background-color: var(--primary-hover); }
@@ -113,7 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" class="space-y-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                <input type="email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg login-input" placeholder="admin@royallankarides.com">
+                <input type="email" name="email" required value="<?php echo htmlspecialchars($_POST['email'] ?? ''); ?>" autocomplete="username" class="w-full px-4 py-3 border border-gray-300 rounded-lg login-input" placeholder="admin@fleetelite.com">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>

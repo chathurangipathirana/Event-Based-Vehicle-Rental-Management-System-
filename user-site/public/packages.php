@@ -23,7 +23,7 @@ try {
     $all_packages = [];
 }
 
-// Group packages by type based on name/description matches
+// Group packages by the category selected in the admin package form.
 $grouped_packages = [
     'wedding' => [],
     'business' => [],
@@ -32,18 +32,8 @@ $grouped_packages = [
 ];
 
 foreach ($all_packages as $pkg) {
-    $name = strtolower($pkg['name']);
-    $desc = strtolower($pkg['description']);
-    
-    if (strpos($name, 'wedding') !== false || strpos($desc, 'wedding') !== false) {
-        $grouped_packages['wedding'][] = $pkg;
-    } elseif (strpos($name, 'business') !== false || strpos($name, 'corporate') !== false || strpos($name, 'executive') !== false || strpos($name, 'diplomatic') !== false || strpos($desc, 'business') !== false || strpos($desc, 'corporate') !== false) {
-        $grouped_packages['business'][] = $pkg;
-    } elseif (strpos($name, 'tour') !== false || strpos($name, 'expedition') !== false || strpos($name, 'travel') !== false || strpos($desc, 'tour') !== false || strpos($desc, 'travel') !== false) {
-        $grouped_packages['tours'][] = $pkg;
-    } else {
-        $grouped_packages['other'][] = $pkg;
-    }
+    $category = $pkg['category'] ?? 'other';
+    $grouped_packages[array_key_exists($category, $grouped_packages) ? $category : 'other'][] = $pkg;
 }
 
 $categories = [

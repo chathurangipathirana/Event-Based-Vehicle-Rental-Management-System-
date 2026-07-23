@@ -124,6 +124,7 @@ CREATE TABLE IF NOT EXISTS event_packages (
     base_price DECIMAL(15,2) NOT NULL,
     included_services TEXT,
     vehicle_types VARCHAR(255),
+    category ENUM('wedding', 'business', 'tours', 'other') NOT NULL DEFAULT 'other',
     status ENUM('active', 'draft', 'archived') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -283,7 +284,7 @@ SELECT 'Database setup completed successfully! (Prices in Sri Lankan Rupees - LK
 -- Insert default settings (Sri Lankan Rupees)
 INSERT INTO settings (setting_key, setting_value) VALUES
 ('company_name', 'Royal Lanka Rides'),
-('company_email', 'info@royallankarides.com'),
+('company_email', 'admin@fleetelite.com'),
 ('company_phone', '+94 11 234 5678'),
 ('company_address', 'No. 123, Galle Road, Colombo 03, Sri Lanka'),
 ('currency', 'LKR'),

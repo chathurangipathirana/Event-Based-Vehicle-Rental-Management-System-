@@ -18,6 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim($_POST['description'] ?? '');
         $services = trim($_POST['services'] ?? '');
         $vehicles = trim($_POST['vehicles'] ?? '');
+        $category = trim($_POST['category'] ?? 'other');
+        if (!in_array($category, ['wedding', 'business', 'tours', 'other'], true)) {
+            $category = 'other';
+        }
         $status = trim($_POST['status'] ?? 'active');
         if (!in_array($status, ['active', 'draft', 'archived'], true)) {
             $status = 'active';
@@ -69,19 +73,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     $stmt = $pdo->prepare("\
                         UPDATE event_packages
-                        SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, status = ?, image_url = ?
+                        SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, category = ?, status = ?, image_url = ?
                         WHERE id = ?
                     ");
-                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $image_url, $id]);
+                    $stmt->execute([$name, $description, $price, $services, $vehicles, $category, $status, $image_url, $id]);
                     $_SESSION['message'] = 'Package updated successfully!';
                 } else {
                     // New admin packages are published immediately for the user package page.
                     $status = 'active';
                     $stmt = $pdo->prepare("\
-                        INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status, image_url)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, category, status, image_url)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
-                    $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $image_url]);
+                    $stmt->execute([$name, $description, $price, $services, $vehicles, $category, $status, $image_url]);
                     $_SESSION['message'] = 'Package created successfully!';
                 }
             } catch(PDOException $e) {
@@ -345,6 +349,15 @@ if (empty($packages)) {
                             <textarea name="description" id="quickDesc" rows="3" class="w-full bg-white border border-gray-200 rounded px-4 py-2 focus:ring-1 focus:ring-red-500"></textarea>
                         </div>
                         <div>
+                            <label class="block text-sm text-gray-700 mb-2">Category</label>
+                            <select name="category" id="quickCategory" class="w-full bg-white border border-gray-200 rounded px-4 py-2">
+                                <option value="wedding">Wedding</option>
+                                <option value="business">Business &amp; Corporate</option>
+                                <option value="tours">Tour &amp; Travel</option>
+                                <option value="other">Special Event</option>
+                            </select>
+                        </div>
+                        <div>
                             <label class="block text-sm text-gray-700 mb-2">Status</label>
                             <select name="status" id="quickStatus" class="w-full bg-white border border-gray-200 rounded px-4 py-2">
                                 <option value="active">Active</option>
@@ -413,6 +426,7 @@ if (empty($packages)) {
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Package</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Base Price</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Category</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Vehicles</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Services</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold uppercase">Status</th>
@@ -435,6 +449,7 @@ if (empty($packages)) {
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">LKR <?php echo number_format($package['price'], 2); ?></td>
+                                <td class="px-6 py-4 text-sm font-medium"><?php echo htmlspecialchars(ucwords(str_replace('_', ' ', $package['category'] ?? 'other'))); ?></td>
                                 <td class="px-6 py-4"><?php echo $package['vehicles']; ?></td>
                                 <td class="px-6 py-4 text-sm"><?php echo substr($package['services'], 0, 40); ?>...</td>
                                 <td class="px-6 py-4">
@@ -509,6 +524,12 @@ if (empty($packages)) {
             <input type="hidden" name="id" id="pkgId" value="0">
             <input type="text" name="name" id="pkgName" placeholder="Package Name" required class="w-full px-3 py-2 border rounded-lg">
             <input type="number" name="price" id="pkgPrice" placeholder="Base Price (LKR)" required class="w-full px-3 py-2 border rounded-lg">
+            <select name="category" id="pkgCategory" class="w-full px-3 py-2 border rounded-lg">
+                <option value="wedding">Wedding</option>
+                <option value="business">Business &amp; Corporate</option>
+                <option value="tours">Tour &amp; Travel</option>
+                <option value="other">Special Event</option>
+            </select>
             <textarea name="description" id="pkgDesc" rows="3" placeholder="Description" class="w-full px-3 py-2 border rounded-lg"></textarea>
             <textarea name="services" id="pkgServices" rows="2" placeholder="Included Services (comma separated)" class="w-full px-3 py-2 border rounded-lg"></textarea>
             <input type="text" name="vehicles" id="pkgVehicles" placeholder="Vehicle Types (comma separated)" class="w-full px-3 py-2 border rounded-lg">
@@ -545,6 +566,7 @@ function editPackage(pkg) {
     document.getElementById('pkgId').value = pkg.id;
     document.getElementById('pkgName').value = pkg.name;
     document.getElementById('pkgPrice').value = pkg.price;
+    document.getElementById('pkgCategory').value = pkg.category || 'other';
     document.getElementById('pkgDesc').value = pkg.description;
     document.getElementById('pkgServices').value = pkg.services;
     document.getElementById('pkgVehicles').value = pkg.vehicles;
@@ -553,6 +575,7 @@ function editPackage(pkg) {
     document.getElementById('quickId').value = pkg.id;
     document.getElementById('quickName').value = pkg.name;
     document.getElementById('quickPrice').value = pkg.price;
+    document.getElementById('quickCategory').value = pkg.category || 'other';
     document.getElementById('quickDesc').value = pkg.description;
     document.getElementById('quickStatus').value = pkg.status;
 

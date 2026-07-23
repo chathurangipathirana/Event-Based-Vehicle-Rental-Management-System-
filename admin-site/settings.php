@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $settings = [
             'company_name' => $_POST['company_name'] ?? 'Royal Lanka Rides',
-            'company_email' => $_POST['company_email'] ?? 'info@royallankarides.com',
+            'company_email' => $_POST['company_email'] ?? 'admin@fleetelite.com',
             'company_phone' => $_POST['company_phone'] ?? '+94 11 234 5678',
             'company_address' => $_POST['company_address'] ?? '',
             'currency' => 'LKR',
@@ -53,7 +53,7 @@ while ($row = $stmt->fetch()) {
 
 // Default values if not set
 $company_name = $settings['company_name'] ?? 'Royal Lanka Rides';
-$company_email = $settings['company_email'] ?? 'info@royallankarides.com';
+$company_email = $settings['company_email'] ?? 'admin@fleetelite.com';
 $company_phone = $settings['company_phone'] ?? '+94 11 234 5678';
 $company_address = $settings['company_address'] ?? '';
 $currency = 'LKR';
