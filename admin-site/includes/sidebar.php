@@ -50,7 +50,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             Analytics
         </a>
         <a href="analytics-report.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'analytics-report.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1">
-            <span class="material-symbols-outlined mr-3">assessment</span>
+            <span class="material-symbols-outlined mr-3">description</span>
             Reports
         </a>
     </nav>
