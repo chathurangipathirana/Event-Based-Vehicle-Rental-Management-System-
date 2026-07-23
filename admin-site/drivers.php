@@ -7,7 +7,7 @@ require_once 'config/database.php';
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     if ($action === 'save') {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         $name = trim($_POST['name'] ?? '');
@@ -15,22 +15,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $phone = trim($_POST['phone'] ?? '');
         $rating = (float)($_POST['rating'] ?? 5.0);
         $status = trim($_POST['status'] ?? 'available');
-        
+
         if (empty($name)) {
             $_SESSION['error'] = 'Driver Name is required.';
         } else {
             try {
                 if ($id > 0) {
                     $stmt = $pdo->prepare("
-                        UPDATE drivers 
-                        SET name = ?, email = ?, phone = ?, rating = ?, rating_level = ?, status = ? 
+                        UPDATE drivers
+                        SET name = ?, email = ?, phone = ?, rating = ?, rating_level = ?, status = ?
                         WHERE id = ?
                     ");
                     $stmt->execute([$name, $email, $phone, $rating, round($rating), $status, $id]);
                     $_SESSION['message'] = 'Driver updated successfully!';
                 } else {
                     $stmt = $pdo->prepare("
-                        INSERT INTO drivers (name, email, phone, rating, rating_level, status) 
+                        INSERT INTO drivers (name, email, phone, rating, rating_level, status)
                         VALUES (?, ?, ?, ?, ?, ?)
                     ");
                     $stmt->execute([$name, $email, $phone, $rating, round($rating), $status]);
@@ -95,7 +95,7 @@ $off_duty_count = count(array_filter($drivers, fn($d) => $d['status'] == 'off_du
                         <p class="mt-4 text-slate-300 text-lg leading-8">Manage company drivers, contact information, performance ratings, and current duty status.</p>
                     </div>
                     <div class="flex flex-wrap justify-end gap-3">
-                        <button onclick="openAddModal()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                        <button type="button" onclick="openDriverAddModal()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
                             <span class="material-symbols-outlined text-sm">add</span>
                             Add Driver
                         </button>
@@ -207,14 +207,28 @@ $off_duty_count = count(array_filter($drivers, fn($d) => $d['status'] == 'off_du
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <button onclick='openEditModal(<?php echo json_encode($driver); ?>)' class="p-2 text-cyan-600 hover:bg-cyan-50 rounded-xl transition" title="Edit">
-                                        <span class="material-symbols-outlined">edit</span>
+                                    <button type="button" onclick='openDriverEditModal(<?php echo htmlspecialchars(json_encode($driver), ENT_QUOTES); ?>)' class="w-10 h-10 inline-flex items-center justify-center rounded-xl border border-gray-200 text-cyan-600 hover:bg-cyan-50 transition" title="Edit" aria-label="Edit driver">
+                                        <span class="material-symbols-outlined text-xl leading-none">edit</span>
                                     </button>
-                                    <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this driver?');" class="inline">
+                                    <form method="POST" action="" onsubmit="return confirm('Are you sure you want to delete this driver?');" class="inline-block">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="id" value="<?php echo $driver['id']; ?>">
-                                        <button type="submit" class="p-2 text-red-600 hover:bg-red-50 rounded-xl transition" title="Delete">
-                                            <span class="material-symbols-outlined">delete</span>
+                                        <button
+                                            type="submit"
+                                            class="w-10 h-10 inline-flex items-center justify-center rounded-xl border transition"
+                                            style="color: #dc2626; border-color: #fecaca; background-color: #fef2f2;"
+                                            onmouseover="this.style.backgroundColor='#fee2e2'; this.style.borderColor='#fca5a5';"
+                                            onmouseout="this.style.backgroundColor='#fef2f2'; this.style.borderColor='#fecaca';"
+                                            title="Delete"
+                                            aria-label="Delete driver"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-5 h-5" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6" />
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M14 11v6" />
+                                            </svg>
                                         </button>
                                     </form>
                                 </div>
@@ -229,18 +243,18 @@ $off_duty_count = count(array_filter($drivers, fn($d) => $d['status'] == 'off_du
 </main>
 
 <!-- Add / Edit Driver Modal -->
-<div id="driverModal" class="fixed inset-0 z-50 overflow-y-auto hidden bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+<div id="driverModal" class="fixed inset-0 z-50 overflow-y-auto hidden bg-black/50 backdrop-blur-sm items-center justify-center p-4">
     <div class="bg-white rounded-3xl w-full max-w-lg shadow-xl overflow-hidden border border-gray-100">
         <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
             <h3 id="modalTitle" class="text-xl font-bold text-gray-900">Add Driver</h3>
-            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+            <button type="button" onclick="closeDriverModal()" class="text-gray-400 hover:text-gray-600" aria-label="Close driver modal">
                 <span class="material-symbols-outlined">close</span>
             </button>
         </div>
         <form method="POST" action="" class="p-6 space-y-4">
             <input type="hidden" name="action" value="save">
             <input type="hidden" name="id" id="driverId" value="0">
-            
+
             <div>
                 <label class="block text-xs uppercase tracking-wider font-semibold text-gray-400 mb-1.5">Driver Full Name *</label>
                 <input type="text" name="name" id="driverName" required class="w-full px-3 py-2.5 border border-gray-200 rounded-xl focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 bg-white" placeholder="e.g. John Doe">
@@ -274,14 +288,14 @@ $off_duty_count = count(array_filter($drivers, fn($d) => $d['status'] == 'off_du
 
             <div class="pt-4 border-t border-gray-100 flex gap-3">
                 <button type="submit" class="flex-1 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-3 rounded-xl transition shadow-sm">Save Driver</button>
-                <button type="button" onclick="closeModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition">Cancel</button>
+                <button type="button" onclick="closeDriverModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl transition">Cancel</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-function openAddModal() {
+function openDriverAddModal() {
     document.getElementById('modalTitle').innerText = 'Add Driver';
     document.getElementById('driverId').value = 0;
     document.getElementById('driverName').value = '';
@@ -290,9 +304,10 @@ function openAddModal() {
     document.getElementById('driverRating').value = '5.0';
     document.getElementById('driverStatus').value = 'available';
     document.getElementById('driverModal').classList.remove('hidden');
+    document.getElementById('driverModal').classList.add('flex');
 }
 
-function openEditModal(driver) {
+function openDriverEditModal(driver) {
     document.getElementById('modalTitle').innerText = 'Edit Driver Details';
     document.getElementById('driverId').value = driver.id;
     document.getElementById('driverName').value = driver.name;
@@ -301,25 +316,39 @@ function openEditModal(driver) {
     document.getElementById('driverRating').value = driver.rating;
     document.getElementById('driverStatus').value = driver.status;
     document.getElementById('driverModal').classList.remove('hidden');
+    document.getElementById('driverModal').classList.add('flex');
 }
 
-function closeModal() {
+function closeDriverModal() {
     document.getElementById('driverModal').classList.add('hidden');
+    document.getElementById('driverModal').classList.remove('flex');
 }
+
+document.getElementById('driverModal').addEventListener('click', function (event) {
+    if (event.target === this) {
+        closeDriverModal();
+    }
+});
+
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closeDriverModal();
+    }
+});
 
 function applyFilters() {
     const searchVal = document.getElementById('searchInput').value.toLowerCase().trim();
     const statusVal = document.getElementById('statusFilter').value;
     const rows = document.querySelectorAll('#driversTable tbody tr');
-    
+
     rows.forEach(row => {
         if (!row.dataset.name) return; // skip no driver placeholder
         const name = row.dataset.name;
         const status = row.dataset.status;
-        
+
         let matchesSearch = !searchVal || name.includes(searchVal);
         let matchesStatus = !statusVal || status === statusVal;
-        
+
         if (matchesSearch && matchesStatus) {
             row.style.display = '';
         } else {

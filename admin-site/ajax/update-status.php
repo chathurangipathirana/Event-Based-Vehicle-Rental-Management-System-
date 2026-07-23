@@ -65,18 +65,7 @@ try {
             $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
             $pdo->commit();
             $emailSent = emailBookingInvoice($pdo, $invoice);
-            $driverEmailSent = emailDriverAssignment($pdo, $booking_id);
-            $driverSmsSent = smsDriverAssignment($pdo, $booking_id);
-            $message = $emailSent
-                ? 'Booking confirmed, dispatched, and invoice emailed!'
-                : 'Booking confirmed and dispatched. The invoice was created, but email delivery needs mail server configuration.';
-            $message .= $driverEmailSent
-                ? ' The assigned driver was notified by email.'
-                : ' The driver was assigned, but email delivery needs mail server configuration or a valid driver email.';
-            $message .= $driverSmsSent
-                ? ' An SMS assignment alert was also sent.'
-                : ' SMS was not sent; add a valid driver phone number and Twilio configuration to enable it.';
-            echo json_encode(['success' => true, 'message' => $message]);
+            echo json_encode(['success' => true, 'message' => $emailSent ? 'Booking confirmed, dispatched, and invoice emailed!' : 'Booking confirmed and dispatched. The invoice was created, but email delivery needs mail server configuration.']);
         } else {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => 'Booking not found or already processed']);
@@ -99,9 +88,9 @@ try {
                 $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
             }
             $pdo->commit();
-            $emailSent = $invoice ? emailBookingInvoice($pdo, $invoice) : false;
+            $emailResults = $invoice ? sendBookingApprovalNotifications($pdo, $booking_id, $invoice) : ['customer' => false, 'driver' => null];
             $message = $action === 'approve'
-                ? ($emailSent ? 'Booking approved and invoice emailed!' : 'Booking approved. The invoice was created, but email delivery needs mail server configuration.')
+                ? formatApprovalNotificationMessage($emailResults)
                 : 'Booking ' . $new_status;
             echo json_encode(['success' => true, 'message' => $message]);
         } else {

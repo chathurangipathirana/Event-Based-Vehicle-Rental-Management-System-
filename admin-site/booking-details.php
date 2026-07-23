@@ -171,19 +171,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 if ($new_status === 'confirmed' && $booking['status'] !== 'confirmed') {
                     $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
-                    $emailSent = emailBookingInvoice($pdo, $invoice);
-                }
-
-                if ($driverAssignmentChanged && !in_array($new_status, ['completed', 'cancelled'], true)) {
-                    if ($notify_driver_email) {
-                        $driverEmailSent = emailDriverAssignment($pdo, $booking_id);
-                    }
-                    if ($notify_driver_sms) {
-                        $driverSmsSent = smsDriverAssignment($pdo, $booking_id);
-                    }
+                    $emailResults = sendBookingApprovalNotifications($pdo, $booking_id, $invoice);
                 }
                 
-                $message = isset($emailSent)
+                $_SESSION['message'] = isset($emailSent)
                     ? ($emailSent ? 'Booking approved and invoice emailed successfully!' : 'Booking approved and invoice created. Email delivery needs mail server configuration.')
                     : 'Booking status and assignments updated successfully!';
                 if (isset($driverEmailSent) || isset($driverSmsSent)) {

@@ -5,6 +5,41 @@ require_once 'config/database.php';
 require_once 'includes/invoice-mailer.php';
 requireAdminLogin();
 
+$action_message = '';
+$action_error = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $booking_id = (int)($_POST['booking_id'] ?? 0);
+    $action = $_POST['action'] ?? '';
+
+    if ($booking_id > 0) {
+        if ($action === 'quick_approve') {
+            try {
+                $stmt = $pdo->prepare("UPDATE bookings SET status = 'confirmed' WHERE id = ?");
+                $stmt->execute([$booking_id]);
+
+                $stmtV = $pdo->prepare("UPDATE vehicles SET status = 'booked' WHERE id = (SELECT vehicle_id FROM bookings WHERE id = ?)");
+                $stmtV->execute([$booking_id]);
+
+                $invoice = getOrCreateBookingInvoice($pdo, $booking_id);
+                $emailSent = emailBookingInvoice($pdo, $invoice);
+
+                $action_message = "Booking approved successfully!";
+            } catch (Exception $e) {
+                $action_error = "Error approving booking: " . $e->getMessage();
+            }
+        } elseif ($action === 'quick_reject') {
+            try {
+                $stmt = $pdo->prepare("UPDATE bookings SET status = 'cancelled' WHERE id = ?");
+                $stmt->execute([$booking_id]);
+                $action_message = "Booking rejected.";
+            } catch (Exception $e) {
+                $action_error = "Error rejecting booking: " . $e->getMessage();
+            }
+        }
+    }
+}
+
 // Fetch pending bookings from the database, joined with related tables
 $stmt = $pdo->prepare("
     SELECT 

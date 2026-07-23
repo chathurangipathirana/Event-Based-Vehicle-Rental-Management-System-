@@ -1,0 +1,34 @@
+[2026-07-23 07:47:38] TO: bhagyajayarathna825@gmail.com (Bhagya Jayarathne) | SUBJECT: Your Invoice INV-6235 for Booking FLT202607235418 has been Approved!
+BODY:
+
+    <html>
+    <head>
+        <title>Invoice Notification</title>
+    </head>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+            <h2 style="color: #0891b2;">Hello Bhagya Jayarathne,</h2>
+            <p>Your booking <strong>#FLT202607235418</strong> has been approved by our administrators!</p>
+            <p>An invoice <strong>INV-6235</strong> has been issued for your reservation.</p>
+            
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0;"><strong>Invoice Number:</strong> INV-6235</p>
+                <p style="margin: 5px 0 0 0;"><strong>Total Amount Due:</strong> LKR 592.90</p>
+                <p style="margin: 5px 0 0 0;"><strong>Due Date:</strong> 2026-08-22</p>
+            </div>
+            
+            <p>You can view and print your invoice anytime from your account dashboard:</p>
+            <p style="text-align: center; margin: 30px 0;">
+                <a href="http://localhost/Event%20Based%20Vehicle%20Rental%20System/Event-Based-Vehicle-Rental-Management-System-/user-site/public/invoice-print.php?number=INV-6235" 
+                   style="background-color: #0891b2; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">
+                   View / Print Invoice
+                </a>
+            </p>
+            
+            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+            <p style="font-size: 12px; color: #6b7280; text-align: center;">This is a simulated notification. Thank you for choosing FleetElite.</p>
+        </div>
+    </body>
+    </html>
+    
+================================================================================

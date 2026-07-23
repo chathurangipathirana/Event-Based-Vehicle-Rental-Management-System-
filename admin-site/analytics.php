@@ -29,11 +29,62 @@ function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): 
     return '../user-site/public/assets/vehicles/toyota-axio.png';
 }
 
+$reportPeriods = [
+    'today' => 'Today',
+    'week' => 'This Week',
+    'month' => 'This Month',
+    'year' => 'This Year',
+    'custom' => 'Custom Date Range',
+];
+$reportPeriod = $_GET['period'] ?? 'month';
+$reportPeriod = array_key_exists($reportPeriod, $reportPeriods) ? $reportPeriod : 'month';
+$today = new DateTimeImmutable('today');
+$reportStartDate = null;
+$reportEndDate = null;
+
+switch ($reportPeriod) {
+    case 'today':
+        $reportStartDate = $today;
+        $reportEndDate = $today;
+        break;
+    case 'week':
+        $reportStartDate = $today->modify('monday this week');
+        $reportEndDate = $reportStartDate->modify('+6 days');
+        break;
+    case 'year':
+        $reportStartDate = $today->setDate((int) $today->format('Y'), 1, 1);
+        $reportEndDate = $today->setDate((int) $today->format('Y'), 12, 31);
+        break;
+    case 'custom':
+        $customStart = DateTimeImmutable::createFromFormat('Y-m-d', $_GET['start_date'] ?? '');
+        $customEnd = DateTimeImmutable::createFromFormat('Y-m-d', $_GET['end_date'] ?? '');
+        if ($customStart && $customEnd && $customStart <= $customEnd) {
+            $reportStartDate = $customStart;
+            $reportEndDate = $customEnd;
+        }
+        break;
+    default:
+        $reportStartDate = $today->modify('first day of this month');
+        $reportEndDate = $today->modify('last day of this month');
+}
+
+$reportDateSql = $reportStartDate && $reportEndDate ? ' WHERE event_date BETWEEN ? AND ?' : '';
+$reportDateParams = $reportStartDate && $reportEndDate
+    ? [$reportStartDate->format('Y-m-d'), $reportEndDate->format('Y-m-d')]
+    : [];
+
 // Fetch stats from database or fallback to authentic Sri Lankan fleet metrics
 try {
-    $total_bookings = $pdo->query("SELECT COUNT(*) FROM bookings")->fetchColumn() ?: 1284;
-    $total_revenue = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM bookings")->fetchColumn() ?: 18450000;
-    $active_bookings = $pdo->query("SELECT COUNT(*) FROM bookings WHERE status IN ('pending', 'confirmed', 'in_progress')")->fetchColumn() ?: 42;
+    $statsStmt = $pdo->prepare("SELECT COUNT(*) AS total_bookings, COALESCE(SUM(total_amount), 0) AS total_revenue FROM bookings{$reportDateSql}");
+    $statsStmt->execute($reportDateParams);
+    $reportStats = $statsStmt->fetch();
+    $total_bookings = $reportStats['total_bookings'];
+    $total_revenue = $reportStats['total_revenue'];
+
+    $activeDateSql = $reportDateSql ? "{$reportDateSql} AND" : ' WHERE';
+    $activeStmt = $pdo->prepare("SELECT COUNT(*) FROM bookings{$activeDateSql} status IN ('pending', 'confirmed', 'in_progress')");
+    $activeStmt->execute($reportDateParams);
+    $active_bookings = $activeStmt->fetchColumn();
     $fleet_health = 94;
 } catch (PDOException $e) {
     $total_bookings = 1284;
@@ -72,7 +123,8 @@ $event_distribution = [
 // Query EACH Vehicle Performance from database or fallback to detailed Sri Lankan fleet metrics
 $vehicle_performance = [];
 try {
-    $stmt = $pdo->query("
+    $bookingJoinFilter = $reportDateSql ? ' AND b.event_date BETWEEN ? AND ?' : '';
+    $stmt = $pdo->prepare("
         SELECT 
             v.id,
             v.name, 
@@ -86,11 +138,11 @@ try {
             COALESCE(SUM(b.total_hours), 0) as total_hours,
             COALESCE(SUM(b.total_amount), v.price_per_day * 12) as revenue
         FROM vehicles v
-        LEFT JOIN bookings b ON v.id = b.vehicle_id
+        LEFT JOIN bookings b ON v.id = b.vehicle_id{$bookingJoinFilter}
         GROUP BY v.id
         ORDER BY revenue DESC, bookings DESC
     ");
-    $vehicle_performance = $stmt->fetchAll();
+    $popular_vehicles = $stmt->fetchAll();
 } catch (PDOException $e) {
     $vehicle_performance = [];
 }
@@ -270,8 +322,6 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
 
 <!-- Include Chart.js library for interactive Bar Chart -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- jsPDF is used to build the export with a fixed, print-safe layout. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <main class="ml-64 min-h-screen bg-slate-50">
     <div class="p-8 max-w-7xl mx-auto">
@@ -286,8 +336,8 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
                         <p class="mt-4 text-slate-300 text-lg leading-8">A complete overview of fleet revenue, rentals, utilization, vehicle performance, and operational recommendations.</p>
                     </div>
                     <div class="flex flex-wrap justify-end gap-3">
-                        <button type="button" onclick="exportVehiclePerformancePDF(this)" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-bold hover:bg-cyan-400 transition-all shadow-lg disabled:cursor-wait disabled:opacity-70">
-                            <span class="material-symbols-outlined text-base">summarize</span>
+                        <button onclick="exportReport()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                            <span class="material-symbols-outlined text-sm">download</span>
                             Export Report
                         </button>
                     </div>
@@ -604,6 +654,13 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
 const vehiclePerformanceData = <?php echo json_encode($vehicle_performance, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
 
 document.addEventListener('DOMContentLoaded', function() {
+    const customDateRange = document.getElementById('custom-date-range');
+    document.querySelectorAll('input[name="period"]').forEach((input) => {
+        input.addEventListener('change', () => {
+            customDateRange.classList.toggle('is-visible', input.value === 'custom' && input.checked);
+        });
+    });
+
     // 1. Vehicle Revenue Bar Chart
     const vehicleCtx = document.getElementById('vehicleBarChart').getContext('2d');
     const vehicleNames = <?php echo json_encode(array_column($vehicle_performance, 'name')); ?>;
