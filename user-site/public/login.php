@@ -11,10 +11,7 @@ if (!preg_match('/^booking\.php\?(?:package_id=\d+(?:&vehicle=\d+)?|vehicle=\d+)
     $redirect = '';
 }
 
-// Remove credentials saved by the previous "Stay signed in" option.
-if (isset($_COOKIE['user_email'])) {
-    setcookie('user_email', '', time() - 3600, '/');
-}
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = filter_var($_POST['login_identifier'] ?? '', FILTER_SANITIZE_EMAIL);
@@ -74,17 +71,25 @@ require_once '../includes/header.php';
                 </a>
             </div>
             <div class="max-w-lg">
-                <h1 class="text-4xl font-extrabold text-white mb-4 leading-tight">Operational Excellence, Unlocked.</h1>
-                <p class="text-lg text-white font-semibold">Manage your high-performance fleet with precision. Access logistics, billing, and scheduling in one centralized hub.</p>
+                <h1 class="text-4xl font-extrabold text-white mb-4 leading-tight">Reliable Event Transportation</h1>
+                <p class="text-lg text-white font-semibold">Manage bookings, drivers, vehicles, and billing from one powerful platform.</p>
             </div>
-            <div class="flex items-center space-x-6 text-white">
+            <div class="grid grid-cols-2 gap-x-8 gap-y-3 text-white">
                 <div class="flex items-center space-x-2">
-                    <span class="material-symbols-outlined text-cyan-400">verified_user</span>
-                    <span class="text-xs uppercase font-bold tracking-wider">Secure Login</span>
+                    <span class="material-symbols-outlined text-cyan-400">check_circle</span>
+                    <span class="text-xs uppercase font-bold tracking-wider">Secure Booking</span>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <span class="material-symbols-outlined text-cyan-400">speed</span>
-                    <span class="text-xs uppercase font-bold tracking-wider">Real-time Data</span>
+                    <span class="material-symbols-outlined text-cyan-400">check_circle</span>
+                    <span class="text-xs uppercase font-bold tracking-wider">Instant Confirmation</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="material-symbols-outlined text-cyan-400">check_circle</span>
+                    <span class="text-xs uppercase font-bold tracking-wider">24/7 Customer Support</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="material-symbols-outlined text-cyan-400">check_circle</span>
+                    <span class="text-xs uppercase font-bold tracking-wider">Verified Drivers</span>
                 </div>
             </div>
         </div>
@@ -108,24 +113,24 @@ require_once '../includes/header.php';
                 <div class="alert alert-error bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl font-medium text-sm"><?php echo htmlspecialchars($error); ?></div>
             <?php endif; ?>
 
-            <div class="flex p-1 bg-gray-100 rounded-lg mb-8 border border-gray-200">
-                <a href="login.php" class="flex-1 py-2.5 rounded-md text-xs font-bold bg-white shadow-sm text-primary text-center">Login</a>
-                <a href="register.php" class="flex-1 py-2.5 rounded-md text-xs font-bold text-gray-700 hover:text-gray-900 text-center">Create Account</a>
+            <div class="flex gap-1.5 p-1.5 bg-gray-100 rounded-xl mb-8 border border-gray-200 shadow-inner">
+                <a href="login.php" aria-current="page" class="flex-1 py-3 px-4 rounded-lg text-sm font-bold bg-primary text-white shadow-md text-center transition-all duration-300 ease-out hover:bg-primary/90 hover:-translate-y-0.5">Login</a>
+                <a href="register.php" class="flex-1 py-3 px-4 rounded-lg text-sm font-bold text-gray-700 text-center transition-all duration-300 ease-out hover:bg-white hover:text-primary hover:shadow-sm hover:-translate-y-0.5">Create Account</a>
             </div>
 
-            <form method="POST" action="login.php" class="space-y-6" autocomplete="off">
+            <form method="POST" action="login.php" class="space-y-8" autocomplete="on">
                 <input type="hidden" name="redirect" value="<?php echo htmlspecialchars($redirect); ?>">
-                <div class="space-y-2">
-                    <label class="block text-xs uppercase font-bold text-gray-900 tracking-wider" for="email">Work Email</label>
-                    <input id="email" name="login_identifier" type="text" inputmode="email" required value="" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" class="w-full px-4 py-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm" placeholder="name@company.com"/>
+                <div class="space-y-3">
+                    <label class="block text-sm uppercase font-bold text-gray-900 tracking-wider" for="email">Email Address</label>
+                    <input id="email" name="login_identifier" type="email" inputmode="email" required value="" autocomplete="username" autocapitalize="none" spellcheck="false" class="w-full px-5 py-4 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-base shadow-sm" placeholder="Enter your email"/>
                 </div>
-                <div class="space-y-2">
+                <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="block text-xs uppercase font-bold text-gray-900 tracking-wider" for="password">Password</label>
+                        <label class="block text-sm uppercase font-bold text-gray-900 tracking-wider" for="password">Password</label>
                         <a href="contact.php" class="text-primary hover:underline text-xs font-bold">Forgot password?</a>
                     </div>
                     <div class="relative">
-                        <input id="password" name="password" type="password" required class="w-full px-4 py-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm pr-12" placeholder="••••••••"/>
+                        <input id="password" name="password" type="password" required autocomplete="current-password" class="w-full px-5 py-4 border border-gray-300 rounded-xl bg-white text-gray-900 font-medium focus:border-primary focus:ring-2 focus:ring-primary/20 text-base pr-14 shadow-sm" placeholder="••••••••"/>
                         <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-900">
                             <span id="pwd-icon" class="material-symbols-outlined text-xl">visibility</span>
                         </button>
@@ -135,7 +140,7 @@ require_once '../includes/header.php';
                     <input id="stay_signed_in" name="stay_signed_in" type="checkbox" class="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" <?php echo isset($_POST['stay_signed_in']) ? 'checked' : ''; ?> />
                     <label for="stay_signed_in" class="text-xs font-bold text-gray-800 cursor-pointer">Stay signed in for 30 days</label>
                 </div>
-                <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl text-sm font-bold transition-all shadow-md active:scale-[0.99]">Sign In</button>
+                <button type="submit" class="w-full py-3 px-4 bg-primary text-white rounded-lg text-sm font-bold shadow-md transition-all duration-300 ease-out hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.99]">Sign In</button>
             </form>
 
             <p class="text-center text-xs font-medium text-gray-700">By continuing, you agree to Royal Lanka Rides's <a class="text-gray-900 font-bold underline hover:text-primary" href="terms.php">Terms of Service</a> and <a class="text-gray-900 font-bold underline hover:text-primary" href="privacy.php">Privacy Policy</a>.</p>
@@ -144,31 +149,6 @@ require_once '../includes/header.php';
 </main>
 
 <script>
-    // Do not display credentials saved by the browser on this shared login screen.
-    window.addEventListener('DOMContentLoaded', () => {
-        const email = document.getElementById('email');
-        const password = document.getElementById('password');
-        const clearCredentials = () => {
-            email.value = '';
-            password.value = '';
-        };
-
-        password.setAttribute('autocomplete', 'new-password');
-        clearCredentials();
-        email.readOnly = true;
-        password.readOnly = true;
-
-        [email, password].forEach((field) => {
-            field.addEventListener('focus', () => {
-                field.readOnly = false;
-                field.value = '';
-            }, { once: true });
-        });
-
-        // Some browsers fill saved credentials just after the page has loaded.
-        window.setTimeout(clearCredentials, 500);
-    });
-
     function togglePassword() {
         const pwd = document.getElementById('password');
         const icon = document.getElementById('pwd-icon');
