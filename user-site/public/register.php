@@ -53,19 +53,19 @@ require_once '../includes/header.php';
     <!-- Left Hero Image Banner -->
     <section class="hidden md:flex md:w-1/2 lg:w-3/5 bg-slate-900 relative overflow-hidden">
         <div class="absolute inset-0 z-0">
-            <img class="w-full h-full object-cover opacity-60" alt="STS Fleet Vehicle" src="assets/vehicles/honda-vezel.png"/>
+            <img class="w-full h-full object-cover opacity-60" alt="Royal Lanka Rides Fleet Vehicle" src="assets/vehicles/honda-vezel.png"/>
             <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-slate-900/30"></div>
         </div>
         <div class="relative z-10 p-12 lg:p-16 flex flex-col justify-between h-full w-full">
             <div>
                 <a href="index.php" class="text-2xl font-black text-white italic uppercase tracking-tight flex items-center gap-2">
                     <span class="material-symbols-outlined text-cyan-400 text-3xl">directions_car</span>
-                    STS
+                    Royal Lanka Rides
                 </a>
             </div>
             <div class="max-w-xl">
                 <h1 class="text-4xl lg:text-5xl font-extrabold text-white mb-4 leading-tight drop-shadow-md">
-                    Join STS Vehicle Rentals
+                    Join Royal Lanka Rides Vehicle Rentals
                 </h1>
                 <p class="text-base lg:text-lg text-white font-semibold leading-relaxed drop-shadow">
                     Create your free account today to manage vehicle rentals, book luxury event fleets, and access exclusive corporate rates.
@@ -91,13 +91,13 @@ require_once '../includes/header.php';
             <div class="md:hidden text-center mb-6">
                 <a href="index.php" class="text-3xl font-black text-primary italic uppercase tracking-tight inline-flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary text-3xl">directions_car</span>
-                    STS
+                    Royal Lanka Rides
                 </a>
             </div>
 
             <div class="space-y-1">
                 <h2 class="text-3xl font-black text-gray-900 tracking-tight">Create Account</h2>
-                <p class="text-sm font-medium text-gray-700">Join STS today for fast event bookings.</p>
+                <p class="text-sm font-medium text-gray-700">Join Royal Lanka Rides today for fast event bookings.</p>
             </div>
 
             <?php if (!empty($error)): ?>

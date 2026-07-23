@@ -15,7 +15,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 class="font-h1 text-h1 text-on-surface mb-2">Terms of Service</h1>
-                    <p class="text-body-lg text-gray-500 max-w-2xl">Rental Terms & Conditions • STS Vehicle Rental Management System</p>
+                    <p class="text-body-lg text-gray-500 max-w-2xl">Rental Terms & Conditions • Royal Lanka Rides Vehicle Rental Management System</p>
                 </div>
             </div>
         </div>
@@ -28,7 +28,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     1. Agreement Overview & Scope
                 </h2>
                 <p class="leading-relaxed text-sm">
-                    Welcome to STS ("Company", "we", "our", or "us"). By creating an account, reserving a vehicle, or utilizing our event vehicle rental management services, you agree to be bound by these Terms of Service. Please read them carefully before confirming any booking.
+                    Welcome to Royal Lanka Rides ("Company", "we", "our", or "us"). By creating an account, reserving a vehicle, or utilizing our event vehicle rental management services, you agree to be bound by these Terms of Service. Please read them carefully before confirming any booking.
                 </p>
             </section>
 
@@ -41,7 +41,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                 </h2>
                 <ul class="list-disc pl-6 space-y-2 text-sm leading-relaxed">
                     <li>The hirer/driver must be at least 21 years of age and hold a valid, unexpired national driving license or International Driving Permit (IDP).</li>
-                    <li>For VIP or Event Chauffeur packages, STS provides certified professional drivers; self-drive requirements do not apply.</li>
+                    <li>For VIP or Event Chauffeur packages, Royal Lanka Rides provides certified professional drivers; self-drive requirements do not apply.</li>
                     <li>Verification of identity documents (NIC or Passport copy) is mandatory prior to vehicle key handover.</li>
                 </ul>
             </section>
@@ -85,7 +85,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     5. Insurance & Damage Liabilities
                 </h2>
                 <p class="leading-relaxed text-sm">
-                    All vehicles in the STS fleet are covered under comprehensive commercial vehicle insurance. However, the hirer remains liable for any intentional damage, traffic violations, or unauthorized subletting during the rental period.
+                    All vehicles in the Royal Lanka Rides fleet are covered under comprehensive commercial vehicle insurance. However, the hirer remains liable for any intentional damage, traffic violations, or unauthorized subletting during the rental period.
                 </p>
             </section>
 
@@ -97,7 +97,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     6. Support & Inquiries
                 </h2>
                 <p class="leading-relaxed text-sm">
-                    For questions regarding our Terms of Service, please visit our <a href="contact.php" class="text-primary font-bold underline">Contact Us</a> page or email <a href="mailto:support@stsrental.com" class="text-primary font-bold underline">support@stsrental.com</a>.
+                    For questions regarding our Terms of Service, please visit our <a href="contact.php" class="text-primary font-bold underline">Contact Us</a> page or email <a href="mailto:support@royallankarides.com" class="text-primary font-bold underline">support@royallankarides.com</a>.
                 </p>
             </section>
 

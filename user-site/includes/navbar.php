@@ -29,7 +29,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <nav class="max-w-[1440px] mx-auto flex justify-between items-center px-8 h-16">
         <a href="index.php" class="text-xl font-black text-primary dark:text-red-500 uppercase italic flex items-center gap-2">
             <span class="material-symbols-outlined text-2xl text-primary">directions_car</span>
-            STS
+            Royal Lanka Rides
         </a>
         <div class="hidden md:flex gap-8 items-center">
             <a class="<?php echo $current_page == 'index.php' ? 'nav-link-active font-bold' : 'nav-link'; ?> px-4 py-2 rounded-full transition-all duration-200" href="index.php">Home</a>

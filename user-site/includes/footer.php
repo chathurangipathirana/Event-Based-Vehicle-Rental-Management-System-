@@ -1,8 +1,8 @@
 <footer class="bg-gray-900 dark:bg-black w-full border-t border-gray-800">
     <div class="max-w-[1440px] mx-auto py-12 px-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
         <div class="flex flex-col gap-4">
-            <div class="text-lg font-black text-white uppercase">STS Sri Lanka</div>
-            <p class="font-inter text-xs text-gray-400 max-w-xs">Copyright © <?php echo date('Y'); ?> STS. All Rights Reserved.</p>
+            <div class="text-lg font-black text-white uppercase">Royal Lanka Rides</div>
+            <p class="font-inter text-xs text-gray-400 max-w-xs">Copyright © <?php echo date('Y'); ?> Royal Lanka Rides. All Rights Reserved.</p>
         </div>
         <div class="flex flex-wrap gap-8">
             <a class="text-gray-500 font-inter text-xs hover:text-red-500 underline transition-all" href="terms.php">Terms of Service</a>
@@ -33,7 +33,7 @@
 
     // Share page handler
     async function sharePage() {
-        const pageTitle = document.title || 'STS Vehicle Rental';
+        const pageTitle = document.title || 'Royal Lanka Rides Vehicle Rental';
         const pageUrl = window.location.href;
 
         if (navigator.share) {

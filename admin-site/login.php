@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $password = $_POST['password'] ?? '';
 
     // Demo credentials - In production, check database
-    if (($email === 'admin@sts.com' || $email === 'admin@fleetelite.com') && $password === 'Admin123!') {
+    if (($email === 'admin@sts.com' || $email === 'admin@fleetelite.com' || $email === 'admin@royallankarides.com') && $password === 'Admin123!') {
         $_SESSION['admin_id'] = 1;
         $_SESSION['admin_name'] = 'Administrator';
         $_SESSION['admin_email'] = $email;
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Admin Login | STS</title>
+<title>Admin Login | Royal Lanka Rides</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
@@ -103,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span class="material-symbols-outlined text-white text-4xl">admin_panel_settings</span>
             </div>
             <h2 class="text-3xl font-bold text-gray-900">Admin Portal</h2>
-            <p class="text-gray-600 mt-2">STS Operations Dashboard</p>
+            <p class="text-gray-600 mt-2">Royal Lanka Rides Operations Dashboard</p>
         </div>
 
         <?php if ($error): ?>
@@ -113,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="POST" class="space-y-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                <input type="email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg login-input" placeholder="admin@sts.com">
+                <input type="email" name="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg login-input" placeholder="admin@royallankarides.com">
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
         
         <div class="text-center mt-6">
-            <p class="text-sm text-gray-500">Demo: admin@sts.com / Admin123!</p>
+            <p class="text-sm text-gray-500">Demo: admin@royallankarides.com / Admin123!</p>
         </div>
     </div>
 </body>

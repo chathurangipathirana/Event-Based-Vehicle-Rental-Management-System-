@@ -15,7 +15,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 class="font-h1 text-h1 text-on-surface mb-2">Privacy Policy</h1>
-                    <p class="text-body-lg text-gray-500 max-w-2xl">Data Protection & Privacy Policy • STS Vehicle Rental Management System</p>
+                    <p class="text-body-lg text-gray-500 max-w-2xl">Data Protection & Privacy Policy • Royal Lanka Rides Vehicle Rental Management System</p>
                 </div>
             </div>
         </div>
@@ -28,7 +28,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     1. Information We Collect
                 </h2>
                 <p class="leading-relaxed text-sm mb-3">
-                    At STS, we value your privacy and are committed to protecting your personal information. When you register or book a vehicle on our platform, we collect:
+                    At Royal Lanka Rides, we value your privacy and are committed to protecting your personal information. When you register or book a vehicle on our platform, we collect:
                 </p>
                 <ul class="list-disc pl-6 space-y-2 text-sm leading-relaxed">
                     <li>Personal Details: Full Name, Email Address, Phone Number, and Mailing Address.</li>
@@ -84,7 +84,7 @@ require_once __DIR__ . '/../includes/navbar.php';
                     5. Your Data Rights & Contact
                 </h2>
                 <p class="leading-relaxed text-sm">
-                    You have the right to inspect, update, or request deletion of your account data at any time. For privacy requests, please contact our privacy compliance team via our <a href="contact.php" class="text-primary font-bold underline">Contact Us</a> page or email <a href="mailto:privacy@stsrental.com" class="text-primary font-bold underline">privacy@stsrental.com</a>.
+                    You have the right to inspect, update, or request deletion of your account data at any time. For privacy requests, please contact our privacy compliance team via our <a href="contact.php" class="text-primary font-bold underline">Contact Us</a> page or email <a href="mailto:privacy@royallankarides.com" class="text-primary font-bold underline">privacy@royallankarides.com</a>.
                 </p>
             </section>
 

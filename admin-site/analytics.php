@@ -426,7 +426,7 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
             <div id="pdf-report-header" class="hidden p-6 bg-slate-900 text-white border-b border-slate-800">
                 <div class="flex justify-between items-center">
                     <div>
-                        <h1 class="text-2xl font-bold text-white">STS FLEET MANAGEMENT</h1>
+                        <h1 class="text-2xl font-bold text-white">ROYAL LANKA RIDES FLEET MANAGEMENT</h1>
                         <p class="text-xs text-cyan-300">Each Vehicle Performance & Revenue Report</p>
                     </div>
                     <div class="text-right text-xs text-slate-300">

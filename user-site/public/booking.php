@@ -21,7 +21,7 @@ require_once '../includes/navbar.php';
         <section class="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-lg">
             <span class="material-symbols-outlined text-5xl text-primary">account_circle</span>
             <h1 class="mt-4 text-2xl font-bold text-gray-900">Sign in to complete your booking</h1>
-            <p class="mt-3 text-gray-600">Log in to continue with your booking, or create an account if you are new to STS.</p>
+            <p class="mt-3 text-gray-600">Log in to continue with your booking, or create an account if you are new to Royal Lanka Rides.</p>
             <div class="mt-8 space-y-3">
                 <a href="login.php?redirect=<?php echo urlencode($booking_url); ?>" class="block w-full rounded-xl bg-primary py-3 font-bold text-white hover:bg-primary-container transition">Log In</a>
                 <a href="register.php?redirect=<?php echo urlencode($booking_url); ?>" class="block w-full rounded-xl border border-primary py-3 font-bold text-primary hover:bg-gray-50 transition">Create Account</a>

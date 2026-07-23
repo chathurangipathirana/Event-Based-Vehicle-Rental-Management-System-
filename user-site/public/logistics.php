@@ -15,7 +15,7 @@ require_once __DIR__ . '/../includes/navbar.php';
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 class="font-h1 text-h1 text-on-surface mb-2">Fleet Logistics</h1>
-                    <p class="text-body-lg text-gray-500 max-w-2xl">Seamless Event Logistics & Fleet Solutions across Sri Lanka • STS Vehicle Rental Management System</p>
+                    <p class="text-body-lg text-gray-500 max-w-2xl">Seamless Event Logistics & Fleet Solutions across Sri Lanka • Royal Lanka Rides Vehicle Rental Management System</p>
                 </div>
             </div>
         </div>

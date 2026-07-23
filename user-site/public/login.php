@@ -63,14 +63,14 @@ require_once '../includes/header.php';
 <main class="min-h-screen flex flex-col md:flex-row bg-gray-50">
     <section class="hidden md:flex md:w-1/2 lg:w-3/5 bg-slate-900 relative overflow-hidden">
         <div class="absolute inset-0 z-0">
-            <img class="w-full h-full object-cover opacity-60" alt="STS Performance Vehicle" src="assets/vehicles/toyota-premio.png"/>
+            <img class="w-full h-full object-cover opacity-60" alt="Royal Lanka Rides Performance Vehicle" src="assets/vehicles/toyota-premio.png"/>
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20"></div>
         </div>
         <div class="relative z-10 p-12 flex flex-col justify-between h-full">
             <div>
                 <a href="index.php" class="text-2xl font-black text-white italic uppercase tracking-tight flex items-center gap-2">
                     <span class="material-symbols-outlined text-cyan-400 text-3xl">directions_car</span>
-                    STS
+                    Royal Lanka Rides
                 </a>
             </div>
             <div class="max-w-lg">
@@ -95,7 +95,7 @@ require_once '../includes/header.php';
             <div class="md:hidden text-center">
                 <a href="index.php" class="text-3xl font-black text-primary italic uppercase tracking-tight inline-flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary text-3xl">directions_car</span>
-                    STS
+                    Royal Lanka Rides
                 </a>
             </div>
 
@@ -138,7 +138,7 @@ require_once '../includes/header.php';
                 <button type="submit" class="w-full bg-primary hover:bg-primary/90 text-white py-4 rounded-xl text-sm font-bold transition-all shadow-md active:scale-[0.99]">Sign In</button>
             </form>
 
-            <p class="text-center text-xs font-medium text-gray-700">By continuing, you agree to STS's <a class="text-gray-900 font-bold underline hover:text-primary" href="terms.php">Terms of Service</a> and <a class="text-gray-900 font-bold underline hover:text-primary" href="privacy.php">Privacy Policy</a>.</p>
+            <p class="text-center text-xs font-medium text-gray-700">By continuing, you agree to Royal Lanka Rides's <a class="text-gray-900 font-bold underline hover:text-primary" href="terms.php">Terms of Service</a> and <a class="text-gray-900 font-bold underline hover:text-primary" href="privacy.php">Privacy Policy</a>.</p>
         </div>
     </section>
 </main>

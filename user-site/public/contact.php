@@ -60,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div>
                         <h3 class="font-bold text-gray-900 dark:text-white text-lg">Main Logistics Hub</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm font-inter mt-1">STS Headquarters & Fleet Operations Center<br/>No. 45, Galle Road, Colombo 03, Sri Lanka</p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm font-inter mt-1">Royal Lanka Rides Headquarters & Fleet Operations Center<br/>No. 45, Galle Road, Colombo 03, Sri Lanka</p>
                     </div>
                 </div>
 
@@ -81,8 +81,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <div>
                         <h3 class="font-bold text-gray-900 dark:text-white text-lg">Email Inquiry</h3>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm font-inter mt-1">support@stsrental.com</p>
-                        <p class="text-gray-600 dark:text-gray-400 text-sm font-inter">info@sts.com</p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm font-inter mt-1">support@royallankarides.com</p>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm font-inter">info@royallankarides.com</p>
                     </div>
                 </div>
 
