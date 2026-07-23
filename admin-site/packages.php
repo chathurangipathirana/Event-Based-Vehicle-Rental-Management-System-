@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $image_url = $q->fetchColumn();
                     }
 
-                    $stmt = $pdo->prepare("\
+                    $stmt = $pdo->prepare("
                         UPDATE event_packages
                         SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, category = ?, status = ?, image_url = ?
                         WHERE id = ?
@@ -81,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } else {
                     // New admin packages are published immediately for the user package page.
                     $status = 'active';
-                    $stmt = $pdo->prepare("\
+                    $stmt = $pdo->prepare("
                         INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, category, status, image_url)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
