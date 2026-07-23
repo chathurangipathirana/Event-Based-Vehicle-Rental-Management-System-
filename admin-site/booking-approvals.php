@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch pending bookings from the database, joined with related tables
 $stmt = $pdo->prepare("
-    SELECT 
+    SELECT
         b.id,
         b.booking_number AS number,
         u.full_name AS customer,
@@ -71,7 +71,7 @@ $pending_bookings = $stmt->fetchAll();
 
 function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): string {
     $name = strtolower(trim($vehicleName));
-    
+
     $map = [
         'axio' => '../user-site/public/assets/vehicles/toyota-axio.png',
         'premio' => '../user-site/public/assets/vehicles/toyota-premio.png',
@@ -80,13 +80,13 @@ function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): 
         'sunny' => '../user-site/public/assets/vehicles/nissan-sunny.png',
         'wagon' => '../user-site/public/assets/vehicles/suzuki-wagonr.png',
     ];
-    
+
     foreach ($map as $key => $path) {
         if (str_contains($name, $key)) {
             return $path;
         }
     }
-    
+
     if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
         return '../user-site/public/' . ltrim($image_url, '/');
     }
@@ -193,10 +193,7 @@ $urgent_count = 2; // still static — can compute later based on event_date
                             <span class="material-symbols-outlined text-sm">filter_list</span>
                             Filter
                         </button>
-                        <button onclick="exportApprovals()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
-                            <span class="material-symbols-outlined text-sm">download</span>
-                            Export
-                        </button>
+
                     </div>
                 </div>
             </div>
@@ -259,9 +256,9 @@ $urgent_count = 2; // still static — can compute later based on event_date
                 <div class="flex flex-col md:flex-row flex-row">
                     <div class="md:w-64 h-48 md:h-auto overflow-hidden relative bg-slate-900 flex items-center justify-center flex-shrink-0">
                         <?php $approvalImg = getAdminVehicleImageUrl($booking['vehicle_image'] ?? '', $booking['vehicle']); ?>
-                        <img src="<?php echo htmlspecialchars($approvalImg); ?>" 
-                             alt="<?php echo htmlspecialchars($booking['vehicle']); ?>" 
-                             class="w-full h-full object-cover transition-transform duration-300 hover:scale-105" 
+                        <img src="<?php echo htmlspecialchars($approvalImg); ?>"
+                             alt="<?php echo htmlspecialchars($booking['vehicle']); ?>"
+                             class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
                              onerror="this.onerror=null;this.src='../user-site/public/assets/vehicle-default.svg'">
                         <?php if ($booking['priority'] == 'high'): ?>
                         <div class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase rounded shadow">High Priority</div>
@@ -319,15 +316,5 @@ $urgent_count = 2; // still static — can compute later based on event_date
     </div>
 </main>
 
-<script>
-function exportApprovals() {
-    const cards = document.querySelectorAll('[id^="booking-card-"]');
-    if (cards.length === 0) {
-        alert("No pending approvals to export.");
-        return;
-    }
-    exportElementAsPDF('main', 'pending-booking-approvals.pdf');
-}
-</script>
 
 <?php require_once 'includes/footer.php'; ?>

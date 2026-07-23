@@ -6,7 +6,7 @@ require_once 'config/database.php';
 
 function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): string {
     $name = strtolower(trim($vehicleName));
-    
+
     $map = [
         'axio' => '../user-site/public/assets/vehicles/toyota-axio.png',
         'premio' => '../user-site/public/assets/vehicles/toyota-premio.png',
@@ -15,13 +15,13 @@ function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): 
         'sunny' => '../user-site/public/assets/vehicles/nissan-sunny.png',
         'wagon' => '../user-site/public/assets/vehicles/suzuki-wagonr.png',
     ];
-    
+
     foreach ($map as $key => $path) {
         if (str_contains($name, $key)) {
             return $path;
         }
     }
-    
+
     if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
         return '../user-site/public/' . ltrim($image_url, '/');
     }
@@ -125,16 +125,16 @@ $vehicle_performance = [];
 try {
     $bookingJoinFilter = $reportDateSql ? ' AND b.event_date BETWEEN ? AND ?' : '';
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             v.id,
-            v.name, 
+            v.name,
             v.model,
             COALESCE(v.category, 'Sedan') as category,
             v.status,
             v.price_per_day,
             v.price_per_hour,
             v.image_url,
-            COALESCE(COUNT(b.id), 0) as bookings, 
+            COALESCE(COUNT(b.id), 0) as bookings,
             COALESCE(SUM(b.total_hours), 0) as total_hours,
             COALESCE(SUM(b.total_amount), v.price_per_day * 12) as revenue
         FROM vehicles v
@@ -350,10 +350,7 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
             <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                 <div>
                     <p class="text-sm text-gray-500 uppercase">Total Fleet Revenue</p>
-                    <div style="line-height: 1.1;">
-                        <div class="text-xs font-medium text-gray-600">LKR</div>
-                        <div class="kpi-value"><?php echo number_format($total_fleet_revenue); ?></div>
-                    </div>
+                    <div class="kpi-value">LKR <?php echo number_format($total_fleet_revenue, 2); ?></div>
                     <div class="text-xs text-green-600 mt-1">Across all 12 Sri Lankan Vehicles</div>
                 </div>
                 <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
@@ -377,10 +374,7 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
             <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                 <div>
                     <p class="text-sm text-gray-500 uppercase">Avg Revenue / Vehicle</p>
-                    <div style="line-height: 1.1;">
-                        <div class="text-xs font-medium text-gray-600">LKR</div>
-                        <div class="kpi-value"><?php echo count($vehicle_performance) > 0 ? number_format($total_fleet_revenue / count($vehicle_performance)) : 0; ?></div>
-                    </div>
+                    <div class="kpi-value">LKR <?php echo number_format(count($vehicle_performance) > 0 ? ($total_fleet_revenue / count($vehicle_performance)) : 0, 2); ?></div>
                     <div class="text-xs text-cyan-600 mt-1">Per vehicle metric average</div>
                 </div>
                 <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">insights</span></div>
@@ -507,9 +501,9 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
                                     <?php echo $status_label; ?>
                                 </span>
                             </td>
-                            <td class="px-5 py-4 text-right text-gray-700 text-xs font-semibold">LKR <?php echo number_format($v['price_per_day']); ?></td>
+                            <td class="px-5 py-4 text-right text-gray-700 text-xs font-semibold">LKR <?php echo number_format($v['price_per_day'], 2); ?></td>
                             <td class="px-5 py-4 text-center font-extrabold text-slate-900 text-sm"><?php echo number_format($v['bookings']); ?></td>
-                            <td class="px-6 py-4 text-right font-black text-cyan-600 text-base">LKR <?php echo number_format($v['revenue']); ?></td>
+                            <td class="px-6 py-4 text-right font-black text-cyan-600 text-base">LKR <?php echo number_format($v['revenue'], 2); ?></td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -517,7 +511,7 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
                         <tr class="bg-slate-900 text-white font-bold">
                             <td colspan="4" class="px-6 py-4 text-right uppercase tracking-wider text-xs">Total Fleet Summary:</td>
                             <td class="px-5 py-4 text-center text-sm font-black"><?php echo number_format($total_fleet_bookings); ?></td>
-                            <td class="px-6 py-4 text-right text-cyan-300 text-base font-black">LKR <?php echo number_format($total_fleet_revenue); ?></td>
+                            <td class="px-6 py-4 text-right text-cyan-300 text-base font-black">LKR <?php echo number_format($total_fleet_revenue, 2); ?></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -585,10 +579,10 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
         <h2>1. Fleet Summary</h2>
         <p class="pdf-section-note">Key results across every vehicle in the fleet.</p>
         <div class="pdf-summary">
-            <div class="pdf-card"><span>Total Revenue</span><strong>LKR <?php echo number_format($total_fleet_revenue); ?></strong></div>
+            <div class="pdf-card"><span>Total Revenue</span><strong>LKR <?php echo number_format($total_fleet_revenue, 2); ?></strong></div>
             <div class="pdf-card"><span>Total Bookings</span><strong><?php echo number_format($total_fleet_bookings); ?></strong></div>
             <div class="pdf-card"><span>Total Rented Hours</span><strong><?php echo number_format($total_fleet_hours); ?></strong></div>
-            <div class="pdf-card"><span>Average Revenue per Vehicle</span><strong>LKR <?php echo number_format(count($vehicle_performance) ? $total_fleet_revenue / count($vehicle_performance) : 0); ?></strong></div>
+            <div class="pdf-card"><span>Average Revenue per Vehicle</span><strong>LKR <?php echo number_format(count($vehicle_performance) ? ($total_fleet_revenue / count($vehicle_performance)) : 0, 2); ?></strong></div>
         </div>
     </section>
 
@@ -605,7 +599,7 @@ $maintenance_count = count(array_filter($vehicle_performance, static fn($vehicle
                     <td><?php echo htmlspecialchars($vehicle['category']); ?></td>
                     <td><?php echo number_format($vehicle['bookings']); ?></td>
                     <td><?php echo number_format($vehicle['total_hours']); ?></td>
-                    <td class="numeric"><?php echo number_format($vehicle['revenue']); ?></td>
+                    <td class="numeric">LKR <?php echo number_format($vehicle['revenue'], 2); ?></td>
                 </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -669,14 +663,13 @@ document.addEventListener('DOMContentLoaded', function() {
     new Chart(vehicleCtx, {
         type: 'bar',
         data: {
-            labels: vehicleNames,
+            labels: vehicleLabels,
             datasets: [{
                 label: 'Revenue (LKR)',
                 data: vehicleRevenues,
-                backgroundColor: 'rgba(2, 65, 74, 0.85)',
-                borderColor: '#02414a',
-                borderWidth: 1.5,
-                borderRadius: 8
+                backgroundColor: ['#06b6d4','#0f766e','#0891b2','#f59e0b','#ef4444','#8b5cf6','#10b981','#f97316','#e11d48','#22c55e','#14b8a6','#3b82f6'],
+                borderRadius: 10,
+                borderSkipped: false
             }]
         },
         options: {
@@ -687,7 +680,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Revenue: LKR ' + context.raw.toLocaleString();
+                            return 'Revenue: LKR ' + Number(context.raw || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     }
                 }
@@ -738,7 +731,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Revenue: LKR ' + context.raw.toLocaleString();
+                            return 'Revenue: LKR ' + Number(context.raw || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
                     }
                 }
@@ -777,7 +770,7 @@ async function exportVehiclePerformancePDF(button) {
         const pageHeight = 210;
         const margin = 12;
         const timestamp = new Intl.DateTimeFormat(undefined, { dateStyle: 'long', timeStyle: 'short' }).format(new Date());
-        const formatCurrency = (value) => 'LKR ' + Number(value || 0).toLocaleString();
+        const formatCurrency = (value) => 'LKR ' + Number(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const drawHeader = (title, subtitle) => {
             pdf.setFillColor(15, 23, 42);
             pdf.rect(0, 0, pageWidth, 28, 'F');

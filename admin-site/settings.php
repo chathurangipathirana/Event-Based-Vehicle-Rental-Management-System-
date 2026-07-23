@@ -12,26 +12,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['save_general_settings'])) {
         // Update company settings
         $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
-        
+
         $settings = [
             'company_name' => $_POST['company_name'] ?? 'STS',
             'company_email' => $_POST['company_email'] ?? 'info@sts.lk',
             'company_phone' => $_POST['company_phone'] ?? '+94 11 234 5678',
             'company_address' => $_POST['company_address'] ?? '',
-            'currency' => $_POST['currency'] ?? 'LKR',
-            'currency_symbol' => $_POST['currency_symbol'] ?? 'LKR',
+            'currency' => 'LKR',
+            'currency_symbol' => 'LKR',
             'timezone' => $_POST['timezone'] ?? 'Asia/Colombo',
             'date_format' => $_POST['date_format'] ?? 'Y-m-d',
             'tax_rate' => $_POST['tax_rate'] ?? 10.00,
         ];
-        
+
         foreach ($settings as $key => $value) {
             $stmt->execute([$value, $key]);
         }
-        
+
         $success_message = 'Settings saved successfully!';
     }
-    
+
     if (isset($_POST['update_operational_hours'])) {
         $stmt = $pdo->prepare("UPDATE settings SET setting_value = ? WHERE setting_key = ?");
         $stmt->execute([$_POST['mon_fri_start'], 'mon_fri_start']);
@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$_POST['sat_start'], 'sat_start']);
         $stmt->execute([$_POST['sat_end'], 'sat_end']);
         $stmt->execute([$_POST['sun_status'], 'sun_status']);
-        
+
         $success_message = 'Operational hours updated!';
     }
 }
@@ -56,8 +56,8 @@ $company_name = $settings['company_name'] ?? 'STS';
 $company_email = $settings['company_email'] ?? 'info@sts.lk';
 $company_phone = $settings['company_phone'] ?? '+94 11 234 5678';
 $company_address = $settings['company_address'] ?? '';
-$currency = $settings['currency'] ?? 'LKR';
-$currency_symbol = $settings['currency_symbol'] ?? 'LKR';
+$currency = 'LKR';
+$currency_symbol = 'LKR';
 $timezone = $settings['timezone'] ?? 'Asia/Colombo';
 $date_format = $settings['date_format'] ?? 'Y-m-d';
 $tax_rate = $settings['tax_rate'] ?? 10.00;
@@ -141,16 +141,12 @@ try {
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-500">Default Currency</label>
-                        <select name="currency" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none">
-                            <option value="LKR" <?php echo $currency == 'LKR' ? 'selected' : ''; ?>>LKR - Sri Lankan Rupee (LKR)</option>
-                            <option value="USD" <?php echo $currency == 'USD' ? 'selected' : ''; ?>>USD - US Dollar ($)</option>
-                            <option value="EUR" <?php echo $currency == 'EUR' ? 'selected' : ''; ?>>EUR - Euro (€)</option>
-                            <option value="GBP" <?php echo $currency == 'GBP' ? 'selected' : ''; ?>>GBP - British Pound (£)</option>
-                        </select>
+                        <input type="text" value="LKR - Sri Lankan Rupee" class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-600" readonly>
+                        <input type="hidden" name="currency" value="LKR">
                     </div>
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-500">Currency Symbol</label>
-                        <input type="text" name="currency_symbol" value="<?php echo htmlspecialchars($currency_symbol); ?>" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cyan-500 outline-none">
+                        <input type="text" name="currency_symbol" value="LKR" class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-600" readonly>
                     </div>
                     <div class="space-y-2">
                         <label class="block text-sm font-medium text-slate-500">System Timezone</label>

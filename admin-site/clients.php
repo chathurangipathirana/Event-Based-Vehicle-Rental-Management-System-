@@ -7,7 +7,7 @@ require_once 'config/database.php';
 // Get all clients from database
 try {
     $clients = $pdo->query("
-        SELECT 
+        SELECT
             u.*,
             COUNT(b.id) as total_bookings,
             MAX(b.event_date) as last_event_date,
@@ -27,11 +27,11 @@ $total_clients = $pdo->query("SELECT COUNT(*) FROM users WHERE role != 'admin'")
 $active_corporate = $pdo->query("SELECT COUNT(*) FROM users WHERE role != 'admin' AND company_name IS NOT NULL AND company_name != '' AND LOWER(company_name) != 'no' AND LOWER(company_name) != 'none'")->fetchColumn();
 $vip_clients = $pdo->query("
     SELECT COUNT(*) FROM (
-        SELECT u.id, COUNT(b.id) as booking_count 
-        FROM users u 
-        LEFT JOIN bookings b ON u.id = b.user_id 
-        WHERE u.role != 'admin' 
-        GROUP BY u.id 
+        SELECT u.id, COUNT(b.id) as booking_count
+        FROM users u
+        LEFT JOIN bookings b ON u.id = b.user_id
+        WHERE u.role != 'admin'
+        GROUP BY u.id
         HAVING booking_count >= 1
     ) as vip
 ")->fetchColumn();
@@ -53,7 +53,7 @@ $selected_client = null;
 
 if ($selected_client_id) {
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
             u.*,
             COUNT(b.id) as total_bookings,
             MAX(b.event_date) as last_event_date,
@@ -66,7 +66,7 @@ if ($selected_client_id) {
     ");
     $stmt->execute([$selected_client_id]);
     $selected_client = $stmt->fetch();
-    
+
     // Get recent bookings for this client
     $stmt2 = $pdo->prepare("
         SELECT b.*, v.name as vehicle_name
@@ -143,10 +143,7 @@ if ($selected_client_id) {
             <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                 <div>
                     <p class="text-sm text-gray-500 uppercase">Top 10% Revenue</p>
-                    <div style="line-height: 1.1;">
-                        <div class="text-xs font-medium text-gray-600">LKR</div>
-                        <div class="kpi-value"><?php echo number_format($top10_revenue, 0); ?></div>
-                    </div>
+                    <div class="kpi-value">LKR <?php echo number_format($top10_revenue, 2); ?></div>
                     <div class="text-xs text-green-600 mt-1">Account concentration high</div>
                 </div>
                 <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
@@ -214,7 +211,7 @@ if ($selected_client_id) {
                         </thead>
                         <tbody class="divide-y divide-[#c0c8ca]/30 text-[#191c1d]" id="clientsTable">
                             <?php foreach ($clients as $client): ?>
-                            <?php 
+                            <?php
                                 $compName = trim($client['company_name'] ?? '');
                                 $isCorporate = !empty($compName) && strtolower($compName) !== 'no' && strtolower($compName) !== 'none';
                             ?>
@@ -270,7 +267,7 @@ if ($selected_client_id) {
                             <span class="material-symbols-outlined text-sm">chevron_right</span>
                         </button>
                     </div>
-                </div> 
+                </div>
             </div>
         </div>
     </div>

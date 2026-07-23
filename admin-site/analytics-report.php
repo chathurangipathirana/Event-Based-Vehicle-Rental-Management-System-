@@ -1,5 +1,5 @@
 <?php
-$page_title = 'Generated Analytics Report';
+$page_title = 'Reports';
 require_once 'includes/auth.php';
 requireAdminLogin();
 require_once 'config/database.php';
@@ -42,18 +42,18 @@ try {
 $vehicle_performance = [];
 try {
     $stmt = $pdo->query("
-        SELECT 
+        SELECT
             v.id,
-            v.name, 
+            v.name,
             v.model,
-            COALESCE(v.category, 'Sedan') as category, 
+            COALESCE(v.category, 'Sedan') as category,
             v.status,
             v.price_per_day,
             v.price_per_hour,
             v.image_url,
-            COALESCE(COUNT(b.id), 0) as bookings, 
+            COALESCE(COUNT(b.id), 0) as bookings,
             COALESCE(SUM(b.total_hours), 0) as total_hours,
-            COALESCE(SUM(b.total_amount), v.price_per_day * 12) as revenue 
+            COALESCE(SUM(b.total_amount), v.price_per_day * 12) as revenue
         FROM vehicles v
         LEFT JOIN bookings b ON v.id = b.vehicle_id
         GROUP BY v.id
@@ -235,43 +235,43 @@ $total_fleet_hours = array_sum(array_column($vehicle_performance, 'total_hours')
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generated Fleet Analytics Report - STS</title>
+    <title>FleetElite Admin | Reports</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
     <style>
         @media print {
-            .no-print { display: none !important; }
+            .no-print, aside { display: none !important; }
             body { background: #fff !important; color: #000 !important; }
             .print-container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            .ml-64 { margin-left: 0 !important; }
         }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans min-h-screen">
-    <!-- Action Bar (Hidden on Print) -->
-    <header class="no-print bg-slate-900 text-white p-4 sticky top-0 z-50 shadow-md">
-        <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="analytics.php" class="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 hover:text-white transition">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                </a>
-                <div>
-                    <h1 class="font-bold text-lg">System Generated Analytics Report</h1>
-                    <p class="text-xs text-slate-400">Generated on <?php echo date('F d, Y h:i A'); ?></p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <button onclick="window.print()" class="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 shadow">
-                    <span class="material-symbols-outlined text-sm">print</span>
-                    Print / Save PDF
-                </button>
-                <a href="analytics.php" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl text-xs">
-                    Close Report
-                </a>
-            </div>
-        </div>
-    </header>
+    <?php require_once 'includes/sidebar.php'; ?>
 
-    <main class="print-container max-w-6xl mx-auto my-8 p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
+    <main class="ml-64 min-h-screen bg-slate-50">
+        <div class="p-8 max-w-7xl mx-auto">
+            <section class="no-print rounded-[2rem] overflow-hidden mb-10">
+                <div class="relative bg-slate-900 text-white p-8 lg:p-10 overflow-hidden">
+                    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.24),_transparent_36%)] opacity-70 pointer-events-none"></div>
+                    <div class="relative grid grid-cols-1 xl:grid-cols-[1.5fr_1fr] gap-8 items-center">
+                        <div class="max-w-2xl">
+                            <p class="text-xs uppercase tracking-[0.35em] text-slate-400 mb-4">Fleet Analytics Manager</p>
+                            <h1 class="text-5xl font-semibold tracking-tight">Reports</h1>
+                            <p class="mt-4 text-slate-300 text-lg leading-8">Fleet analytics report generated on <?php echo date('F d, Y h:i A'); ?> with the same printable summary and performance insights.</p>
+                        </div>
+                        <div class="flex flex-wrap justify-end gap-3">
+                            <button onclick="window.print()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
+                                <span class="material-symbols-outlined text-sm">print</span>
+                                Print / Save PDF
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="print-container max-w-6xl mx-auto p-8 bg-white rounded-2xl shadow-lg border border-gray-200">
         <!-- Report Letterhead Banner -->
         <div class="border-b border-gray-300 pb-6 mb-8 flex justify-between items-end">
             <div>
@@ -290,7 +290,7 @@ $total_fleet_hours = array_sum(array_column($vehicle_performance, 'total_hours')
         <div class="grid grid-cols-4 gap-4 mb-8">
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-1">Total Fleet Revenue</span>
-                <p class="text-xl font-black text-cyan-700">LKR <?php echo number_format($total_fleet_revenue); ?></p>
+                <p class="text-xl font-black text-cyan-700">LKR <?php echo number_format($total_fleet_revenue, 2); ?></p>
             </div>
             <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <span class="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-1">Total Completed Rentals</span>
@@ -338,10 +338,10 @@ $total_fleet_hours = array_sum(array_column($vehicle_performance, 'total_hours')
                         <td class="p-3 text-center uppercase font-bold text-[10px] <?php echo $v['status'] == 'available' ? 'text-emerald-700' : ($v['status'] == 'booked' ? 'text-amber-700' : 'text-rose-700'); ?>">
                             <?php echo $v['status']; ?>
                         </td>
-                        <td class="p-3 text-right font-semibold">LKR <?php echo number_format($v['price_per_day']); ?></td>
+                        <td class="p-3 text-right font-semibold">LKR <?php echo number_format($v['price_per_day'], 2); ?></td>
                         <td class="p-3 text-center font-bold text-slate-900"><?php echo number_format($v['bookings']); ?></td>
                         <td class="p-3 text-center text-slate-600"><?php echo number_format($v['total_hours']); ?> hrs</td>
-                        <td class="p-3 text-right font-black text-cyan-700">LKR <?php echo number_format($v['revenue']); ?></td>
+                        <td class="p-3 text-right font-black text-cyan-700">LKR <?php echo number_format($v['revenue'], 2); ?></td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
@@ -350,7 +350,7 @@ $total_fleet_hours = array_sum(array_column($vehicle_performance, 'total_hours')
                         <td colspan="5" class="p-3 text-right uppercase tracking-wider text-xs">Total Combined Summary:</td>
                         <td class="p-3 text-center"><?php echo number_format($total_fleet_bookings); ?></td>
                         <td class="p-3 text-center"><?php echo number_format($total_fleet_hours); ?> hrs</td>
-                        <td class="p-3 text-right text-cyan-300 font-black">LKR <?php echo number_format($total_fleet_revenue); ?></td>
+                        <td class="p-3 text-right text-cyan-300 font-black">LKR <?php echo number_format($total_fleet_revenue, 2); ?></td>
                     </tr>
                 </tfoot>
             </table>
@@ -370,6 +370,8 @@ $total_fleet_hours = array_sum(array_column($vehicle_performance, 'total_hours')
         <div class="mt-12 border-t pt-6 flex justify-between items-center text-xs text-slate-400">
             <p>Generated by STS Vehicle Fleet Management System</p>
             <p>Page 1 of 1</p>
+        </div>
+            </div>
         </div>
     </main>
 </body>

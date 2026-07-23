@@ -30,7 +30,7 @@ try {
 $recent_bookings = [];
 try {
     $stmt = $pdo->query("
-        SELECT 
+        SELECT
             b.id as real_id,
             COALESCE(b.booking_number, CONCAT('#FE-', b.id)) as display_id,
             COALESCE(u.full_name, 'Guest') as customer,
@@ -95,10 +95,7 @@ try {
                 <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                     <div>
                         <p class="text-sm text-gray-500 uppercase">Revenue</p>
-                        <div style="line-height: 1.1;">
-                            <div class="text-xs font-medium text-gray-600">LKR</div>
-                            <div class="kpi-value"><?php echo number_format($stats['revenue']); ?></div>
-                        </div>
+                        <div class="kpi-value">LKR <?php echo number_format($stats['revenue'], 2); ?></div>
                         <div class="text-xs text-green-600 mt-1">+8.4% from last month</div>
                     </div>
                     <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
@@ -194,8 +191,8 @@ try {
                             <td class="px-6 py-4 font-medium">LKR <?php echo number_format($booking['amount'], 2); ?></td>
                             <td class="px-6 py-4"><?php echo htmlspecialchars($booking['date']); ?></td>
                             <td class="px-6 py-4">
-                                <span class="px-3 py-1 text-xs rounded-full font-semibold <?php 
-                                    echo $booking['status'] == 'pending' ? 'bg-amber-100 text-amber-700' : 
+                                <span class="px-3 py-1 text-xs rounded-full font-semibold <?php
+                                    echo $booking['status'] == 'pending' ? 'bg-amber-100 text-amber-700' :
                                         ($booking['status'] == 'confirmed' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700'); ?>">
                                     <?php echo ucfirst($booking['status']); ?>
                                 </span>

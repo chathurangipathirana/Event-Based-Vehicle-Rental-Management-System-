@@ -11,7 +11,7 @@ if (empty($invoice_number) && $booking_id <= 0) {
 // Fetch invoice and associated booking info
 try {
     $sql = "
-        SELECT 
+        SELECT
             i.*,
             b.booking_number,
             b.event_name,
@@ -28,7 +28,7 @@ try {
         LEFT JOIN bookings b ON i.booking_id = b.id
         LEFT JOIN vehicles v ON b.vehicle_id = v.id
         WHERE ";
-    
+
     if (!empty($invoice_number)) {
         $sql .= "i.invoice_number = ?";
         $param = $invoice_number;
@@ -36,7 +36,7 @@ try {
         $sql .= "i.booking_id = ?";
         $param = $booking_id;
     }
-    
+
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$param]);
     $invoice = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -161,8 +161,8 @@ try {
                             <span class="font-semibold text-gray-900"><?php echo htmlspecialchars($item['description']); ?></span>
                         </td>
                         <td class="py-4 text-center"><?php echo $item['quantity']; ?></td>
-                        <td class="py-4 text-right"><?php echo number_format($item['unit_price'], 2); ?></td>
-                        <td class="py-4 text-right font-semibold text-gray-900"><?php echo number_format($item['total'], 2); ?></td>
+                        <td class="py-4 text-right">LKR <?php echo number_format($item['unit_price'], 2); ?></td>
+                        <td class="py-4 text-right font-semibold text-gray-900">LKR <?php echo number_format($item['total'], 2); ?></td>
                     </tr>
                 <?php endforeach; ?>
                 <?php if (empty($items)): ?>
@@ -171,8 +171,8 @@ try {
                             <span class="font-semibold text-gray-900">Event Vehicle Rental Services</span>
                         </td>
                         <td class="py-4 text-center">1</td>
-                        <td class="py-4 text-right"><?php echo number_format($invoice['amount'], 2); ?></td>
-                        <td class="py-4 text-right font-semibold text-gray-900"><?php echo number_format($invoice['amount'], 2); ?></td>
+                        <td class="py-4 text-right">LKR <?php echo number_format($invoice['amount'], 2); ?></td>
+                        <td class="py-4 text-right font-semibold text-gray-900">LKR <?php echo number_format($invoice['amount'], 2); ?></td>
                     </tr>
                 <?php endif; ?>
             </tbody>

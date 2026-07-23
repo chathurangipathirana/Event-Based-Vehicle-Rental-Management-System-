@@ -29,7 +29,7 @@ $error = '';
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     if ($action === 'save') {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         $name = trim($_POST['name'] ?? '');
@@ -40,22 +40,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $price = (float)($_POST['price'] ?? 0);
         $category = trim($_POST['category'] ?? 'Sports');
         $status = trim($_POST['status'] ?? 'available');
-        
+
         if (empty($name) || empty($model)) {
             $_SESSION['error'] = 'Name and Model are required fields.';
         } else {
             try {
                 if ($id > 0) {
                     $stmt = $pdo->prepare("
-                        UPDATE vehicles 
-                        SET name = ?, model = ?, license_plate = ?, vin_number = ?, image_url = ?, price_per_day = ?, category = ?, status = ? 
+                        UPDATE vehicles
+                        SET name = ?, model = ?, license_plate = ?, vin_number = ?, image_url = ?, price_per_day = ?, category = ?, status = ?
                         WHERE id = ?
                     ");
                     $stmt->execute([$name, $model, $plate, $vin, $image_url, $price, $category, $status, $id]);
                     $_SESSION['message'] = 'Vehicle updated successfully!';
                 } else {
                     $stmt = $pdo->prepare("
-                        INSERT INTO vehicles (name, model, license_plate, vin_number, image_url, price_per_day, category, status) 
+                        INSERT INTO vehicles (name, model, license_plate, vin_number, image_url, price_per_day, category, status)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     ");
                     $stmt->execute([$name, $model, $plate, $vin, $image_url, $price, $category, $status]);
@@ -88,11 +88,11 @@ $vehicles = [];
 $is_sample_fleet = false;
 try {
     $vehicles = $pdo->query("
-        SELECT *, 
-               price_per_day as price, 
-               license_plate as plate, 
-               vin_number as vin 
-        FROM vehicles 
+        SELECT *,
+               price_per_day as price,
+               license_plate as plate,
+               vin_number as vin
+        FROM vehicles
         ORDER BY id DESC
     ")->fetchAll();
 } catch(PDOException $e) {
@@ -101,7 +101,7 @@ try {
 
 function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): string {
     $name = strtolower(trim($vehicleName));
-    
+
     $map = [
         'axio' => '../user-site/public/assets/vehicles/toyota-axio.png',
         'premio' => '../user-site/public/assets/vehicles/toyota-premio.png',
@@ -110,13 +110,13 @@ function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): 
         'sunny' => '../user-site/public/assets/vehicles/nissan-sunny.png',
         'wagon' => '../user-site/public/assets/vehicles/suzuki-wagonr.png',
     ];
-    
+
     foreach ($map as $key => $path) {
         if (str_contains($name, $key)) {
             return $path;
         }
     }
-    
+
     if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
         return '../user-site/public/' . ltrim($image_url, '/');
     }
@@ -360,7 +360,7 @@ $default_vehicle_image = 'https://images.unsplash.com/photo-1503376780353-7e6692
                                     <?php echo ucfirst($vehicle['status']); ?>
                                 </span>
                             </td>
-                            <td class="px-6 py-4 text-right font-bold text-red-600">LKR <?php echo number_format($vehicle['price']); ?></td>
+                            <td class="px-6 py-4 text-right font-bold text-red-600">LKR <?php echo number_format($vehicle['price'], 2); ?></td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex justify-center items-center space-x-2">
                                     <?php if (!$is_sample_fleet): ?>
@@ -454,19 +454,19 @@ function deleteVehicle(id) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = 'fleet.php';
-        
+
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
         actionInput.name = 'action';
         actionInput.value = 'delete';
         form.appendChild(actionInput);
-        
+
         const idInput = document.createElement('input');
         idInput.type = 'hidden';
         idInput.name = 'id';
         idInput.value = id;
         form.appendChild(idInput);
-        
+
         document.body.appendChild(form);
         form.submit();
     }
@@ -481,17 +481,17 @@ function applyFilters() {
     const categoryFilter = document.getElementById('categoryFilter').value;
     const statusFilter = document.getElementById('statusFilter').value;
     const rows = document.querySelectorAll('#vehiclesTable tbody tr');
-    
+
     rows.forEach(row => {
         const name = row.getAttribute('data-name') || '';
         const category = row.getAttribute('data-category') || '';
         const status = row.getAttribute('data-status') || '';
-        
+
         let show = true;
         if (searchTerm && !name.includes(searchTerm)) show = false;
         if (categoryFilter && category !== categoryFilter) show = false;
         if (statusFilter && status !== statusFilter) show = false;
-        
+
         row.style.display = show ? '' : 'none';
     });
 }

@@ -6,7 +6,42 @@ require_once 'config/database.php';
 require_once 'includes/invoice-mailer.php';
 
 // Get invoices from database
-$invoices = $pdo->query("SELECT * FROM invoices ORDER BY created_at DESC")->fetchAll();
+$stmtInvoices = $pdo->query("
+    SELECT
+        i.*,
+        b.booking_number,
+        b.event_name,
+        b.event_date,
+        b.start_time,
+        b.end_time,
+        b.pickup_location,
+        b.dropoff_location,
+        v.name AS vehicle_name,
+        v.model AS vehicle_model,
+        v.license_plate AS vehicle_plate
+    FROM invoices i
+    LEFT JOIN bookings b ON i.booking_id = b.id
+    LEFT JOIN vehicles v ON b.vehicle_id = v.id
+    ORDER BY i.created_at DESC
+");
+$invoices = $stmtInvoices->fetchAll();
+
+$invoiceItemsMap = [];
+if (!empty($invoices)) {
+    $invoiceIds = array_column($invoices, 'id');
+    $placeholders = implode(',', array_fill(0, count($invoiceIds), '?'));
+    $stmtItems = $pdo->prepare("SELECT * FROM invoice_items WHERE invoice_id IN ($placeholders) ORDER BY id ASC");
+    $stmtItems->execute($invoiceIds);
+
+    foreach ($stmtItems->fetchAll() as $item) {
+        $invoiceItemsMap[$item['invoice_id']][] = $item;
+    }
+
+    foreach ($invoices as &$invoice) {
+        $invoice['items'] = $invoiceItemsMap[$invoice['id']] ?? [];
+    }
+    unset($invoice);
+}
 
 // Calculate totals
 $total_revenue = $pdo->query("SELECT COALESCE(SUM(total_amount), 0) FROM invoices WHERE status = 'paid'")->fetchColumn();
@@ -20,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $amount = floatval($_POST['amount']);
         $tax = $amount * 0.10;
         $total_amount = $amount + $tax;
-        
+
         $stmt = $pdo->prepare("INSERT INTO invoices (invoice_number, client_name, client_email, amount, tax, total_amount, status, issue_date, due_date, description) VALUES (?, ?, ?, ?, ?, ?, 'pending', CURDATE(), ?, ?)");
         $stmt->execute([
             $invoice_number,
@@ -32,28 +67,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_POST['due_date'],
             $_POST['description']
         ]);
-        
+
         $_SESSION['message'] = 'Invoice created successfully!';
         header('Location: billing.php');
         exit();
     }
-    
-    if (isset($_POST['send_invoice'])) {
-        $stmt = $pdo->prepare('SELECT * FROM invoices WHERE id = ?');
-        $stmt->execute([$_POST['invoice_id']]);
-        $invoice = $stmt->fetch();
 
-        if (!$invoice) {
-            $_SESSION['error'] = 'Invoice not found.';
-        } elseif (emailBookingInvoice($pdo, $invoice)) {
-            $_SESSION['message'] = 'Invoice emailed to customer!';
-        } else {
-            $_SESSION['error'] = 'Email delivery failed. Please configure the PHP mail server and try again.';
-        }
-        header('Location: billing.php');
-        exit();
-    }
-    
     if (isset($_POST['mark_paid'])) {
         $stmt = $pdo->prepare("UPDATE invoices SET status = 'paid' WHERE id = ?");
         $stmt->execute([$_POST['invoice_id']]);
@@ -101,10 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="card-3d p-6 bg-white" style="--card-accent: #0b6b6d;">
                 <div>
                     <p class="text-sm text-gray-500 uppercase">Total Revenue</p>
-                    <div style="line-height: 1.1;">
-                        <div class="text-xs font-medium text-gray-600">LKR</div>
-                        <div class="kpi-value"><?php echo number_format($total_revenue, 2); ?></div>
-                    </div>
+                    <div class="kpi-value">LKR <?php echo number_format($total_revenue, 2); ?></div>
                     <div class="text-xs text-green-600 mt-1">Paid invoices</div>
                 </div>
                 <div class="card-icon" style="background:var(--card-accent,#0b6b6d)"><span class="material-symbols-outlined">payments</span></div>
@@ -112,10 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="card-3d p-6 bg-white" style="--card-accent: #b36b2a;">
                 <div>
                     <p class="text-sm text-gray-500 uppercase">Outstanding</p>
-                    <div style="line-height: 1.1;">
-                        <div class="text-xs font-medium text-gray-600">LKR</div>
-                        <div class="kpi-value"><?php echo number_format($outstanding, 2); ?></div>
-                    </div>
+                    <div class="kpi-value">LKR <?php echo number_format($outstanding, 2); ?></div>
                     <div class="text-xs text-[#f59e0b] mt-1">Pending or overdue</div>
                 </div>
                 <div class="card-icon" style="background:var(--card-accent,#b36b2a)"><span class="material-symbols-outlined">receipt_long</span></div>
@@ -146,29 +159,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <p class="font-bold text-gray-900">#<?php echo $invoice['invoice_number']; ?> - <?php echo $invoice['client_name']; ?></p>
                             <p class="text-xs text-gray-500"><?php echo date('M d, Y', strtotime($invoice['issue_date'])); ?></p>
                         </div>
-                        <span class="px-2 py-1 text-xs rounded-full <?php 
-                            echo $invoice['status'] == 'paid' ? 'bg-green-100 text-green-700' : 
-                                ($invoice['status'] == 'pending' ? 'bg-yellow-100 text-yellow-700' : 
+                        <span class="px-2 py-1 text-xs rounded-full <?php
+                            echo $invoice['status'] == 'paid' ? 'bg-green-100 text-green-700' :
+                                ($invoice['status'] == 'pending' ? 'bg-yellow-100 text-yellow-700' :
                                 ($invoice['status'] == 'overdue' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700')); ?>">
                             <?php echo ucfirst($invoice['status']); ?>
                         </span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-xl font-bold text-gray-900">LKR <?php echo number_format($invoice['total_amount'], 2); ?></span>
-                        <div class="flex gap-2">
+                        <div class="flex flex-wrap justify-end gap-2">
                             <?php if ($invoice['status'] != 'paid'): ?>
-                            <button onclick="markAsPaid(<?php echo $invoice['id']; ?>)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-green-50 text-green-600 hover:bg-green-100" title="Mark as Paid">
-                                <span class="material-symbols-outlined text-lg">check_circle</span>
+                            <button type="button" onclick="markAsPaid(<?php echo $invoice['id']; ?>)" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-green-50 text-green-700 border border-green-200 hover:bg-green-100 transition font-semibold text-sm shadow-sm" title="Mark as Paid" aria-label="Mark invoice <?php echo htmlspecialchars($invoice['invoice_number']); ?> as paid">
+                                <span class="material-symbols-outlined text-xl leading-none">check_circle</span>
+                                <span>Mark Paid</span>
                             </button>
                             <?php endif; ?>
-                            <button onclick="sendInvoice(<?php echo $invoice['id']; ?>)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200" title="Send Invoice">
-                                <span class="material-symbols-outlined text-lg">send</span>
+
+                            <button type="button" onclick="downloadPDF('<?php echo $invoice['invoice_number']; ?>')" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition font-semibold text-sm shadow-sm" title="Download PDF" aria-label="Download PDF invoice <?php echo htmlspecialchars($invoice['invoice_number']); ?>">
+                                <span class="material-symbols-outlined text-xl leading-none">picture_as_pdf</span>
+                                <span>Download PDF</span>
                             </button>
-                            <button onclick="downloadPDF('<?php echo $invoice['invoice_number']; ?>')" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200" title="Download PDF">
-                                <span class="material-symbols-outlined text-lg">picture_as_pdf</span>
-                            </button>
-                            <button onclick="viewInvoiceDetails(<?php echo $invoice['id']; ?>)" class="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200" title="View Details">
-                                <span class="material-symbols-outlined text-lg">visibility</span>
+                            <button type="button" onclick="viewInvoiceDetails(<?php echo $invoice['id']; ?>)" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-sm shadow-sm" title="View Details" aria-label="View invoice <?php echo htmlspecialchars($invoice['invoice_number']); ?> details">
+                                <span class="material-symbols-outlined text-xl leading-none">visibility</span>
+                                <span>View Details</span>
                             </button>
                         </div>
                     </div>
@@ -215,20 +229,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 </div>
 
-<!-- Send Modal -->
-<div id="sendModal" class="modal">
-    <div class="modal-content mx-4">
-        <div class="p-6 border-b">
-            <h3 class="text-xl font-bold">Send Invoice</h3>
-        </div>
-        <form method="POST" class="p-6">
-            <input type="hidden" name="invoice_id" id="sendInvoiceId">
-            <p class="text-gray-600">Send this invoice to the customer?</p>
-            <div class="flex gap-3">
-                <button type="submit" name="send_invoice" class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">Send Now</button>
-                <button type="button" onclick="closeModals()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300">Cancel</button>
+<!-- Invoice Details Modal -->
+<div id="invoiceDetailsModal" class="modal">
+    <div class="modal-content mx-4 max-w-4xl">
+        <div class="p-6 border-b flex items-center justify-between gap-4">
+            <div>
+                <h3 class="text-xl font-bold">Invoice Details</h3>
+                <p id="invoiceDetailsNumber" class="text-sm text-gray-500 mt-1"></p>
             </div>
-        </form>
+            <button type="button" onclick="closeInvoiceDetailsModal()" class="text-gray-500 hover:text-gray-700" aria-label="Close invoice details">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        <div id="invoiceDetailsBody" class="p-6 space-y-6 max-h-[75vh] overflow-y-auto"></div>
+        <div class="p-6 border-t border-gray-100 flex flex-col sm:flex-row gap-3">
+            <button type="button" id="invoiceDetailsPdfBtn" class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-red-50 text-red-700 border border-red-200 hover:bg-red-100 transition font-semibold text-sm shadow-sm">
+                <span class="material-symbols-outlined text-xl leading-none">picture_as_pdf</span>
+                <span>Download PDF</span>
+            </button>
+            <button type="button" onclick="closeInvoiceDetailsModal()" class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 transition font-semibold text-sm shadow-sm">
+                <span class="material-symbols-outlined text-xl leading-none">close</span>
+                <span>Close</span>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -250,6 +273,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
 
 <script>
+const invoiceDetailsMap = <?php echo json_encode(array_column($invoices, null, 'id'), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+
 document.getElementById('searchInvoices')?.addEventListener('keyup', function(e) {
     const term = e.target.value.toLowerCase();
     document.querySelectorAll('.invoice-item').forEach(item => {
@@ -258,10 +283,6 @@ document.getElementById('searchInvoices')?.addEventListener('keyup', function(e)
     });
 });
 
-function sendInvoice(id) {
-    document.getElementById('sendInvoiceId').value = id;
-    document.getElementById('sendModal').style.display = 'block';
-}
 
 function markAsPaid(id) {
     document.getElementById('paidInvoiceId').value = id;
@@ -272,8 +293,150 @@ function downloadPDF(invoiceNumber) {
     window.open('../user-site/public/invoice-print.php?number=' + encodeURIComponent(invoiceNumber), '_blank');
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function formatCurrency(amount) {
+    const numericValue = Number(amount || 0);
+    return 'LKR ' + numericValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function formatDate(dateString) {
+    if (!dateString) {
+        return '—';
+    }
+
+    const date = new Date(dateString + 'T00:00:00');
+    if (Number.isNaN(date.getTime())) {
+        return escapeHtml(dateString);
+    }
+
+    return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatTimeRange(startTime, endTime) {
+    if (!startTime && !endTime) {
+        return '—';
+    }
+
+    const cleanStart = startTime ? String(startTime).slice(0, 5) : '—';
+    const cleanEnd = endTime ? String(endTime).slice(0, 5) : '—';
+    return cleanStart + ' - ' + cleanEnd;
+}
+
 function viewInvoiceDetails(invoiceId) {
-    alert('Viewing details for invoice #' + invoiceId);
+    const invoice = invoiceDetailsMap[invoiceId];
+    if (!invoice) {
+        window.alert('Invoice details could not be loaded.');
+        return;
+    }
+
+    const items = Array.isArray(invoice.items) ? invoice.items : [];
+    const itemsHtml = items.length
+        ? items.map(item => `
+            <tr class="border-t border-gray-100">
+                <td class="px-4 py-3 text-sm text-gray-800">${escapeHtml(item.description || '')}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 text-center">${escapeHtml(item.quantity || 1)}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 text-right">${formatCurrency(item.unit_price)}</td>
+                <td class="px-4 py-3 text-sm font-semibold text-gray-900 text-right">${formatCurrency(item.total)}</td>
+            </tr>
+        `).join('')
+        : `
+            <tr class="border-t border-gray-100">
+                <td colspan="4" class="px-4 py-6 text-center text-sm text-gray-500">No invoice items were added for this invoice.</td>
+            </tr>
+        `;
+
+    document.getElementById('invoiceDetailsNumber').textContent = invoice.invoice_number ? '#' + invoice.invoice_number : 'Invoice Details';
+    document.getElementById('invoiceDetailsBody').innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5">
+                <h4 class="text-xs uppercase tracking-wider font-semibold text-gray-500 mb-3">Billing Information</h4>
+                <div class="space-y-2 text-sm text-gray-700">
+                    <p><span class="font-semibold text-gray-900">Client:</span> ${escapeHtml(invoice.client_name || '—')}</p>
+                    <p><span class="font-semibold text-gray-900">Email:</span> ${escapeHtml(invoice.client_email || '—')}</p>
+                    <p><span class="font-semibold text-gray-900">Status:</span> ${escapeHtml(invoice.status || '—')}</p>
+                    <p><span class="font-semibold text-gray-900">Issue Date:</span> ${formatDate(invoice.issue_date)}</p>
+                    <p><span class="font-semibold text-gray-900">Due Date:</span> ${formatDate(invoice.due_date)}</p>
+                </div>
+            </div>
+            <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5">
+                <h4 class="text-xs uppercase tracking-wider font-semibold text-gray-500 mb-3">Booking Information</h4>
+                <div class="space-y-2 text-sm text-gray-700">
+                    <p><span class="font-semibold text-gray-900">Booking Ref:</span> ${escapeHtml(invoice.booking_number || '—')}</p>
+                    <p><span class="font-semibold text-gray-900">Event:</span> ${escapeHtml(invoice.event_name || 'Private Rental')}</p>
+                    <p><span class="font-semibold text-gray-900">Event Date:</span> ${formatDate(invoice.event_date)}</p>
+                    <p><span class="font-semibold text-gray-900">Time:</span> ${escapeHtml(formatTimeRange(invoice.start_time, invoice.end_time))}</p>
+                    <p><span class="font-semibold text-gray-900">Vehicle:</span> ${escapeHtml(invoice.vehicle_name || '—')}${invoice.vehicle_model ? ' (' + escapeHtml(invoice.vehicle_model) + ')' : ''}</p>
+                    <p><span class="font-semibold text-gray-900">Pickup:</span> ${escapeHtml(invoice.pickup_location || '—')}</p>
+                    <p><span class="font-semibold text-gray-900">Drop-off:</span> ${escapeHtml(invoice.dropoff_location || '—')}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h4 class="text-base font-semibold text-gray-900">Invoice Breakdown</h4>
+                    <p class="text-sm text-gray-500">Detailed line items and totals for this invoice.</p>
+                </div>
+                <div class="text-left sm:text-right">
+                    <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Total Amount</p>
+                    <p class="text-lg font-bold text-gray-900">${formatCurrency(invoice.total_amount)}</p>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                            <th class="px-4 py-3 text-left">Description</th>
+                            <th class="px-4 py-3 text-center">Qty</th>
+                            <th class="px-4 py-3 text-right">Unit Price</th>
+                            <th class="px-4 py-3 text-right">Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="rounded-2xl border border-gray-200 bg-slate-50 p-4">
+                <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Subtotal</p>
+                <p class="mt-2 text-lg font-bold text-gray-900">${formatCurrency(invoice.amount)}</p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-slate-50 p-4">
+                <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Tax</p>
+                <p class="mt-2 text-lg font-bold text-gray-900">${formatCurrency(invoice.tax)}</p>
+            </div>
+            <div class="rounded-2xl border border-gray-200 bg-slate-50 p-4">
+                <p class="text-xs uppercase tracking-wider text-gray-400 font-semibold">Grand Total</p>
+                <p class="mt-2 text-lg font-bold text-cyan-700">${formatCurrency(invoice.total_amount)}</p>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-5">
+            <h4 class="text-xs uppercase tracking-wider font-semibold text-gray-500 mb-3">Description</h4>
+            <p class="text-sm text-gray-700 whitespace-pre-line">${escapeHtml(invoice.description || 'No description available for this invoice.')}</p>
+        </div>
+    `;
+
+    const pdfButton = document.getElementById('invoiceDetailsPdfBtn');
+    pdfButton.onclick = function () {
+        downloadPDF(invoice.invoice_number);
+    };
+
+    document.getElementById('invoiceDetailsModal').style.display = 'block';
+}
+
+function closeInvoiceDetailsModal() {
+    document.getElementById('invoiceDetailsModal').style.display = 'none';
 }
 
 function openCreateInvoiceModal() {
@@ -286,8 +449,8 @@ function closeModal() {
 
 function closeModals() {
     document.getElementById('invoiceModal').style.display = 'none';
-    document.getElementById('sendModal').style.display = 'none';
     document.getElementById('paidModal').style.display = 'none';
+    document.getElementById('invoiceDetailsModal').style.display = 'none';
 }
 
 window.onclick = function(event) {

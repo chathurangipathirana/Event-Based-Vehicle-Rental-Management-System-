@@ -7,7 +7,7 @@ require_once 'config/database.php';
 // Get all bookings from database
 try {
     $bookings = $pdo->query("
-        SELECT 
+        SELECT
             b.*,
             v.name as vehicle_name,
             u.full_name as client_name,
@@ -44,7 +44,7 @@ try {
 
 try {
     $completion_rate = $pdo->query("
-        SELECT ROUND((COUNT(CASE WHEN status = 'completed' THEN 1 END) / NULLIF(COUNT(*), 0)) * 100, 1) 
+        SELECT ROUND((COUNT(CASE WHEN status = 'completed' THEN 1 END) / NULLIF(COUNT(*), 0)) * 100, 1)
         FROM bookings WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
     ")->fetchColumn();
 } catch(PDOException $e) {
@@ -85,10 +85,7 @@ try {
                             <span class="material-symbols-outlined text-sm">calendar_month</span>
                             Date Range
                         </button>
-                        <button onclick="exportBookings()" class="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-cyan-500 text-white text-sm font-semibold hover:bg-cyan-400 transition-all">
-                            <span class="material-symbols-outlined text-sm">download</span>
-                            Export
-                        </button>
+
                     </div>
                 </div>
             </div>
@@ -220,7 +217,7 @@ try {
                                     <div class="flex flex-col gap-1 text-slate-600">
                                         <span class="text-sm"><?php echo $booking['event_date'] ? date('M d, Y', strtotime($booking['event_date'])) : 'N/A'; ?></span>
                                         <span class="text-xs text-slate-500">
-                                            <?php echo $booking['start_time'] ? date('g:i A', strtotime($booking['start_time'])) : '--'; ?> - 
+                                            <?php echo $booking['start_time'] ? date('g:i A', strtotime($booking['start_time'])) : '--'; ?> -
                                             <?php echo $booking['end_time'] ? date('g:i A', strtotime($booking['end_time'])) : '--'; ?>
                                         </span>
                                     </div>
@@ -353,9 +350,6 @@ function filterByDate() {
     alert('Date range filter would open a date picker');
 }
 
-function exportBookings() {
-    exportElementAsPDF('main', 'bookings-report.pdf');
-}
 </script>
 
 <?php require_once 'includes/footer.php'; ?>

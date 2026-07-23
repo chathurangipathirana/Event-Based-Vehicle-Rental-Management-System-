@@ -7,7 +7,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         <div class="text-lg font-bold text-white">Vehicle Manager</div>
         <div class="text-xs text-slate-400 uppercase tracking-wider">Operational Excellence</div>
     </div>
-    
+
     <nav class="flex-1 space-y-1">
         <a href="dashboard.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'dashboard.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1">
             <span class="material-symbols-outlined mr-3">dashboard</span>
@@ -49,8 +49,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <span class="material-symbols-outlined mr-3">insert_chart</span>
             Analytics
         </a>
+        <a href="analytics-report.php" class="flex items-center px-6 py-3 <?php echo $current_page == 'analytics-report.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-slate-300 hover:bg-slate-800 hover:text-white'; ?> transition-all active:translate-x-1">
+            <span class="material-symbols-outlined mr-3">assessment</span>
+            Reports
+        </a>
     </nav>
-    
+
     <div class="px-4 py-6 border-t border-white/10">
         <a href="settings.php" class="flex items-center px-4 py-2 <?php echo $current_page == 'settings.php' ? 'bg-slate-800 text-white font-semibold border-r-4 border-cyan-500' : 'text-white/70 hover:bg-white/5 hover:text-white'; ?> rounded-lg transition-all active:translate-x-1">
             <span class="material-symbols-outlined mr-3">settings</span>

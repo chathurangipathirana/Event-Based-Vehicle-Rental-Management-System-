@@ -10,7 +10,7 @@ $error = '';
 // Handle POST actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $action = $_POST['action'] ?? '';
-    
+
     if ($action === 'save') {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
         $name = trim($_POST['name'] ?? '');
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['error'] = 'Invalid image file type. Allowed: JPG, PNG, GIF, WEBP.';
             }
         }
-        
+
         if (empty($name)) {
             $_SESSION['error'] = 'Package Name is required.';
         } else {
@@ -65,15 +65,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     $stmt = $pdo->prepare("\
-                        UPDATE event_packages 
-                        SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, status = ?, image_url = ? 
+                        UPDATE event_packages
+                        SET name = ?, description = ?, base_price = ?, included_services = ?, vehicle_types = ?, status = ?, image_url = ?
                         WHERE id = ?
                     ");
                     $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $image_url, $id]);
                     $_SESSION['message'] = 'Package updated successfully!';
                 } else {
                     $stmt = $pdo->prepare("\
-                        INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status, image_url) 
+                        INSERT INTO event_packages (name, description, base_price, included_services, vehicle_types, status, image_url)
                         VALUES (?, ?, ?, ?, ?, ?, ?)
                     ");
                     $stmt->execute([$name, $description, $price, $services, $vehicles, $status, $image_url]);
@@ -105,11 +105,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $packages = [];
 try {
     $packages = $pdo->query("
-        SELECT *, 
-               base_price as price, 
-               included_services as services, 
-               vehicle_types as vehicles 
-        FROM event_packages 
+        SELECT *,
+               base_price as price,
+               included_services as services,
+               vehicle_types as vehicles
+        FROM event_packages
         ORDER BY id DESC
     ")->fetchAll();
 } catch(PDOException $e) {
@@ -135,7 +135,7 @@ $default_package_image = '../user-site/public/assets/vehicles/toyota-premio.png'
 
 function getPackageImageUrl(array $package): string {
     $image_url = trim($package['image_url'] ?? '');
-    
+
     if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
         if (file_exists(__DIR__ . '/' . $image_url)) {
             return $image_url;
@@ -147,7 +147,7 @@ function getPackageImageUrl(array $package): string {
 
     $name = strtolower(trim($package['name'] ?? ''));
     $desc = strtolower(trim($package['description'] ?? ''));
-    
+
     if (str_contains($name, 'wedding') || str_contains($desc, 'wedding') || str_contains($name, 'kandyan')) {
         return '../user-site/public/assets/vehicles/toyota-premio.png';
     }
@@ -279,7 +279,7 @@ if (empty($packages)) {
                 <div class="h-48 relative overflow-hidden bg-gray-100 flex items-center justify-center">
                     <img src="<?php echo htmlspecialchars($pkgImage); ?>" alt="<?php echo htmlspecialchars($package['name']); ?>" class="w-full h-full object-cover" onerror="this.onerror=null;this.src='<?php echo htmlspecialchars($default_package_image, ENT_QUOTES); ?>'">
                     <div class="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded text-sm text-red-600 shadow-sm">
-                        LKR <?php echo number_format($package['price'], 0); ?>/BASE
+                        LKR <?php echo number_format($package['price'], 2); ?>/BASE
                     </div>
                 </div>
                 <div class="p-6 flex-1 flex flex-col">
@@ -544,13 +544,13 @@ function editPackage(pkg) {
     document.getElementById('pkgServices').value = pkg.services;
     document.getElementById('pkgVehicles').value = pkg.vehicles;
     document.getElementById('pkgStatus').value = pkg.status;
-    
+
     document.getElementById('quickId').value = pkg.id;
     document.getElementById('quickName').value = pkg.name;
     document.getElementById('quickPrice').value = pkg.price;
     document.getElementById('quickDesc').value = pkg.description;
     document.getElementById('quickStatus').value = pkg.status;
-    
+
     document.getElementById('modalDeleteBtn').style.display = 'block';
     document.getElementById('packageModal').style.display = 'block';
 }
@@ -560,19 +560,19 @@ function deletePackage(id) {
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = 'packages.php';
-        
+
         const actionInput = document.createElement('input');
         actionInput.type = 'hidden';
         actionInput.name = 'action';
         actionInput.value = 'delete';
         form.appendChild(actionInput);
-        
+
         const idInput = document.createElement('input');
         idInput.type = 'hidden';
         idInput.name = 'id';
         idInput.value = id;
         form.appendChild(idInput);
-        
+
         document.body.appendChild(form);
         form.submit();
     }
@@ -581,15 +581,15 @@ function deletePackage(id) {
 function viewDetails(pkg) {
     document.getElementById('detailsName').innerText = pkg.name;
     document.getElementById('detailsStatus').innerText = pkg.status.toUpperCase();
-    
+
     const statusEl = document.getElementById('detailsStatus');
-    statusEl.className = 'inline-block mt-2 px-2 py-1 text-xs rounded-full uppercase font-semibold ' + 
+    statusEl.className = 'inline-block mt-2 px-2 py-1 text-xs rounded-full uppercase font-semibold ' +
         (pkg.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700');
-        
+
     document.getElementById('detailsPrice').innerText = 'LKR ' + parseFloat(pkg.price).toLocaleString(undefined, {minimumFractionDigits: 2});
     document.getElementById('detailsDesc').innerText = pkg.description || 'No description provided.';
     document.getElementById('detailsVehicles').innerText = pkg.vehicles || 'None specified.';
-    
+
     const servicesList = document.getElementById('detailsServices');
     servicesList.innerHTML = '';
     if (pkg.services) {
@@ -601,12 +601,12 @@ function viewDetails(pkg) {
     } else {
         servicesList.innerHTML = '<li class="italic text-gray-400">No services specified.</li>';
     }
-    
+
     document.getElementById('detailsEditBtn').onclick = function() {
         closeDetailsModal();
         editPackage(pkg);
     };
-    
+
     document.getElementById('detailsModal').style.display = 'block';
 }
 

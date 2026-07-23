@@ -6,7 +6,7 @@ require_once 'config/database.php';
 
 function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): string {
     $name = strtolower(trim($vehicleName));
-    
+
     $map = [
         'axio' => '../user-site/public/assets/vehicles/toyota-axio.png',
         'premio' => '../user-site/public/assets/vehicles/toyota-premio.png',
@@ -15,13 +15,13 @@ function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): 
         'sunny' => '../user-site/public/assets/vehicles/nissan-sunny.png',
         'wagon' => '../user-site/public/assets/vehicles/suzuki-wagonr.png',
     ];
-    
+
     foreach ($map as $key => $path) {
         if (str_contains($name, $key)) {
             return $path;
         }
     }
-    
+
     if (!empty($image_url) && !str_starts_with($image_url, 'http')) {
         return '../user-site/public/' . ltrim($image_url, '/');
     }
@@ -31,8 +31,8 @@ function getAdminVehicleImageUrl(?string $image_url, string $vehicleName = ''): 
 
 try {
     $vehicles = $pdo->query("
-        SELECT id, name, model, license_plate as plate, price_per_day as price, status, category, image_url 
-        FROM vehicles 
+        SELECT id, name, model, license_plate as plate, price_per_day as price, status, category, image_url
+        FROM vehicles
         ORDER BY id ASC
     ")->fetchAll();
 } catch (PDOException $e) {
@@ -171,13 +171,13 @@ $maintenance_count = count(array_filter($vehicles, fn($v) => $v['status'] == 'ma
                     <div>
                         <div class="flex justify-between items-start">
                             <h3 class="text-lg font-bold text-gray-900"><?php echo htmlspecialchars($vehicle['name']); ?></h3>
-                            <span class="text-red-600 font-bold text-lg">LKR <?php echo number_format($vehicle['price']); ?><span class="text-xs text-gray-500">/day</span></span>
+                            <span class="text-red-600 font-bold text-lg">LKR <?php echo number_format($vehicle['price'], 2); ?><span class="text-xs text-gray-500">/day</span></span>
                         </div>
                         <p class="text-sm text-gray-500"><?php echo htmlspecialchars($vehicle['model']); ?></p>
                     </div>
                     <div class="flex items-center justify-between mt-2">
-                        <span class="px-2.5 py-1 rounded-md text-xs font-bold 
-                            <?php echo $vehicle['status'] == 'available' ? 'bg-green-50 text-green-700' : 
+                        <span class="px-2.5 py-1 rounded-md text-xs font-bold
+                            <?php echo $vehicle['status'] == 'available' ? 'bg-green-50 text-green-700' :
                                 ($vehicle['status'] == 'booked' ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'); ?> border uppercase">
                             <?php echo ucfirst($vehicle['status']); ?>
                         </span>
